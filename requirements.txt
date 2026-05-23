@@ -19,4 +19,5 @@ langchain-groq
 langchain-openrouter
 langchain-huggingface
 langchain-anthropic
+langchain-ollama
 
