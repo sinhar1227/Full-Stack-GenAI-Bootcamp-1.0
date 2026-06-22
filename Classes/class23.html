@@ -1,0 +1,2478 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class 23 — Preference Alignment (RLHF / DPO) | GenAI Bootcamp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #07090f;
+        --surface: #0d1120;
+        --card: #121829;
+        --border: #1c2640;
+        --accent: #a78bfa; /* violet — preference / alignment */
+        --accent2: #38bdf8; /* sky blue — reward / DPO */
+        --accent3: #34d399; /* emerald — chosen/good */
+        --accent4: #f59e0b; /* amber — warning */
+        --accent5: #f87171; /* red — rejected/bad */
+        --text: #e2e8f0;
+        --muted: #64748b;
+        --code-bg: #0f172a;
+        --code-border: #1e3a5f;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 15px;
+        line-height: 1.75;
+      }
+
+      /* ── PROGRESS BAR ── */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        z-index: 1000;
+        transition: width 0.1s;
+      }
+
+      /* ── SIDEBAR NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 220px;
+        height: 100vh;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        padding: 32px 20px;
+        overflow-y: auto;
+        z-index: 100;
+      }
+      nav h2 {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
+      nav ul {
+        list-style: none;
+      }
+      nav ul li {
+        margin-bottom: 6px;
+      }
+      nav ul li a {
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-decoration: none;
+        display: block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border-left: 2px solid transparent;
+        transition: all 0.15s;
+      }
+      nav ul li a:hover,
+      nav ul li a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: rgba(167, 139, 250, 0.07);
+      }
+      nav ul li.sub a {
+        padding-left: 18px;
+        font-size: 0.72rem;
+      }
+
+      /* ── MAIN ── */
+      main {
+        margin-right: 220px;
+        max-width: 860px;
+        padding: 0 48px 100px 64px;
+      }
+
+      /* ── HERO ── */
+      .hero {
+        padding: 80px 0 60px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 60px;
+      }
+      .breadcrumb {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        margin-bottom: 24px;
+      }
+      .breadcrumb span {
+        color: var(--accent);
+      }
+      .breadcrumb a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .hero-class-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .hero h1 {
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 700;
+        line-height: 1.15;
+        color: #fff;
+        margin-bottom: 18px;
+      }
+      .hero h1 em {
+        font-style: normal;
+        background: linear-gradient(
+          90deg,
+          var(--accent) 0%,
+          var(--accent2) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+      }
+      .meta-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 4px 12px;
+        border-radius: 20px;
+      }
+      .meta-chip .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+      }
+      .hero-summary {
+        font-size: 1rem;
+        color: #94a3b8;
+        max-width: 640px;
+        line-height: 1.7;
+        border-left: 3px solid var(--accent);
+        padding-left: 18px;
+      }
+
+      /* ── SECTIONS ── */
+      section {
+        margin-bottom: 64px;
+        scroll-margin-top: 32px;
+      }
+      .section-eyebrow {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 12px;
+      }
+      section h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      section h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 28px 0 10px;
+      }
+      section p {
+        color: #94a3b8;
+        margin-bottom: 14px;
+      }
+
+      /* ── CALLOUTS ── */
+      .callout {
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .callout-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .callout p {
+        margin: 0;
+        font-size: 0.875rem;
+      }
+      .callout.info {
+        background: rgba(167, 139, 250, 0.08);
+        border: 1px solid rgba(167, 139, 250, 0.25);
+      }
+      .callout.tip {
+        background: rgba(52, 211, 153, 0.08);
+        border: 1px solid rgba(52, 211, 153, 0.25);
+      }
+      .callout.warn {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+      }
+      .callout.blue {
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+      }
+      .callout.info p {
+        color: #c4b5fd;
+      }
+      .callout.tip p {
+        color: var(--accent3);
+      }
+      .callout.warn p {
+        color: var(--accent4);
+      }
+      .callout.blue p {
+        color: #7dd3fc;
+      }
+
+      /* ── COMPARISON TABLE ── */
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.85rem;
+      }
+      .compare-table th {
+        background: var(--card);
+        color: var(--text);
+        font-weight: 600;
+        padding: 12px 16px;
+        text-align: left;
+        border: 1px solid var(--border);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+      }
+      .compare-table td {
+        padding: 10px 16px;
+        border: 1px solid var(--border);
+        color: #94a3b8;
+        vertical-align: top;
+      }
+      .compare-table tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .compare-table .yes {
+        color: var(--accent3);
+        font-weight: 500;
+      }
+      .compare-table .no {
+        color: #f87171;
+      }
+      .compare-table .mid {
+        color: var(--accent4);
+      }
+
+      /* ── PIPELINE STEPS ── */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        position: relative;
+      }
+      .steps::before {
+        content: "";
+        position: absolute;
+        left: 22px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--accent), var(--accent2));
+      }
+      .step {
+        display: flex;
+        gap: 20px;
+        padding: 0 0 32px 0;
+        position: relative;
+      }
+      .step-num {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--card);
+        border: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent);
+        flex-shrink: 0;
+        z-index: 1;
+      }
+      .step-body {
+        flex: 1;
+        padding-top: 10px;
+      }
+      .step-body h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 6px;
+      }
+      .step-body p {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin: 0;
+      }
+
+      /* ── CODE BLOCKS ── */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--code-border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin: 20px 0;
+        overflow-x: auto;
+        position: relative;
+      }
+      .code-block .lang-label {
+        position: absolute;
+        top: 10px;
+        right: 14px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.6rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      pre {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        line-height: 1.65;
+        color: #e2e8f0;
+        white-space: pre;
+      }
+      .kw {
+        color: #c084fc;
+      }
+      .fn {
+        color: #67e8f9;
+      }
+      .str {
+        color: #6ee7b7;
+      }
+      .cm {
+        color: #475569;
+        font-style: italic;
+      }
+      .num {
+        color: #f59e0b;
+      }
+      .cls {
+        color: #a78bfa;
+      }
+      .tag {
+        color: #38bdf8;
+      }
+
+      /* ── PREFERENCE PAIR CARD ── */
+      .pref-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .pref-card {
+        background: var(--code-bg);
+        border-radius: 8px;
+        padding: 16px;
+        overflow-x: auto;
+      }
+      .pref-card.chosen {
+        border: 1px solid rgba(52, 211, 153, 0.4);
+      }
+      .pref-card.rejected {
+        border: 1px solid rgba(248, 113, 113, 0.4);
+      }
+      .pref-card .pref-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      .pref-card.chosen .pref-label {
+        color: var(--accent3);
+      }
+      .pref-card.rejected .pref-label {
+        color: var(--accent5);
+      }
+      .pref-card pre {
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+      }
+
+      /* ── FORMAT CARDS ── */
+      .format-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .format-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+      .format-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .format-card .badge {
+        display: inline-block;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .format-card h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+      .format-card p {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0 0 12px;
+        line-height: 1.55;
+      }
+      .format-card .pros {
+        font-size: 0.75rem;
+        color: var(--accent3);
+      }
+      .format-card .cons {
+        font-size: 0.75rem;
+        color: #f87171;
+      }
+
+      /* ── REWARD DIAGRAM ── */
+      .reward-diagram {
+        background: var(--code-bg);
+        border: 1px solid var(--code-border);
+        border-radius: 8px;
+        padding: 24px;
+        margin: 20px 0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+      }
+
+      /* ── CHECKLIST ── */
+      .checklist {
+        list-style: none;
+        margin: 16px 0;
+      }
+      .checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.875rem;
+        color: #94a3b8;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .checklist li:last-child {
+        border-bottom: none;
+      }
+      .checklist li .chk {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        background: rgba(167, 139, 250, 0.1);
+        border: 1px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        color: var(--accent);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      /* ── KEY TERMS ── */
+      .key-terms {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--accent);
+        border-radius: 8px;
+        padding: 20px;
+        margin: 24px 0;
+      }
+      .key-terms h4 {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.65rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 14px;
+      }
+      .term {
+        margin-bottom: 12px;
+      }
+      .term dt {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text);
+      }
+      .term dd {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-left: 0;
+      }
+
+      /* ── QUIZ ── */
+      .quiz-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 24px;
+        margin: 28px 0;
+      }
+      .quiz-block h3 {
+        margin-top: 0;
+        margin-bottom: 18px;
+        font-size: 0.95rem;
+        color: var(--accent2);
+      }
+      .quiz-q {
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .quiz-q:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .quiz-q p {
+        color: var(--text);
+        font-size: 0.875rem;
+        margin-bottom: 8px;
+      }
+      details summary {
+        font-size: 0.78rem;
+        color: var(--muted);
+        cursor: pointer;
+        font-family: "IBM Plex Mono", monospace;
+        letter-spacing: 0.05em;
+        user-select: none;
+      }
+      details summary:hover {
+        color: var(--accent);
+      }
+      details[open] summary {
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      details .answer {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        background: rgba(167, 139, 250, 0.05);
+        border-left: 2px solid var(--accent);
+        padding: 10px 14px;
+        border-radius: 0 4px 4px 0;
+      }
+
+      /* ── CONCEPT CARDS ── */
+      .concept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .concept-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+      .concept-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .concept-card .icon {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+      }
+      .concept-card h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 8px;
+      }
+      .concept-card p {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.55;
+      }
+
+      /* ── HYPERPARAM TABLE ── */
+      .hp-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.83rem;
+      }
+      .hp-table th {
+        background: var(--card);
+        color: var(--text);
+        padding: 10px 14px;
+        text-align: left;
+        border: 1px solid var(--border);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+      }
+      .hp-table td {
+        padding: 9px 14px;
+        border: 1px solid var(--border);
+        color: #94a3b8;
+      }
+      .hp-table tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .hp-table .val {
+        color: var(--accent3);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 32px 64px;
+        margin-right: 220px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      footer span {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.78rem;
+      }
+
+      @media (max-width: 820px) {
+        nav {
+          display: none;
+        }
+        main {
+          margin-right: 0;
+          padding: 0 20px 60px;
+        }
+        footer {
+          margin-right: 0;
+          padding: 24px 20px;
+        }
+        .pref-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
+
+    <!-- SIDEBAR NAV -->
+    <nav>
+      <h2>On This Page</h2>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#why-alignment">Why Alignment?</a></li>
+        <li class="sub"><a href="#sft-gap">The SFT Gap</a></li>
+        <li class="sub"><a href="#pipeline-position">Pipeline Position</a></li>
+        <li><a href="#concepts">Core Concepts</a></li>
+        <li class="sub"><a href="#reward-model">Reward Model</a></li>
+        <li class="sub"><a href="#preference-data">Preference Data</a></li>
+        <li><a href="#rlhf">RLHF Deep Dive</a></li>
+        <li class="sub"><a href="#rlhf-steps">RLHF Steps</a></li>
+        <li class="sub"><a href="#ppo">PPO Algorithm</a></li>
+        <li><a href="#dpo">DPO — Simpler Path</a></li>
+        <li class="sub"><a href="#dpo-math">DPO Objective</a></li>
+        <li class="sub"><a href="#rlhf-vs-dpo">RLHF vs DPO</a></li>
+        <li><a href="#dataset">Preference Datasets</a></li>
+        <li class="sub"><a href="#data-formats">Data Formats</a></li>
+        <li class="sub"><a href="#data-collection">Collection Methods</a></li>
+        <li><a href="#pipeline">Training Pipeline</a></li>
+        <li class="sub"><a href="#dpo-code">DPO with TRL</a></li>
+        <li class="sub"><a href="#eval">Evaluation</a></li>
+        <li><a href="#full-code">Full Code</a></li>
+        <li><a href="#tips">Tips & Pitfalls</a></li>
+        <li><a href="#quiz">Self-Check Quiz</a></li>
+        <li><a href="#resources">Resources</a></li>
+      </ul>
+    </nav>
+
+    <!-- MAIN -->
+    <main>
+      <!-- HERO -->
+      <div class="hero">
+        <div class="breadcrumb">
+          <a href="index.html">Full-Stack GenAI Bootcamp 1.0</a> &nbsp;/&nbsp;
+          <span>Class 23</span>
+        </div>
+        <div class="hero-class-num">Class 23 · 13 June 2026</div>
+        <h1>Preference<br /><em>Alignment (RLHF / DPO)</em></h1>
+        <div class="hero-meta">
+          <div class="meta-chip">
+            <span class="dot" style="background: var(--accent)"></span> RLHF
+          </div>
+          <div class="meta-chip">
+            <span class="dot" style="background: var(--accent2)"></span> DPO
+          </div>
+          <div class="meta-chip">
+            <span class="dot" style="background: var(--accent3)"></span> Reward
+            Modelling
+          </div>
+          <div class="meta-chip">
+            <span class="dot" style="background: var(--accent4)"></span>
+            Preference Data
+          </div>
+        </div>
+        <p class="hero-summary">
+          After SFT teaches a model <em>how to follow instructions</em>,
+          Preference Alignment teaches it <em>which responses are better</em>.
+          Using pairwise human preferences — chosen vs. rejected — techniques
+          like RLHF and DPO fine-tune the model to be more helpful, harmless,
+          and honest. This is the final step that transforms a capable assistant
+          into a safe, aligned one.
+        </p>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section id="overview">
+        <div class="section-eyebrow">01 — Overview</div>
+        <h2>What This Class Covers</h2>
+        <p>
+          Class 23 is the third and final stage of the core post-training
+          pipeline: CPT → SFT → Alignment. You have an instruction-following
+          model from Class 22. Now you want to teach it to prefer
+          <em>better</em> responses — to be more helpful, avoid harmful outputs,
+          and produce answers that humans actually prefer over alternatives.
+          This is what preference alignment accomplishes.
+        </p>
+
+        <ul class="checklist">
+          <li>
+            <span class="chk">✓</span> Understand why SFT alone is insufficient
+            and what the "alignment gap" is
+          </li>
+          <li>
+            <span class="chk">✓</span> Learn what preference (pairwise) data is
+            and how it differs from instruction data
+          </li>
+          <li>
+            <span class="chk">✓</span> Understand the full RLHF pipeline: reward
+            model training + PPO fine-tuning
+          </li>
+          <li>
+            <span class="chk">✓</span> Understand DPO (Direct Preference
+            Optimisation) as a simpler, more stable alternative
+          </li>
+          <li>
+            <span class="chk">✓</span> Know the key preference dataset formats
+            and where to source them
+          </li>
+          <li>
+            <span class="chk">✓</span> Run a DPO training loop using TRL's
+            <code>DPOTrainer</code> and Unsloth
+          </li>
+          <li>
+            <span class="chk">✓</span> Evaluate alignment quality using
+            win-rate, MT-Bench, and reward score metrics
+          </li>
+          <li>
+            <span class="chk">✓</span> Understand common alignment pitfalls:
+            reward hacking, over-refusal, and mode collapse
+          </li>
+        </ul>
+      </section>
+
+      <!-- WHY ALIGNMENT -->
+      <section id="why-alignment">
+        <div class="section-eyebrow">02 — Motivation</div>
+        <h2>Why Alignment — The Problem with SFT Alone</h2>
+
+        <p>
+          SFT teaches a model to follow instructions by imitation — it learns to
+          replicate the style and content of responses in the training dataset.
+          But imitation has a fundamental problem:
+          <strong
+            >it can't distinguish between two valid responses of different
+            quality</strong
+          >. If your dataset contains a mediocre answer and an excellent answer
+          to similar questions, SFT has no mechanism to prefer one over the
+          other.
+        </p>
+
+        <p>
+          More critically, SFT has no built-in mechanism to prevent harmful
+          outputs. A model trained purely by SFT will sometimes produce
+          responses that are technically on-topic but still harmful, biased, or
+          dishonest — because it's seen examples of all of these in its training
+          data.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="icon">⚖️</div>
+            <h4>Quality Discrimination</h4>
+            <p>
+              SFT treats all correct responses equally. Alignment teaches the
+              model that some responses are meaningfully better than others —
+              more accurate, more complete, safer.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🛡️</div>
+            <h4>Safety & Harmlessness</h4>
+            <p>
+              Alignment reduces the probability of harmful, toxic, or deceptive
+              outputs by directly penalising them via pairwise preference data
+              labelled by humans or strong AI judges.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🎯</div>
+            <h4>Human Preference Matching</h4>
+            <p>
+              What humans consider a "good" answer often can't be captured in
+              instruction data alone. Preference alignment encodes nuanced human
+              judgment at scale.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🔄</div>
+            <h4>Beyond Imitation</h4>
+            <p>
+              RLHF and DPO optimise the model with a signal that can be stronger
+              than any single demonstration — iterative improvement driven by
+              relative comparisons.
+            </p>
+          </div>
+        </div>
+
+        <h3 id="sft-gap">The SFT Gap — What's Missing</h3>
+        <p>
+          Consider this situation: you SFT a medical assistant model. Both these
+          responses might appear in your SFT dataset:
+        </p>
+
+        <div class="pref-grid">
+          <div class="pref-card chosen">
+            <div class="pref-label">✓ Better response</div>
+            <pre
+              style="color: #6ee7b7; font-size: 0.75rem; white-space: pre-wrap"
+            >
+"Ibuprofen and paracetamol work through different mechanisms, so can be safely alternated. Take ibuprofen with food to avoid stomach irritation. However, always consult your doctor for specific dosing advice, especially if you have kidney or liver conditions."</pre
+            >
+          </div>
+          <div class="pref-card rejected">
+            <div class="pref-label">✗ Worse response</div>
+            <pre
+              style="color: #f87171; font-size: 0.75rem; white-space: pre-wrap"
+            >
+"Yes, you can mix ibuprofen and paracetamol. They're both pain relievers and taking them together is fine."</pre
+            >
+          </div>
+        </div>
+
+        <p>
+          SFT learns from both equally. Preference alignment tells the model:
+          the first response is preferred. This relative signal is the core of
+          alignment training.
+        </p>
+
+        <h3 id="pipeline-position">Where Alignment Sits in the Pipeline</h3>
+
+        <div
+          style="
+            display: flex;
+            gap: 0;
+            margin: 24px 0;
+            align-items: stretch;
+            flex-wrap: wrap;
+          "
+        >
+          <div
+            style="
+              flex: 1;
+              min-width: 140px;
+              background: var(--card);
+              border: 1px solid var(--border);
+              border-radius: 10px 0 0 10px;
+              padding: 20px;
+              border-right: none;
+            "
+          >
+            <div
+              style="
+                font-family: &quot;IBM Plex Mono&quot;, monospace;
+                font-size: 0.6rem;
+                color: var(--muted);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              "
+            >
+              Stage 1
+            </div>
+            <div
+              style="
+                font-weight: 700;
+                color: #fff;
+                font-size: 0.95rem;
+                margin-bottom: 8px;
+              "
+            >
+              Pre-Training
+            </div>
+            <div style="font-size: 0.78rem; color: var(--muted)">
+              Trillions of tokens. Raw text. Teaches language and world
+              knowledge.
+            </div>
+          </div>
+          <div
+            style="
+              flex: 1;
+              min-width: 140px;
+              background: var(--card);
+              border: 1px solid var(--border);
+              border-radius: 0;
+              padding: 20px;
+              border-right: none;
+              border-left: none;
+            "
+          >
+            <div
+              style="
+                font-family: &quot;IBM Plex Mono&quot;, monospace;
+                font-size: 0.6rem;
+                color: var(--muted);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              "
+            >
+              Stage 2
+            </div>
+            <div
+              style="
+                font-weight: 700;
+                color: #fff;
+                font-size: 0.95rem;
+                margin-bottom: 8px;
+              "
+            >
+              SFT (Class 22)
+            </div>
+            <div style="font-size: 0.78rem; color: var(--muted)">
+              Thousands of instruction pairs. Teaches instruction following and
+              response format.
+            </div>
+          </div>
+          <div
+            style="
+              flex: 1;
+              min-width: 140px;
+              background: rgba(167, 139, 250, 0.1);
+              border: 1px solid var(--accent);
+              border-radius: 0 10px 10px 0;
+              padding: 20px;
+              border-left: none;
+            "
+          >
+            <div
+              style="
+                font-family: &quot;IBM Plex Mono&quot;, monospace;
+                font-size: 0.6rem;
+                color: var(--accent);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                margin-bottom: 8px;
+              "
+            >
+              Stage 3 ← You are here
+            </div>
+            <div
+              style="
+                font-weight: 700;
+                color: #fff;
+                font-size: 0.95rem;
+                margin-bottom: 8px;
+              "
+            >
+              Alignment (RLHF / DPO)
+            </div>
+            <div style="font-size: 0.78rem; color: var(--muted)">
+              Hundreds to thousands of preference pairs. Teaches helpfulness,
+              safety, honesty.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CORE CONCEPTS -->
+      <section id="concepts">
+        <div class="section-eyebrow">03 — Core Concepts</div>
+        <h2>Key Concepts You Need to Know</h2>
+
+        <div class="key-terms">
+          <h4>📖 Key Terminology</h4>
+          <div class="term">
+            <dt>Preference Alignment</dt>
+            <dd>
+              The process of fine-tuning a model to produce outputs that better
+              match human preferences, as expressed through pairwise comparisons
+              of (chosen, rejected) response pairs.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>RLHF (Reinforcement Learning from Human Feedback)</dt>
+            <dd>
+              A multi-stage pipeline: (1) collect preference data, (2) train a
+              reward model on preferences, (3) use RL (PPO) to optimise the
+              language model against the reward model.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>DPO (Direct Preference Optimisation)</dt>
+            <dd>
+              A simpler alternative to RLHF that skips the reward model
+              entirely. It directly optimises the LLM on preference pairs using
+              a classification-style loss, achieving similar results with much
+              greater stability.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>Reward Model (RM)</dt>
+            <dd>
+              A model trained to predict how much a human would prefer a given
+              response. Takes a (prompt, response) pair as input and outputs a
+              scalar reward score. Used in RLHF to generate training signal.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>Chosen / Rejected</dt>
+            <dd>
+              The two components of a preference pair. For a given prompt, the
+              "chosen" response is the one a human annotator preferred;
+              "rejected" is the one they preferred less.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>KL Divergence Penalty</dt>
+            <dd>
+              A regularisation term added during RLHF that prevents the aligned
+              model from drifting too far from the SFT reference model. Without
+              it, the model would find degenerate ways to maximise reward
+              (reward hacking).
+            </dd>
+          </div>
+          <div class="term">
+            <dt>PPO (Proximal Policy Optimisation)</dt>
+            <dd>
+              The RL algorithm used in the RLHF stage to update the language
+              model. Treats the LLM as a policy and the reward model score as
+              the environment signal.
+            </dd>
+          </div>
+          <div class="term">
+            <dt>β (Beta) in DPO</dt>
+            <dd>
+              The temperature parameter controlling how strongly DPO pushes the
+              model away from the reference model. Higher β = closer to
+              reference model; lower β = more aggressively prefers "chosen"
+              responses.
+            </dd>
+          </div>
+        </div>
+
+        <h3 id="reward-model">
+          The Reward Model — Teaching the Model to Judge
+        </h3>
+        <p>
+          In RLHF, before you can optimise the language model, you need
+          something to measure "how good is this response?" That's the reward
+          model. It's trained on the same preference data — pairs of (prompt,
+          chosen, rejected) — using a Bradley-Terry ranking loss:
+        </p>
+
+        <div class="reward-diagram">
+          <div
+            style="
+              font-size: 0.65rem;
+              color: var(--muted);
+              letter-spacing: 0.12em;
+              text-transform: uppercase;
+              margin-bottom: 14px;
+            "
+          >
+            Reward Model Training Signal
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              flex-wrap: wrap;
+              margin-bottom: 16px;
+            "
+          >
+            <div
+              style="
+                background: rgba(167, 139, 250, 0.12);
+                border: 1px solid rgba(167, 139, 250, 0.3);
+                border-radius: 6px;
+                padding: 10px 14px;
+                font-size: 0.75rem;
+                color: #c4b5fd;
+              "
+            >
+              Prompt: "Explain recursion"
+            </div>
+            <div style="color: var(--muted); font-size: 1.2rem">→</div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div
+                style="
+                  background: rgba(52, 211, 153, 0.12);
+                  border: 1px solid rgba(52, 211, 153, 0.3);
+                  border-radius: 6px;
+                  padding: 8px 14px;
+                  font-size: 0.75rem;
+                  color: #6ee7b7;
+                "
+              >
+                Response A (Chosen) → r = +2.4
+              </div>
+              <div
+                style="
+                  background: rgba(248, 113, 113, 0.12);
+                  border: 1px solid rgba(248, 113, 113, 0.3);
+                  border-radius: 6px;
+                  padding: 8px 14px;
+                  font-size: 0.75rem;
+                  color: #fca5a5;
+                "
+              >
+                Response B (Rejected) → r = −0.8
+              </div>
+            </div>
+            <div style="color: var(--muted); font-size: 1.2rem">→</div>
+            <div
+              style="
+                background: rgba(56, 189, 248, 0.12);
+                border: 1px solid rgba(56, 189, 248, 0.3);
+                border-radius: 6px;
+                padding: 10px 14px;
+                font-size: 0.75rem;
+                color: #7dd3fc;
+              "
+            >
+              Loss: −log σ(r<sub>chosen</sub> − r<sub>rejected</sub>)
+            </div>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--muted)">
+            The reward model learns to assign higher scalar scores to chosen
+            responses than rejected ones. After training, it can score any
+            (prompt, response) pair.
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <p>
+            <strong>Reward model architecture:</strong> Typically the same base
+            LLM as the policy model, but with the final language modelling head
+            replaced by a linear layer that outputs a single scalar. For
+            example, if you're aligning Llama-3-8B, your reward model is also
+            Llama-3-8B with a regression head. This ensures the reward model
+            "understands" the same language space as the model it's judging.
+          </p>
+        </div>
+
+        <h3 id="preference-data">Preference Data — The Core Training Signal</h3>
+        <p>
+          All preference alignment methods require the same fundamental input: a
+          dataset of triplets — (prompt, chosen_response, rejected_response).
+          The difference between RLHF and DPO is how they use this data, not
+          what data they need.
+        </p>
+
+        <div class="pref-grid">
+          <div class="pref-card chosen">
+            <div class="pref-label">chosen</div>
+            <pre><span class="cls">{</span>
+  <span class="str">"prompt"</span>: <span class="str">"What is photosynthesis?"</span>,
+  <span class="str">"chosen"</span>: <span class="str">"Photosynthesis is the process by which plants convert sunlight, water, and CO₂ into glucose and oxygen using chlorophyll. It occurs in two stages: the light-dependent reactions in the thylakoid and the Calvin cycle in the stroma."</span>
+<span class="cls">}</span></pre>
+          </div>
+          <div class="pref-card rejected">
+            <div class="pref-label">rejected</div>
+            <pre><span class="cls">{</span>
+  <span class="str">"prompt"</span>: <span class="str">"What is photosynthesis?"</span>,
+  <span class="str">"rejected"</span>: <span class="str">"Photosynthesis is how plants make food from sunlight."</span>
+<span class="cls">}</span></pre>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">🟢</span>
+          <p>
+            <strong>Key insight about preference data:</strong> The "rejected"
+            response doesn't have to be wrong or harmful — it just has to be
+            worse than the "chosen" response. This allows very nuanced quality
+            signals: a complete, well-explained answer vs. an oversimplified
+            one, a safe response vs. a mildly risky one, or a factually precise
+            answer vs. a vague one.
+          </p>
+        </div>
+      </section>
+
+      <!-- RLHF -->
+      <section id="rlhf">
+        <div class="section-eyebrow">04 — RLHF</div>
+        <h2>RLHF — Reinforcement Learning from Human Feedback</h2>
+
+        <p>
+          RLHF is the technique that powered InstructGPT, ChatGPT, Claude, and
+          most of the major production LLMs. It's a three-stage pipeline that
+          takes a base or SFT model and optimises it using human preference
+          signals via reinforcement learning.
+        </p>
+
+        <h3 id="rlhf-steps">The Three Stages of RLHF</h3>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h4>Supervised Fine-Tuning (SFT) — The Starting Point</h4>
+              <p>
+                You start with your SFT model from Class 22. This is your policy
+                model — the model you will optimise. You also need a frozen copy
+                of this model (the reference policy) to compute the KL penalty
+                later.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h4>Reward Model Training</h4>
+              <p>
+                Collect human preference data: for many prompts, generate
+                multiple responses and have human annotators rank them. Train a
+                reward model (RM) on these pairwise preference labels. The RM
+                learns to assign a scalar score to any (prompt, response) pair —
+                higher = more preferred.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h4>RL Fine-Tuning with PPO</h4>
+              <p>
+                Use the reward model as the environment. The language model is
+                the policy. For each prompt, the policy generates a response,
+                the RM scores it, and PPO updates the policy to maximise
+                expected reward — while a KL penalty keeps the policy from
+                diverging from the SFT reference model.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3 id="ppo">The PPO Objective</h3>
+        <p>During RLHF fine-tuning, the objective being maximised is:</p>
+
+        <div class="code-block">
+          <span class="lang-label">RLHF objective (PPO)</span>
+          <pre><span class="cm"># At each training step, for a prompt x and generated response y:</span>
+
+<span class="cm"># 1. Score the response with the reward model</span>
+reward = <span class="fn">reward_model</span>(x, y)
+
+<span class="cm"># 2. Compute KL divergence from the SFT reference model</span>
+kl_penalty = <span class="fn">KL</span>(policy_model(y|x) || sft_reference_model(y|x))
+
+<span class="cm"># 3. Final objective: maximise reward, penalise divergence from SFT</span>
+objective = reward - β * kl_penalty
+
+<span class="cm"># PPO clips the policy update to prevent too-large steps:</span>
+<span class="cm"># L_CLIP = E[min(r_t * A_t, clip(r_t, 1-ε, 1+ε) * A_t)]</span>
+<span class="cm"># where r_t = π_θ(a|s) / π_θ_old(a|s)  and  A_t = advantage estimate</span></pre>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <p>
+            <strong>Why is RLHF complex?</strong> RLHF requires training
+            <em>three</em> separate models simultaneously — the SFT model, the
+            reward model, and the RL-updated policy — all of which must fit in
+            memory at the same time. PPO is notoriously unstable and
+            hyperparameter-sensitive. This is why DPO (next section) became
+            popular: it achieves similar results without the reward model or RL
+            loop.
+          </p>
+        </div>
+      </section>
+
+      <!-- DPO -->
+      <section id="dpo">
+        <div class="section-eyebrow">05 — DPO</div>
+        <h2>DPO — Direct Preference Optimisation</h2>
+
+        <p>
+          DPO, introduced by Rafailov et al. (Stanford, 2023), reformulates the
+          RLHF objective into a simple supervised learning problem. The key
+          insight:
+          <strong>the optimal RLHF policy has a closed-form solution</strong>,
+          and you can directly optimise toward it without ever training a reward
+          model or running a PPO loop.
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="icon">🧮</div>
+            <h4>No Reward Model</h4>
+            <p>
+              DPO eliminates the need for a separate reward model. The language
+              model itself implicitly learns to assign higher probability to
+              chosen responses.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📉</div>
+            <h4>Simple Loss Function</h4>
+            <p>
+              Just a binary cross-entropy over preference pairs. No RL loop, no
+              PPO, no clipping. Extremely stable to train compared to RLHF.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">⚡</div>
+            <h4>Efficient</h4>
+            <p>
+              Only two models in memory (policy + frozen reference), not three.
+              Much lower GPU memory footprint and simpler training
+              infrastructure.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🏆</div>
+            <h4>Competitive Performance</h4>
+            <p>
+              DPO achieves results comparable or superior to PPO-based RLHF on
+              most benchmarks, especially when data quality is high.
+            </p>
+          </div>
+        </div>
+
+        <h3 id="dpo-math">The DPO Loss Function</h3>
+        <p>
+          DPO derives from the RLHF objective algebraically and arrives at this
+          closed-form loss:
+        </p>
+
+        <div class="code-block">
+          <span class="lang-label">DPO loss (conceptual)</span>
+          <pre><span class="cm"># For a prompt x, chosen response y_w, rejected response y_l:</span>
+
+<span class="cm"># Log-ratio of policy vs reference model for each response</span>
+log_ratio_chosen  = log π_θ(y_w | x) - log π_ref(y_w | x)
+log_ratio_rejected = log π_θ(y_l | x) - log π_ref(y_l | x)
+
+<span class="cm"># DPO loss: maximise probability of correctly preferring chosen over rejected</span>
+L_DPO = -E[ log σ( β * (log_ratio_chosen - log_ratio_rejected) ) ]
+
+<span class="cm"># Intuition:</span>
+<span class="cm">#   Increase probability of chosen response RELATIVE to the reference model</span>
+<span class="cm">#   Decrease probability of rejected response RELATIVE to the reference model</span>
+<span class="cm">#   β controls how aggressively to deviate from the reference policy</span></pre>
+        </div>
+
+        <div class="callout blue">
+          <span class="callout-icon">🔵</span>
+          <p>
+            <strong>What β actually does:</strong> β is the KL constraint
+            strength. With β = 0, there's no regularisation and the model will
+            overfit aggressively to the preference data. With very high β, the
+            model barely moves from the SFT reference. In practice, β between
+            0.1 and 0.5 is typical — lower for aggressive alignment, higher when
+            you want to preserve the SFT model's capabilities.
+          </p>
+        </div>
+
+        <h3 id="rlhf-vs-dpo">RLHF vs DPO — Head-to-Head Comparison</h3>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>RLHF (PPO)</th>
+              <th>DPO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Models needed</td>
+              <td>SFT + Reward Model + Policy</td>
+              <td class="yes">SFT reference + Policy (2 models)</td>
+            </tr>
+            <tr>
+              <td>Training stability</td>
+              <td class="no">Unstable — PPO is sensitive to hyperparams</td>
+              <td class="yes">Very stable — standard supervised loss</td>
+            </tr>
+            <tr>
+              <td>Memory footprint</td>
+              <td class="no">3× model memory required</td>
+              <td class="yes">2× model memory required</td>
+            </tr>
+            <tr>
+              <td>Implementation complexity</td>
+              <td class="no">High — reward model pipeline + RL loop</td>
+              <td class="yes">Low — same as SFT with different loss</td>
+            </tr>
+            <tr>
+              <td>Online data generation</td>
+              <td class="yes">
+                Yes — policy generates new responses each step
+              </td>
+              <td class="no">No — offline, uses fixed preference dataset</td>
+            </tr>
+            <tr>
+              <td>Performance</td>
+              <td class="mid">Marginally stronger on complex tasks</td>
+              <td class="yes">Competitive on most benchmarks</td>
+            </tr>
+            <tr>
+              <td>Industry adoption (2024–2025)</td>
+              <td class="mid">OpenAI, Anthropic (early)</td>
+              <td class="yes">Widely preferred for efficiency</td>
+            </tr>
+            <tr>
+              <td>Best when</td>
+              <td>Online feedback loop available</td>
+              <td class="yes">Fixed preference dataset available</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout tip">
+          <span class="callout-icon">🟢</span>
+          <p>
+            <strong>What to use in practice:</strong> For most fine-tuning
+            workflows — especially on Colab with limited GPU memory — DPO is the
+            right choice. It's stable, efficient, and achieves excellent
+            alignment results. Only consider full RLHF with PPO if you have the
+            infrastructure to generate online preference data and multiple
+            large-model instances simultaneously.
+          </p>
+        </div>
+      </section>
+
+      <!-- PREFERENCE DATASETS -->
+      <section id="dataset">
+        <div class="section-eyebrow">06 — Preference Data</div>
+        <h2>Preference Datasets — What You Need</h2>
+
+        <p>
+          Preference data is the fuel of alignment. Unlike SFT data (instruction
+          → response), preference data must always come in triplets: (prompt,
+          chosen, rejected). The quality, diversity, and contrast between chosen
+          and rejected responses determines how well alignment works.
+        </p>
+
+        <h3 id="data-formats">Preference Data Format</h3>
+
+        <div class="code-block">
+          <span class="lang-label"
+            >Standard DPO dataset format (HuggingFace)</span
+          >
+          <pre><span class="cls">{</span>
+  <span class="str">"prompt"</span>: <span class="str">"What are the side effects of aspirin?"</span>,
+
+  <span class="str">"chosen"</span>: <span class="str">"Common side effects of aspirin include stomach irritation, nausea, and increased bleeding risk. Serious but rare effects include stomach ulcers, allergic reactions, and tinnitus at high doses. People with kidney disease, bleeding disorders, or who are pregnant should consult a doctor before use."</span>,
+
+  <span class="str">"rejected"</span>: <span class="str">"Aspirin can cause stomach issues. It's a common over-the-counter drug. Just follow the instructions on the label."</span>
+<span class="cls">}</span></pre>
+        </div>
+
+        <p>
+          Some datasets also include a "messages" format compatible with chat
+          templates:
+        </p>
+
+        <div class="code-block">
+          <span class="lang-label"
+            >Chat-format preference data (messages style)</span
+          >
+          <pre><span class="cls">{</span>
+  <span class="str">"chosen"</span>: [
+    <span class="cls">{</span><span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: <span class="str">"What are the side effects of aspirin?"</span><span class="cls">}</span>,
+    <span class="cls">{</span><span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Common side effects include stomach irritation..."</span><span class="cls">}</span>
+  ],
+  <span class="str">"rejected"</span>: [
+    <span class="cls">{</span><span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: <span class="str">"What are the side effects of aspirin?"</span><span class="cls">}</span>,
+    <span class="cls">{</span><span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Aspirin can cause stomach issues..."</span><span class="cls">}</span>
+  ]
+<span class="cls">}</span></pre>
+        </div>
+
+        <h3 id="data-collection">How Preference Data Is Collected</h3>
+
+        <div class="format-grid">
+          <div class="format-card">
+            <span
+              class="badge"
+              style="
+                background: rgba(167, 139, 250, 0.15);
+                color: var(--accent);
+              "
+              >Human</span
+            >
+            <h4>Human Annotation</h4>
+            <p>
+              Human annotators compare two model-generated responses for the
+              same prompt and label the preferred one. Gold standard but
+              expensive and slow.
+            </p>
+            <div class="pros">
+              ✓ Highest quality signal<br />✓ Captures nuanced preferences<br />✓
+              Domain expert annotations possible
+            </div>
+            <div class="cons" style="margin-top: 6px">
+              ✗ Very expensive at scale<br />✗ Annotator disagreement / bias
+            </div>
+          </div>
+          <div class="format-card">
+            <span
+              class="badge"
+              style="
+                background: rgba(56, 189, 248, 0.15);
+                color: var(--accent2);
+              "
+              >AI Judge</span
+            >
+            <h4>AI-Assisted Labelling</h4>
+            <p>
+              A strong frontier model (GPT-4, Claude) acts as the judge — given
+              two responses, it labels the better one. Scales to millions of
+              pairs cheaply.
+            </p>
+            <div class="pros">
+              ✓ Very scalable and cheap<br />✓ Consistent judging criteria<br />✓
+              Can judge in diverse domains
+            </div>
+            <div class="cons" style="margin-top: 6px">
+              ✗ Inherits judge model biases<br />✗ Self-alignment circularity
+              risk
+            </div>
+          </div>
+          <div class="format-card">
+            <span
+              class="badge"
+              style="
+                background: rgba(52, 211, 153, 0.15);
+                color: var(--accent3);
+              "
+              >Synthetic</span
+            >
+            <h4>Synthetic Construction</h4>
+            <p>
+              Generate chosen responses from a strong model and rejected from a
+              weak model. Or intentionally degrade good responses by removing
+              safety qualifiers.
+            </p>
+            <div class="pros">
+              ✓ Zero annotation cost<br />✓ Full control of data distribution<br />✓
+              Easy domain specialisation
+            </div>
+            <div class="cons" style="margin-top: 6px">
+              ✗ Chosen/rejected gap may be too obvious<br />✗ May not reflect
+              real failure modes
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">📊</span>
+          <p>
+            <strong>Recommended open datasets for DPO:</strong>
+            <code>Anthropic/hh-rlhf</code> (human helpfulness & harmlessness
+            pairs),
+            <code>HuggingFaceH4/ultrafeedback_binarized</code> (AI-judged
+            preference pairs across 64K instructions),
+            <code>Intel/orca_dpo_pairs</code> (DPO-ready pairs from GPT-4 vs
+            GPT-3.5), and <code>argilla/dpo-mix-7k</code> (curated 7K
+            high-contrast pairs).
+          </p>
+        </div>
+      </section>
+
+      <!-- TRAINING PIPELINE -->
+      <section id="pipeline">
+        <div class="section-eyebrow">07 — Training Pipeline</div>
+        <h2>DPO Training Pipeline with TRL + Unsloth</h2>
+
+        <p>
+          The practical implementation of DPO is much simpler than full RLHF.
+          TRL's <code>DPOTrainer</code> handles the reference model management,
+          log-ratio computation, and β-weighted loss automatically. Combined
+          with Unsloth for LoRA efficiency, you can run DPO on an A100 Colab in
+          under an hour.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h4>Load SFT Model as Starting Point</h4>
+              <p>
+                DPO starts from your SFT-trained model. Load it with Unsloth for
+                4-bit quantisation and LoRA. The same model is automatically
+                used as the frozen reference policy inside DPOTrainer.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h4>Prepare the Preference Dataset</h4>
+              <p>
+                Load a triplet dataset with "prompt", "chosen", "rejected"
+                columns. Apply the same chat template you used during SFT
+                training so token sequences are consistent between stages.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h4>Configure DPOTrainer</h4>
+              <p>
+                Set β (typically 0.1–0.3), learning rate (lower than SFT,
+                ~5e-5), and a smaller number of epochs (1–3). DPO converges
+                faster than SFT because the preference signal is richer per
+                example.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+              <h4>Train and Monitor</h4>
+              <p>
+                Monitor chosen_rewards and rejected_rewards — the gap should
+                increase over training (chosen scores rising, rejected scores
+                falling). If they converge, check your β and learning rate.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-body">
+              <h4>Evaluate and Push to Hub</h4>
+              <p>
+                Evaluate with side-by-side win-rate comparisons against the SFT
+                base. If win-rate > 60%, the alignment is working. Push the DPO
+                adapter separately so you can compose CPT → SFT → DPO adapters.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h3 id="dpo-code">DPO Setup Code</h3>
+
+        <div class="code-block">
+          <span class="lang-label">Python · Unsloth + TRL</span>
+          <pre><span class="kw">from</span> unsloth <span class="kw">import</span> FastLanguageModel
+<span class="kw">from</span> trl <span class="kw">import</span> DPOTrainer, DPOConfig
+<span class="kw">from</span> datasets <span class="kw">import</span> load_dataset
+
+<span class="cm"># ── 1. Load SFT model (starting point for DPO) ──────────────────</span>
+model, tokenizer = <span class="fn">FastLanguageModel.from_pretrained</span>(
+    model_name = <span class="str">"your-hf-username/llama3-medical-sft"</span>,  <span class="cm"># your SFT output</span>
+    max_seq_length = <span class="num">2048</span>,
+    load_in_4bit = <span class="kw">True</span>,
+)
+
+<span class="cm"># ── 2. Add LoRA for DPO fine-tuning ─────────────────────────────</span>
+model = <span class="fn">FastLanguageModel.get_peft_model</span>(
+    model,
+    r = <span class="num">16</span>,
+    target_modules = [<span class="str">"q_proj"</span>, <span class="str">"k_proj"</span>, <span class="str">"v_proj"</span>, <span class="str">"o_proj"</span>],
+    lora_alpha = <span class="num">16</span>,
+    lora_dropout = <span class="num">0</span>,
+    bias = <span class="str">"none"</span>,
+    use_gradient_checkpointing = <span class="str">"unsloth"</span>,
+)
+
+<span class="cm"># ── 3. Load preference dataset ───────────────────────────────────</span>
+dataset = <span class="fn">load_dataset</span>(<span class="str">"argilla/dpo-mix-7k"</span>, split=<span class="str">"train"</span>)
+<span class="cm"># Expects columns: "prompt", "chosen", "rejected"</span>
+
+<span class="cm"># ── 4. Configure DPO training ────────────────────────────────────</span>
+dpo_config = <span class="cls">DPOConfig</span>(
+    beta = <span class="num">0.1</span>,               <span class="cm"># KL constraint — how far to diverge from SFT ref</span>
+    learning_rate = <span class="num">5e-5</span>,    <span class="cm"># Lower than SFT (was 2e-4)</span>
+    num_train_epochs = <span class="num">1</span>,
+    per_device_train_batch_size = <span class="num">2</span>,
+    gradient_accumulation_steps = <span class="num">4</span>,
+    warmup_ratio = <span class="num">0.1</span>,
+    output_dir = <span class="str">"./dpo-output"</span>,
+    logging_steps = <span class="num">10</span>,
+    save_steps = <span class="num">200</span>,
+    bf16 = <span class="kw">True</span>,
+    max_length = <span class="num">2048</span>,
+    max_prompt_length = <span class="num">512</span>,
+)
+
+<span class="cm"># ── 5. Create DPOTrainer ─────────────────────────────────────────</span>
+trainer = <span class="cls">DPOTrainer</span>(
+    model = model,
+    ref_model = <span class="kw">None</span>,     <span class="cm"># Unsloth handles ref model automatically</span>
+    args = dpo_config,
+    train_dataset = dataset,
+    tokenizer = tokenizer,
+)
+
+<span class="cm"># ── 6. Train ─────────────────────────────────────────────────────</span>
+trainer.<span class="fn">train</span>()</pre>
+        </div>
+
+        <h3 id="eval">Evaluating Alignment</h3>
+        <p>
+          Unlike SFT where you can use perplexity and exact-match metrics,
+          alignment quality is harder to measure automatically. Here are the
+          most useful evaluation approaches:
+        </p>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>How It Works</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Win-rate (LLM judge)</td>
+              <td>
+                Ask GPT-4 or Claude to compare SFT vs DPO responses for the same
+                prompts. Count how often DPO wins.
+              </td>
+              <td class="yes">Overall quality comparison</td>
+            </tr>
+            <tr>
+              <td>Reward score tracking</td>
+              <td>
+                Run a separate reward model on outputs. Higher mean reward =
+                better alignment. Watch chosen_rewards ↑ and rejected_rewards ↓
+                during training.
+              </td>
+              <td class="mid">Training monitoring</td>
+            </tr>
+            <tr>
+              <td>MT-Bench</td>
+              <td>
+                80 multi-turn questions scored by GPT-4 on a 1–10 scale.
+                Standard benchmark for chat assistants.
+              </td>
+              <td class="yes">Chat quality benchmarking</td>
+            </tr>
+            <tr>
+              <td>AlpacaEval 2.0</td>
+              <td>
+                Win-rate against GPT-4-Turbo baseline on 805 instructions.
+                Length-controlled to penalise verbose responses.
+              </td>
+              <td class="yes">Helpfulness benchmarking</td>
+            </tr>
+            <tr>
+              <td>Human eval</td>
+              <td>
+                Side-by-side preference ratings from actual users or domain
+                experts. Gold standard.
+              </td>
+              <td class="mid">Final production validation</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout info">
+          <span class="callout-icon">📈</span>
+          <p>
+            <strong>Key training metrics to watch in DPO:</strong>
+            <code>train/chosen_rewards</code> should rise,
+            <code>train/rejected_rewards</code> should fall, and
+            <code>train/rewards/margins</code> (chosen − rejected) should
+            steadily increase. If margins plateau or go negative, something is
+            wrong with your data or β value.
+          </p>
+        </div>
+      </section>
+
+      <!-- FULL CODE -->
+      <section id="full-code">
+        <div class="section-eyebrow">08 — Full Implementation</div>
+        <h2>Complete DPO Training Script</h2>
+        <p>
+          Below is a complete, self-contained DPO training script for a Colab
+          A100 environment using Unsloth + TRL. This takes a HuggingFace-hosted
+          SFT model and applies DPO alignment in one pass.
+        </p>
+
+        <div class="code-block">
+          <span class="lang-label">Python · Full DPO pipeline</span>
+          <pre><span class="cm">################################################################################</span>
+<span class="cm"># Class 23 — DPO Preference Alignment                                          </span>
+<span class="cm"># Full-Stack GenAI Bootcamp 1.0                                                 </span>
+<span class="cm">################################################################################</span>
+
+<span class="cm">## INSTALL (run once)</span>
+<span class="cm"># !pip install unsloth trl datasets transformers peft bitsandbytes --quiet</span>
+
+<span class="kw">import</span> torch
+<span class="kw">from</span> unsloth <span class="kw">import</span> FastLanguageModel
+<span class="kw">from</span> trl <span class="kw">import</span> DPOTrainer, DPOConfig
+<span class="kw">from</span> datasets <span class="kw">import</span> load_dataset
+<span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer
+
+<span class="cm">## ── CONFIG ──────────────────────────────────────────────────────────────</span>
+SFT_MODEL_NAME   = <span class="str">"your-hf-username/your-sft-model"</span>   <span class="cm"># your Class 22 output</span>
+PREF_DATASET     = <span class="str">"argilla/dpo-mix-7k"</span>
+MAX_SEQ_LEN      = <span class="num">2048</span>
+MAX_PROMPT_LEN   = <span class="num">512</span>
+DPO_BETA         = <span class="num">0.1</span>
+LORA_R           = <span class="num">16</span>
+LEARNING_RATE    = <span class="num">5e-5</span>
+TRAIN_EPOCHS     = <span class="num">1</span>
+BATCH_SIZE       = <span class="num">2</span>
+GRAD_ACCUM       = <span class="num">4</span>
+OUTPUT_DIR       = <span class="str">"./dpo-output"</span>
+HF_PUSH_NAME     = <span class="str">"your-hf-username/your-model-dpo"</span>
+
+<span class="cm">## ── LOAD BASE (SFT) MODEL ───────────────────────────────────────────────</span>
+model, tokenizer = <span class="fn">FastLanguageModel.from_pretrained</span>(
+    model_name       = SFT_MODEL_NAME,
+    max_seq_length   = MAX_SEQ_LEN,
+    load_in_4bit     = <span class="kw">True</span>,
+    dtype            = <span class="kw">None</span>,
+)
+
+<span class="cm">## ── WRAP WITH LORA ──────────────────────────────────────────────────────</span>
+model = <span class="fn">FastLanguageModel.get_peft_model</span>(
+    model,
+    r              = LORA_R,
+    lora_alpha     = LORA_R,
+    target_modules = [<span class="str">"q_proj"</span>, <span class="str">"k_proj"</span>, <span class="str">"v_proj"</span>, <span class="str">"o_proj"</span>,
+                      <span class="str">"gate_proj"</span>, <span class="str">"up_proj"</span>, <span class="str">"down_proj"</span>],
+    lora_dropout   = <span class="num">0</span>,
+    bias           = <span class="str">"none"</span>,
+    use_gradient_checkpointing = <span class="str">"unsloth"</span>,
+    random_state   = <span class="num">42</span>,
+)
+
+<span class="cm">## ── LOAD & INSPECT DATASET ──────────────────────────────────────────────</span>
+dataset = <span class="fn">load_dataset</span>(PREF_DATASET, split=<span class="str">"train"</span>)
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"Dataset size: {len(dataset)} preference pairs"</span>)
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"Columns: {dataset.column_names}"</span>)
+<span class="cm"># Expected: ['prompt', 'chosen', 'rejected']</span>
+
+<span class="cm">## ── DPO TRAINING CONFIG ─────────────────────────────────────────────────</span>
+dpo_args = <span class="cls">DPOConfig</span>(
+    beta                        = DPO_BETA,
+    learning_rate               = LEARNING_RATE,
+    num_train_epochs            = TRAIN_EPOCHS,
+    per_device_train_batch_size = BATCH_SIZE,
+    gradient_accumulation_steps = GRAD_ACCUM,
+    gradient_checkpointing      = <span class="kw">True</span>,
+    warmup_ratio                = <span class="num">0.1</span>,
+    lr_scheduler_type           = <span class="str">"cosine"</span>,
+    optim                       = <span class="str">"adamw_8bit"</span>,
+    bf16                        = <span class="kw">True</span>,
+    fp16                        = <span class="kw">False</span>,
+    logging_steps               = <span class="num">10</span>,
+    save_steps                  = <span class="num">200</span>,
+    output_dir                  = OUTPUT_DIR,
+    max_length                  = MAX_SEQ_LEN,
+    max_prompt_length           = MAX_PROMPT_LEN,
+    report_to                   = <span class="str">"none"</span>,
+)
+
+<span class="cm">## ── TRAINER ─────────────────────────────────────────────────────────────</span>
+trainer = <span class="cls">DPOTrainer</span>(
+    model         = model,
+    ref_model     = <span class="kw">None</span>,   <span class="cm"># Unsloth manages reference internally</span>
+    args          = dpo_args,
+    train_dataset = dataset,
+    tokenizer     = tokenizer,
+)
+
+<span class="cm">## ── TRAIN ───────────────────────────────────────────────────────────────</span>
+trainer_stats = trainer.<span class="fn">train</span>()
+<span class="fn">print</span>(trainer_stats)
+
+<span class="cm">## ── INFERENCE EXAMPLE ───────────────────────────────────────────────────</span>
+<span class="fn">FastLanguageModel.for_inference</span>(model)
+messages = [
+    {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Explain the difference between RLHF and DPO."</span>}
+]
+inputs = tokenizer.<span class="fn">apply_chat_template</span>(
+    messages, tokenize=<span class="kw">True</span>,
+    add_generation_prompt=<span class="kw">True</span>, return_tensors=<span class="str">"pt"</span>
+).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+outputs = model.<span class="fn">generate</span>(inputs, max_new_tokens=<span class="num">512</span>, temperature=<span class="num">0.7</span>, top_p=<span class="num">0.9</span>)
+<span class="fn">print</span>(tokenizer.<span class="fn">decode</span>(outputs[<span class="num">0</span>], skip_special_tokens=<span class="kw">True</span>))
+
+<span class="cm">## ── SAVE & PUSH ─────────────────────────────────────────────────────────</span>
+model.<span class="fn">save_pretrained</span>(<span class="str">"dpo_lora_adapter"</span>)
+tokenizer.<span class="fn">save_pretrained</span>(<span class="str">"dpo_lora_adapter"</span>)
+model.<span class="fn">push_to_hub</span>(HF_PUSH_NAME, token=<span class="str">"hf_..."</span>)</pre>
+        </div>
+      </section>
+
+      <!-- TIPS & PITFALLS -->
+      <section id="tips">
+        <div class="section-eyebrow">09 — Tips & Pitfalls</div>
+        <h2>Tips, Pitfalls & Hyperparameter Reference</h2>
+
+        <h3>✅ What to Do</h3>
+        <ul class="checklist">
+          <li>
+            <span class="chk">✓</span> Start DPO from your SFT model, not the
+            base model. DPO requires an instruction-following model to start
+            with — it refines preferences, it doesn't teach instruction
+            following from scratch.
+          </li>
+          <li>
+            <span class="chk">✓</span> Use the same chat template in DPO as in
+            SFT. Mismatched templates cause the reference log-ratios to be
+            computed on different token sequences, breaking the DPO loss signal.
+          </li>
+          <li>
+            <span class="chk">✓</span> Choose preference data where chosen and
+            rejected are meaningfully different. Very similar responses (small
+            quality gap) make it hard for DPO to learn a useful preference
+            direction.
+          </li>
+          <li>
+            <span class="chk">✓</span> Monitor
+            <code>rewards/margins</code> throughout training. A steadily growing
+            margin (chosen reward − rejected reward) confirms that alignment is
+            working.
+          </li>
+          <li>
+            <span class="chk">✓</span> Keep β small (0.1–0.3) to allow
+            meaningful deviation from the SFT baseline. If the margins don't
+            grow, try lowering β first before other changes.
+          </li>
+          <li>
+            <span class="chk">✓</span> Evaluate with a side-by-side LLM judge
+            (GPT-4 or Claude) on a held-out eval set to confirm win-rate
+            improvement before pushing to production.
+          </li>
+        </ul>
+
+        <h3>❌ Common Pitfalls</h3>
+        <ul class="checklist">
+          <li>
+            <span
+              class="chk"
+              style="
+                background: rgba(248, 113, 113, 0.1);
+                border-color: #f87171;
+                color: #f87171;
+              "
+              >✗</span
+            >
+            <strong>Reward hacking:</strong> If β is too low or training runs
+            too long, the model may find degenerate ways to maximise the DPO
+            objective — for example, producing very long, verbose responses if
+            length correlates with reward. Use length-controlled evaluation
+            metrics (AlpacaEval 2.0) to catch this.
+          </li>
+          <li>
+            <span
+              class="chk"
+              style="
+                background: rgba(248, 113, 113, 0.1);
+                border-color: #f87171;
+                color: #f87171;
+              "
+              >✗</span
+            >
+            <strong>Over-refusal:</strong> Aligning on safety-heavy preference
+            data can make the model refuse too many legitimate requests. Balance
+            safety preferences with helpfulness preferences in your dataset mix.
+          </li>
+          <li>
+            <span
+              class="chk"
+              style="
+                background: rgba(248, 113, 113, 0.1);
+                border-color: #f87171;
+                color: #f87171;
+              "
+              >✗</span
+            >
+            <strong>Mode collapse on DPO:</strong> Running too many epochs can
+            cause the model to over-concentrate probability mass on a narrow set
+            of response styles. 1–2 epochs is usually enough.
+          </li>
+          <li>
+            <span
+              class="chk"
+              style="
+                background: rgba(248, 113, 113, 0.1);
+                border-color: #f87171;
+                color: #f87171;
+              "
+              >✗</span
+            >
+            <strong>Applying DPO to a base model:</strong> DPO requires the
+            model to already understand chat format. Applying it before SFT
+            produces garbage — the reference log-ratios are meaningless for a
+            model that doesn't understand instructions.
+          </li>
+          <li>
+            <span
+              class="chk"
+              style="
+                background: rgba(248, 113, 113, 0.1);
+                border-color: #f87171;
+                color: #f87171;
+              "
+              >✗</span
+            >
+            <strong>Using a mismatched SFT reference:</strong> The
+            <code>ref_model</code> in DPOTrainer should be the exact same
+            checkpoint you're fine-tuning from. Using a different checkpoint as
+            the reference breaks the theoretical grounding of the DPO loss.
+          </li>
+        </ul>
+
+        <h3>📐 Hyperparameter Reference for DPO</h3>
+        <table class="hp-table">
+          <thead>
+            <tr>
+              <th>Hyperparameter</th>
+              <th>Recommended Value</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Beta (β)</td>
+              <td class="val">0.1 – 0.3</td>
+              <td>Start at 0.1; increase if model drifts too far from SFT</td>
+            </tr>
+            <tr>
+              <td>Learning rate</td>
+              <td class="val">5e-5 – 1e-4</td>
+              <td>Lower than SFT; DPO is sensitive to high LR</td>
+            </tr>
+            <tr>
+              <td>Epochs</td>
+              <td class="val">1 – 2</td>
+              <td>Rarely need more; watch for mode collapse beyond epoch 2</td>
+            </tr>
+            <tr>
+              <td>LoRA rank (r)</td>
+              <td class="val">8 – 32</td>
+              <td>
+                16 is a safe default; higher r = more capacity for alignment
+              </td>
+            </tr>
+            <tr>
+              <td>Max seq length</td>
+              <td class="val">2048</td>
+              <td>Match SFT; longer chosen/rejected pairs get truncated</td>
+            </tr>
+            <tr>
+              <td>Max prompt length</td>
+              <td class="val">512</td>
+              <td>Reserve space for chosen/rejected responses</td>
+            </tr>
+            <tr>
+              <td>Dataset size</td>
+              <td class="val">1K – 50K pairs</td>
+              <td>Quality of contrast matters more than volume</td>
+            </tr>
+            <tr>
+              <td>Warmup ratio</td>
+              <td class="val">0.05 – 0.1</td>
+              <td>Slightly higher than SFT warmup helps stability</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- QUIZ -->
+      <section id="quiz">
+        <div class="section-eyebrow">10 — Self-Check</div>
+        <h2>Quiz — Test Your Understanding</h2>
+
+        <div class="quiz-block">
+          <h3>📝 Concept Check Questions</h3>
+
+          <div class="quiz-q">
+            <p>
+              1. Why is SFT alone insufficient for producing a fully aligned
+              model? What fundamental capability does alignment add?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                SFT teaches the model to imitate training data by next-token
+                prediction. It treats all correct responses as equally valid and
+                has no mechanism to distinguish a good answer from a merely
+                adequate one. It also cannot express a preference for safe
+                responses over harmful ones. Alignment adds the ability to rank
+                responses by quality — given two responses for the same prompt,
+                the model learns to assign higher probability to the one humans
+                prefer. This is the critical missing signal that makes the
+                difference between a capable assistant and a trustworthy one.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              2. What are the three stages of the RLHF pipeline and what does
+              each accomplish?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                Stage 1 is SFT — training an instruction-following model as the
+                starting policy. Stage 2 is reward model training — taking a set
+                of (prompt, chosen, rejected) preference pairs and training a
+                model to predict human preference as a scalar score. Stage 3 is
+                RL fine-tuning with PPO — using the reward model as the
+                environment signal and PPO as the RL algorithm to update the
+                language model to maximise expected reward, with a KL divergence
+                penalty preventing it from drifting too far from the SFT
+                reference model.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              3. What is the key mathematical insight that allows DPO to skip
+              the reward model entirely?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                Rafailov et al. showed that the optimal RLHF policy (the
+                solution to the KL-constrained reward maximisation problem) has
+                a closed-form expression in terms of the reference policy and an
+                implicit reward function. Substituting this into the
+                Bradley-Terry preference model, you can express the preference
+                probability directly in terms of the ratio of policy
+                log-probabilities to reference model log-probabilities. This
+                means you can train the language model directly on preference
+                data with a binary cross-entropy loss — the reward model is
+                implicitly defined by the model itself and doesn't need to be
+                materialised separately.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              4. What does the β (beta) parameter control in DPO, and what
+              happens at the extremes (very low vs very high β)?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                Beta controls how strongly the DPO loss penalises divergence
+                from the SFT reference model — it's the KL constraint strength.
+                With very low β (near 0), there's almost no regularisation and
+                the model aggressively pushes probability mass onto chosen
+                responses, risking reward hacking, mode collapse, and
+                catastrophic forgetting of SFT capabilities. With very high β,
+                the model barely changes from the SFT baseline, and the
+                preference signal has no effect. In practice, β between 0.1 and
+                0.3 balances learning the preference signal while preserving the
+                SFT model's general capabilities.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              5. What is reward hacking and how does the KL divergence penalty
+              in both RLHF and DPO mitigate it?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                Reward hacking is when the model finds ways to score highly
+                according to the reward metric without actually producing better
+                outputs. For example, if the reward model was trained on data
+                where longer responses tended to be preferred, the model might
+                learn to output very long, verbose responses without adding
+                quality. The KL divergence penalty constrains the aligned policy
+                to stay close to the SFT reference model. Since the SFT model
+                doesn't have these degenerate strategies, the KL penalty
+                prevents the aligned model from finding them — it can only move
+                in directions that are both rewarded and close to the SFT
+                distribution.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              6. What should you monitor during DPO training to verify that
+              alignment is working, and what does each signal tell you?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                The key metrics are: (1) <code>train/chosen_rewards</code> —
+                should increase, meaning the model is assigning higher
+                log-probabilities to chosen responses relative to the reference.
+                (2) <code>train/rejected_rewards</code> — should decrease,
+                meaning the model is assigning lower log-probabilities to
+                rejected responses relative to the reference. (3)
+                <code>train/rewards/margins</code> — the difference between
+                chosen and rejected rewards, should grow consistently throughout
+                training. If margins plateau early, try lowering β. If they go
+                negative, your preference data may have noise or the
+                chosen/rejected labels may be inconsistent.
+              </div>
+            </details>
+          </div>
+
+          <div class="quiz-q">
+            <p>
+              7. In what order should you apply CPT (Class 21), SFT (Class 22),
+              and DPO (Class 23) in a production pipeline, and why does this
+              order matter?
+            </p>
+            <details>
+              <summary>▶ Show Answer</summary>
+              <div class="answer">
+                The correct order is CPT → SFT → DPO. CPT (Continual
+                Pre-Training) fills the model with domain-specific knowledge and
+                vocabulary by training on raw text. SFT then teaches the model
+                to express that knowledge by following instructions, using
+                structured prompt-response pairs and chat templates. Finally,
+                DPO teaches the model which responses are better given a choice
+                — refining the quality and safety of its instruction-following
+                behaviour. If you apply DPO before SFT, the model doesn't
+                understand chat format and the preference signal is meaningless.
+                If you skip CPT, the model may lack the domain knowledge needed
+                to produce the correct "chosen" responses that DPO is trying to
+                teach it to prefer.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESOURCES -->
+      <section id="resources">
+        <div class="section-eyebrow">11 — Further Reading</div>
+        <h2>Resources & References</h2>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <div class="icon">📄</div>
+            <h4>InstructGPT Paper (OpenAI, 2022)</h4>
+            <p>
+              "Training Language Models to Follow Instructions with Human
+              Feedback" — the original paper defining the SFT + RLHF pipeline
+              that powers ChatGPT.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📄</div>
+            <h4>DPO Paper (Stanford, 2023)</h4>
+            <p>
+              "Direct Preference Optimization: Your Language Model is Secretly a
+              Reward Model" — Rafailov et al. The paper that made preference
+              alignment accessible without RL infrastructure.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🤗</div>
+            <h4>TRL DPOTrainer Docs</h4>
+            <p>
+              huggingface.co/docs/trl — full documentation for DPOTrainer,
+              DPOConfig, and all training arguments for preference alignment.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">🌐</div>
+            <h4>Unsloth DPO Guide</h4>
+            <p>
+              unsloth.ai/docs — Unsloth's official guide for running DPO
+              efficiently with 4-bit quantisation and gradient checkpointing on
+              free GPU tiers.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📊</div>
+            <h4>Anthropic/hh-rlhf Dataset</h4>
+            <p>
+              The original human helpfulness and harmlessness preference dataset
+              from Anthropic. Contains 170K pairwise comparison examples across
+              helpful and harmless categories.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📊</div>
+            <h4>HuggingFaceH4/ultrafeedback_binarized</h4>
+            <p>
+              64K AI-judged preference pairs using GPT-4 as the judge across
+              diverse instruction types. One of the most widely used DPO
+              datasets in the community.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📄</div>
+            <h4>Constitutional AI (Anthropic, 2022)</h4>
+            <p>
+              "Constitutional AI: Harmlessness from AI Feedback" — Bai et al.
+              How Anthropic trained Claude using AI-generated preference data
+              guided by a written constitution.
+            </p>
+          </div>
+          <div class="concept-card">
+            <div class="icon">📄</div>
+            <h4>AlpacaEval 2.0</h4>
+            <p>
+              A length-controlled win-rate benchmark that measures how often a
+              model beats GPT-4-Turbo as a judge on 805 instructions. Standard
+              evaluation for aligned models.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout tip" style="margin-top: 28px">
+          <span class="callout-icon">🚀</span>
+          <p>
+            <strong>What comes next:</strong> Class 24 covers efficient
+            fine-tuning with Unsloth — applying LoRA across the full CPT → SFT →
+            DPO pipeline with advanced memory techniques, gradient
+            checkpointing, and multi-adapter composition. You now have the
+            complete theoretical foundation: pre-training builds knowledge, SFT
+            builds behaviour, and DPO builds alignment.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span
+        >Class 23 · Preference Alignment (RLHF / DPO) · Full-Stack GenAI
+        Bootcamp 1.0</span
+      >
+      <a
+        href="https://github.com/sinhar1227/Full-Stack-GenAI-Bootcamp-1.0"
+        target="_blank"
+        >↗ View on GitHub</a
+      >
+    </footer>
+
+    <script>
+      window.addEventListener("scroll", () => {
+        const el = document.documentElement;
+        const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+        document.getElementById("progress-bar").style.width = pct + "%";
+      });
+      const sections = document.querySelectorAll("section[id], div.hero");
+      const navLinks = document.querySelectorAll("nav a");
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              navLinks.forEach((a) => a.classList.remove("active"));
+              const link = document.querySelector(
+                `nav a[href="#${e.target.id}"]`,
+              );
+              if (link) link.classList.add("active");
+            }
+          });
+        },
+        { threshold: 0.25 },
+      );
+      sections.forEach((s) => obs.observe(s));
+    </script>
+  </body>
+</html>
