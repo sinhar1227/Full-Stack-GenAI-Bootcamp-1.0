@@ -1,0 +1,35 @@
+[project]
+name = "full-stack-genai-bootcamp-1-0"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "beautifulsoup4",
+    "datasets",
+    "ipykernel",
+    "langchain",
+    "langchain-anthropic",
+    "langchain-google-genai",
+    "langchain-groq",
+    "langchain-huggingface",
+    "langchain-ollama",
+    "langchain-openai",
+    "langchain-openrouter",
+    "mteb",
+    "nltk",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "pillow",
+    "pypdf",
+    "python-docx",
+    "pyyaml",
+    "rank-bm25",
+    "scikit-learn",
+    "scipy",
+    "sentence-transformers",
+    "torch",
+    "torchvision",
+    "transformers",
+]
