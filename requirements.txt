@@ -20,4 +20,13 @@ langchain-openrouter
 langchain-huggingface
 langchain-anthropic
 langchain-ollama
+langchain
+langchain-community
+pypdf 
+python-docx 
+pandas 
+openpyxl 
+beautifulsoup4
+
+
 
