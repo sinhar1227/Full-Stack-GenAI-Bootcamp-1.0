@@ -1,0 +1,93 @@
+[
+  {
+    "page_number": 2,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_002_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 7,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_007_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 9,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_009_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 12,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_012_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 16,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_016_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 17,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_017_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 18,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_018_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 19,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_019_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 20,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_020_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 21,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_021_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 22,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_022_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 23,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_023_image_1.png",
+    "image_ext": "png",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  },
+  {
+    "page_number": 24,
+    "image_index": 1,
+    "image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\extracted_images\\page_024_image_1.jpeg",
+    "image_ext": "jpeg",
+    "image_ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]"
+  }
+]

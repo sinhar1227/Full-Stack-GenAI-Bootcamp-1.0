@@ -1,0 +1,218 @@
+[
+  {
+    "page_number": 1,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 1\nComplex Document for RAG Parsing Tests\nSynthetic 15-page PDF with paragraphs, simple and complex tables, diagrams, scanned-form style image, metadata\nexamples, and production RAG edge cases.\nStory Line\nThree client teams - Arka Finance, BlueLeaf Retail, and CityRide Mobility - are migrating contracts, policies, support records,\nand operational reports into a single RAG platform. Each team has different document types, access rules, and parsing\nchallenges. The RAG system must answer questions with citations while ensuring that one client never sees another clients\ndata.\nThis PDF is intentionally designed to test document loaders, PDF parsers, OCR workflows, table extraction, chunking\nstrategies, metadata preservation, and source citation quality.\nKey statement: RAG does not train the model. RAG gives the model the right context before answering.\nSection\nParsing challenge\nWhy it matters for RAG\nContracts\nDense legal text, clause numbers, cross\nreferences\nNeed section-aware chunks and citations\nTables\nMerged headers, numeric columns,\nfootnotes\nNeed row/column preservation\nImages\nArchitecture diagram, heatmap, scanned\nform\nNeed OCR or multimodal extraction\nMulti-tenant metadata\nclient_id, document_id,\ncontract_group_id\nNeed access-safe retrieval",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_001.png"
+  },
+  {
+    "page_number": 2,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 2\n1. Business Scenario\nThe platform team is building a document intelligence layer for contract operations. Legal users need answers such as: Which\ncontracts renew automatically? Which agreements have a 60-day termination notice? Which documents mention data\nresidency in India? These questions require retrieval across multiple document types and sometimes across multiple related\ndocuments of a single client.\nSupport teams also want answers from SOPs, markdown runbooks, HTML exports, chat transcripts, and CSV logs. A single\nparser is not enough because the corpus contains born-digital PDFs, scanned forms, HTML, markdown, and spreadsheet-like\ntables.\nClient\nMain document family\nRisk\nPrimary users\nTypical question\nArka Finance\nMSA, audit addendum, DPA\nHigh\nLegal and compliance\nWhat audit rights exist in the DPA?\nBlueLeaf Retail\nMSA, pricing, support SLA\nMedium\nProcurement\nWhich clause controls renewal\npricing?\nCityRide Mobility\nOps reports, incident logs,\nSOPs\nMedium\nOperations\nWhich depot had repeated battery\nincidents?\nCaption: Ownership map showing how client admins, legal teams, audit teams, document storage, vector storage, and the RAG service interact.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_002.png"
+  },
+  {
+    "page_number": 3,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 3\n2. Raw Data Inventory\nThe ingestion team receives files from multiple sources. Some files are clean and digital; others contain scanned pages,\nrotated tables, missing metadata, embedded images, or formula-generated values. The inventory below intentionally includes\ndifferent formats and extraction expectations.\nAsset ID\nClient\nFormat\nPages/Rows\nExpected extraction\nNotes\nARK-MSA-001\nArka Finance\nPDF\n32 pages\nClauses, tables, signatures\nBorn-digital text with footer\nreferences\nARK-DPA-002\nArka Finance\nDOCX\n18 pages\nHeadings, lists, tables\nTrack changes removed\nbefore ingestion\nBLR-PRICE-00\n3\nBlueLeaf Retail\nXLSX\n12 sheets\nRate cards, discounts\nMerged cells and formulas\nBLR-SLA-004\nBlueLeaf Retail\nPDF\n9 pages\nSLA table, escalation matrix\nTable crosses page boundary\nCRM-OPS-005\nCityRide Mobility\nCSV\n48,200 rows\nIncident records\nNeeds column type\nnormalization\nCRM-FORM-00\n6\nCityRide Mobility\nScanned PDF\n4 pages\nOCR fields, checkbox\nLow contrast and slight\nrotation\nKB-RUN-007\nShared\nMarkdown\n14 files\nRunbook sections\nGood for heading-based\nchunks\nWEB-FAQ-008\nShared\nHTML\n23 pages\nFAQ content, links\nNeeds boilerplate removal\nParsing difficulty increases when a document combines multiple layouts: paragraph text, tables, images, and notes. Good\nparsers preserve structure; weak parsers flatten everything into a noisy text stream.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_003.png"
+  },
+  {
+    "page_number": 4,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 4\n3. Contract Excerpt: Dense Legal Text\nClause 7.2 - Confidential Information. The Receiving Party shall protect Confidential Information using at least the same\ndegree of care that it uses to protect its own confidential materials, but in no event less than reasonable care. Confidential\nInformation includes technical documents, pricing schedules, user lists, API keys, operational procedures, security reports,\nincident response notes, product roadmaps, and any derived analysis prepared by the Receiving Party.\nClause 7.3 - Exclusions. Confidential Information does not include information that is publicly available without breach,\nindependently developed without reference to the Disclosing Party material, received lawfully from a third party, or approved\nfor release in writing. The burden of proving an exclusion remains with the Receiving Party.\nClause 9.1 - Data Residency. If the Statement of Work identifies a specific processing region, the service provider shall\nprocess production records only within that region unless the client approves a transfer in writing. Disaster recovery replicas\nmay be stored in a secondary region if encryption at rest and access logging are enabled.\nClause 11.4 - Termination Assistance. Upon termination, the provider shall make client data available for export for a period\nof thirty days. After the export period, the provider may delete production data according to the deletion schedule unless a\nlegal hold applies.\nClause\nShort name\nOwner\nTrigger\nRequired action\nCitation hint\n7.2\nConfidentiality\nReceiving Party\nReceipt of confidential\nmaterial\nProtect information with reasonable care\nand equivalent internal controls\nPage 4, clause\n7.2\n9.1\nData residency\nService Provider\nSOW specifies region\nProcess production records only in\napproved region\nPage 4, clause\n9.1\n11.4\nTermination\nassistance\nService Provider\nAgreement\ntermination\nProvide export window for 30 days\nPage 4, clause\n11.4\nParser note: clause numbering is important. Chunking should not remove or split clause identifiers because users often\nask questions using clause numbers.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_004.png"
+  },
+  {
+    "page_number": 5,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 5\n4. Simple Table: Policy Rules\nThe following table is intentionally simple. It should be correctly extracted by most PDF table parsers. It tests basic row and\ncolumn detection, short text values, and numeric values.\nPolicy Area\nRule\nOwner\nReview Cycle\nRefunds\nRefund requests must be raised within 7 days of\npurchase.\nCustomer Support\nQuarterly\nData Export\nClient admins can request export in CSV or JSON\nformat.\nPlatform Ops\nMonthly\nAccess Review\nPrivileged access must be reviewed every 30 days.\nSecurity\nMonthly\nIncident Response\nCritical incidents require acknowledgement within 30\nminutes.\nSRE\nAfter each incident\nVendor Review\nHigh-risk vendors require annual risk assessment.\nProcurement\nAnnual\nNarrative Around the Table\nThis table appears between paragraphs, which is common in enterprise documents. A good parser should preserve the\nparagraph before the table, the table content, and the paragraph after the table in the correct reading order.\nFor RAG systems, simple tables are often converted into row-wise text chunks such as: Policy Area: Refunds; Rule: Refund\nrequests must be raised within 7 days; Owner: Customer Support.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_005.png"
+  },
+  {
+    "page_number": 6,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 6\n5. Complex Table: SLA, Escalation, and Credits\nThis table uses long cells and operational footnotes. It is designed to test whether the parser can retain header hierarchy and\nmap values to the correct columns.\nService Category\nSeverity\nResponse Target\nResolution Target\nService Credit\nEvidence Required\nAPI Availability\nP1 - complete\noutage\n15 minutes\n4 hours\n10 percent monthly\nfee credit\nMonitoring logs and incident\nticket\nAPI Availability\nP2 - degraded\nperformance\n30 minutes\n8 hours\n5 percent monthly fee\ncredit\nLatency dashboard and\naffected endpoint list\nData Pipeline\nP1 - ingestion\nstopped\n20 minutes\n6 hours\n8 percent pipeline fee\ncredit\nQueue depth, failed job IDs,\nreplay report\nData Pipeline\nP3 - delayed\nbatch\n4 hours\nNext business day\nNo automatic credit\nBatch ID and SLA exception\nnote\nSupport\nP2 - urgent\nsupport\n1 hour\n1 business day\n2 percent support fee\ncredit\nSupport ticket with timestamps\nFootnote A: Service credits are not cumulative across the same service category for the same calendar month. Footnote B: Credits do not apply\nwhen delay is caused by client-side network restrictions, missing credentials, or force majeure events.\nParser note: table footnotes should remain attached to the table. If the footnote is separated, an answer about credits may\nbecome incomplete or misleading.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_006.png"
+  },
+  {
+    "page_number": 7,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 7\n6. Image: RAG Architecture Diagram\nThe diagram below represents the ingestion and retrieval flow. Some PDF parsers ignore images completely, while others\nextract image metadata but not the text inside the image. For production use, image content may require OCR or multimodal\nextraction.\nCaption: A simplified RAG pipeline showing raw files, parsing, chunking, embeddings, vector database, retriever, LLM, and grounded answer\ngeneration.\nImage element\nPotential extraction method\nExpected output\nBox labels\nOCR or vision model\nRaw Files, Parser, Chunks, Vector DB\nArrows\nLayout or vision understanding\nProcessing order\nCaption\nNormal PDF text extraction\nDescription of the diagram",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_007.png"
+  },
+  {
+    "page_number": 8,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 8\n7. Markdown Runbook Excerpt\nMarkdown files are often easier to parse because headings and code blocks are explicit. However, when markdown is\nexported to PDF, the structure may become visual rather than semantic.\n# Runbook: Contract Ingestion Failure\n## Symptoms\n- Upload status remains `processing` for more than 30 minutes.\n- Worker logs show repeated timeout errors.\n- Vector count does not increase for the affected document.\n## Recovery Steps\n1. Confirm the object exists in document storage.\n2. Re-run parser with `safe_mode=True`.\n3. Rebuild chunks with the previous chunking configuration.\n4. Compare chunk count with the last successful ingestion.\n5. Trigger re-embedding only for changed chunks.\nA good parser should preserve code block boundaries and avoid mixing numbered steps with surrounding prose. In RAG,\nrunbooks are useful because users often ask operational questions that require exact steps.\nRunbook field\nValue\nParsing expectation\nTitle\nContract Ingestion Failure\nShould become section title metadata\nSymptoms\nFive bullet items\nShould remain as list or separate lines\nRecovery Steps\nNumbered sequence\nOrder must be preserved",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_008.png"
+  },
+  {
+    "page_number": 9,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 9\n8. Scanned Form and OCR Challenge\nThis page contains a scanned-form style image. Text inside the form is not normal selectable PDF text. A simple text parser\nmay miss it entirely. OCR-based systems should extract labels, values, and checkboxes from the image.\nCaption: The form includes fields such as Client Name, Contract ID, Effective Date, Renewal Type, Data Region, Reviewer, and a checkbox\napproval statement.\nField\nExpected OCR value\nValidation rule\nClient Name\nBlueLeaf Retail Pvt Ltd\nMust match known client list\nContract ID\nBLR-MSA-2026-019\nPattern: client-code + type + year +\nsequence\nEffective Date\n01 Apr 2026\nDate parser should normalize to ISO\nformat\nApproval checkbox\nChecked\nBoolean extraction required",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_009.png"
+  },
+  {
+    "page_number": 10,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 10\n9. Multiple Documents for One Client\nBlueLeaf Retail has five related contract documents. If these documents are indexed independently without relationship\nmetadata, the retriever may miss cross-document context. The platform uses a contract_group_id to connect related\ndocuments.\ndocument_id\ndocument_type\ncontract_group_id\neffective_date\nrelationship\nBLR-MSA-001\nMaster Service\nAgreement\nBLR-ACME-2026\n2026-04-01\nBase commercial agreement\nBLR-NDA-002\nNDA\nBLR-ACME-2026\n2026-04-01\nConfidentiality terms\nBLR-SOW-003\nStatement of Work\nBLR-ACME-2026\n2026-04-15\nProject scope and deliverables\nBLR-PRICE-004\nPricing Amendment\nBLR-ACME-2026\n2026-05-01\nUpdated pricing and discount tiers\nBLR-SLA-005\nSupport SLA\nBLR-ACME-2026\n2026-05-10\nSupport response and credits\nExample question: What does the BlueLeaf agreement say about termination assistance and pricing changes? A good\nretriever may need chunks from the MSA and the Pricing Amendment together.\nRelationship metadata allows retrieval across related documents without mixing unrelated client data.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_010.png"
+  },
+  {
+    "page_number": 11,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 11\n10. Multi-tenant Retrieval and Access Control\nIn a multi-tenant RAG system, each document, chunk, embedding, and retrieval request should be associated with a tenant\nidentifier. Client isolation should happen before the LLM receives any context.\nLayer\nControl\nFailure mode if missing\nAuthentication\nIdentify user and organization\nUnknown user may access application\nAuthorization\nMap user to client_id and role\nUser may retrieve another clients documents\nVector retrieval\nFilter by client_id or namespace\nRetriever may return unauthorized chunks\nPrompt construction\nSend only allowed context\nLLM may see sensitive data\nAudit logging\nRecord query, source chunks, user_id\nNo traceability during incident review\nCorrect flow: authenticate user, get client_id from backend, retrieve only matching chunks, build prompt with authorized\ncontext, return answer with citations.\nWrong flow: retrieve from all clients and tell the model to ignore unauthorized content. This is unsafe because the LLM should\nnot be used as the access-control boundary.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_011.png"
+  },
+  {
+    "page_number": 12,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 12\n11. Analytics Image: Retention Heatmap\nThe heatmap below simulates viewership retention by time slot. A parser that ignores chart images will miss useful business\ncontext. OCR can extract axis labels and numbers, but chart understanding may require a vision model.\nObservation\nSupporting value\nScheduling implication\nPrime Friday performs best\n93 retention score\nPlace premium content in Friday late/prime slots\nEarly week late slots\nunderperform\n10 to 21 score range\nAvoid launching new series in weak slots\nEvening improves midweek\n77 on Wednesday evening\nUse midweek evening for discovery content\nFor RAG, chart captions should be indexed. If chart values are critical, extract them into structured metadata or a\ncompanion table.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_012.png"
+  },
+  {
+    "page_number": 13,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 13\n12. Evaluation Dataset\nA RAG system should be evaluated separately for retrieval quality and answer quality. This page includes a miniature\nevaluation set with expected source references. It is useful for testing whether citations point to the correct section.\nTest ID\nQuestion\nExpected source\nExpected answer element\nFailure signal\nQ-001\nWhat is the refund window?\nPolicy Rules table\n7 days\nAnswer says 30 days\nQ-002\nWhich clause covers data\nresidency?\nClause 9.1\nApproved processing region\nNo clause citation\nQ-003\nWhat is P1 API response target?\nSLA table\n15 minutes\nWrong severity row\nQ-004\nWhich documents belong to\nBLR-ACME-2026?\nRelationship table\nFive related documents\nOnly one document\nreturned\nQ-005\nWho owns access review?\nPolicy Rules table\nSecurity\nOwner missing\nEvaluation should include adversarial questions, unrelated questions, and questions that require multi-hop retrieval across\nrelated documents.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_013.png"
+  },
+  {
+    "page_number": 14,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 14\n13. Edge Cases for Parsers\nThe following cases often break real document ingestion pipelines. They are included here as guidance for testing parser\nquality before moving to embeddings and vector storage.\nEdge case\nExample\nRecommended handling\nRepeated headers and\nfooters\nPage number, confidentiality banner\nRemove or store separately as metadata\nHyphenated line breaks\ntermi- nation assistance\nNormalize during cleaning\nRotated tables\nLandscape appendix in PDF\nUse layout-aware parser or OCR\nMerged cells\nPricing table with grouped plans\nPreserve hierarchy in row text\nScanned signatures\nSignature block as image\nOCR if text is needed; store image reference\nBoilerplate navigation\nWebsite header and footer\nUse boilerplate removal\nDuplicate chunks\nSame policy in FAQ and PDF\nDeduplicate using source and hash\nBad parsing creates bad chunks. Bad chunks create bad retrieval. Bad retrieval creates bad answers.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_014.png"
+  },
+  {
+    "page_number": 15,
+    "text": "Complex RAG Parsing Sample - synthetic document\nPage 15\n15. Final Ingestion Checklist\nUse this checklist before sending parsed content into chunking and embeddings. It helps identify whether the data is ready for\nproduction RAG.\nChecklist item\nStatus to verify\nWhy it matters\nText extraction\nParagraphs are readable and ordered\nPrevents noisy chunks\nTable extraction\nRows, columns, headers, and footnotes\npreserved\nProtects factual answers\nImage handling\nCaptions indexed and OCR done if required\nAvoids missing visual information\nMetadata\nsource, page, client_id, document_id\ncaptured\nEnables citations and access control\nChunking\nChunks preserve meaning and section\nboundaries\nImproves retrieval relevance\nAccess control\nRetrieval filters use authenticated client_id\nPrevents data leakage\nEvaluation\nGolden questions tested with citations\nMeasures real answer quality\nSummary: RAG is about knowledge access. Fine-tuning is about behavior adaptation. For document intelligence, parsing\nquality is the foundation. If extraction is weak, no embedding model or LLM can fully fix the missing context.\nEnd of synthetic 15-page parsing test document.",
+    "image_count": 0,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_015.png"
+  },
+  {
+    "page_number": 16,
+    "text": "Complex RAG Parsing Sample - appended complex tables\nAppendix page 1\nAppendix A: Complex Clause Responsibility Matrix\nGrouped clauses with owner/backup split inside the same responsibility cell. This page is useful for testing row\ngrouping, merged-looking labels, split responsibility cells, and long evidence text.\nParsing challenge: preserve row boundaries, nested headers, split cells, grouped labels, numeric values, and footnotes/context around\nthe table.\nTable 1: Added as complex parsing appendix for table extraction, OCR fallback, and layout-aware RAG testing.",
+    "image_count": 1,
+    "width": 612.0,
+    "height": 792.0,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_016.png"
+  },
+  {
+    "page_number": 17,
+    "text": "Complex RAG Parsing Sample - appended complex tables\nAppendix page 2\nAppendix B: Regional Pricing and Usage Add-on Matrix\nPricing table with multi-level headers, regional columns, add-on columns, billing rules, exception rows, and\nmixed numeric/text values.\nParsing challenge: preserve row boundaries, nested headers, split cells, grouped labels, numeric values, and footnotes/context around\nthe table.\nTable 2: Added as complex parsing appendix for table extraction, OCR fallback, and layout-aware RAG testing.",
+    "image_count": 1,
+    "width": 612.0,
+    "height": 792.0,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_017.png"
+  },
+  {
+    "page_number": 18,
+    "text": "Complex RAG Parsing Sample - appended complex tables\nAppendix page 3\nAppendix C: Invoice Line Items with Tax Split\nInvoice-style line item table with item groups, quantity, rate, CGST/SGST split, totals, and summary row. Useful\nfor invoice parsing and tax extraction tests.\nParsing challenge: preserve row boundaries, nested headers, split cells, grouped labels, numeric values, and footnotes/context around\nthe table.\nTable 3: Added as complex parsing appendix for table extraction, OCR fallback, and layout-aware RAG testing.",
+    "image_count": 1,
+    "width": 612.0,
+    "height": 792.0,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_018.png"
+  },
+  {
+    "page_number": 19,
+    "text": "Complex RAG Parsing Sample - appended visuals and scanned documents\nAppendix page 1\nAppendix D: Multimodal Document Processing Flow\nDiagram-style image showing how PDFs, DOCX files, scanned invoices, Excel/CSV metadata, parser/OCR,\nextracted text/tables/metadata, and RAG-ready chunks connect.\nParsing challenge: image text, arrows, labels, and captions may not appear in normal PDF text extraction. OCR or multimodal\nparsing may be required.\nAdded at the end for complex image parsing, OCR fallback, layout-aware extraction, and multimodal RAG testing.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_019.png"
+  },
+  {
+    "page_number": 20,
+    "text": "Complex RAG Parsing Sample - appended visuals and scanned documents\nAppendix page 2\nAppendix E: Contract Risk Dashboard Image\nDashboard-style image containing a bar chart, legend, and small matrix. Useful for testing chart extraction,\nnumeric value capture, and caption-aware indexing.\nParsing challenge: extract chart title, bar values, legend labels, and table values from an embedded image.\nAdded at the end for complex image parsing, OCR fallback, layout-aware extraction, and multimodal RAG testing.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_020.png"
+  },
+  {
+    "page_number": 21,
+    "text": "Complex RAG Parsing Sample - appended visuals and scanned documents\nAppendix page 3\nAppendix F: Data Lineage and Access Boundary\nImage\nLineage-map style image with nodes, arrows, access boundaries, and metadata badges. Useful for diagram\nOCR and relationship extraction.\nParsing challenge: diagram text must be OCRed and mapped to relationships such as user auth, namespace, retrieval, and\nLLM gateway.\nAdded at the end for complex image parsing, OCR fallback, layout-aware extraction, and multimodal RAG testing.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_021.png"
+  },
+  {
+    "page_number": 22,
+    "text": "Complex RAG Parsing Sample - appended visuals and scanned documents\nAppendix page 4\nAppendix G: Additional Scanned Invoice for OCR\nTesting\nSynthetic scanned tax invoice with vendor details, customer details, invoice number, GSTIN, line items, tax split,\ntotal amount, payment terms, footer notes, approval stamp, and handwritten-style receipt text.\nParsing challenge: this page is intentionally embedded as an image-like scan. A normal text parser may miss invoice values\nunless OCR is enabled.\nAdded at the end for complex image parsing, OCR fallback, layout-aware extraction, and multimodal RAG testing.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_022.png"
+  },
+  {
+    "page_number": 23,
+    "text": "Complex RAG Parsing Sample - appended visuals and scanned documents\nAppendix page 5\nAppendix H: Additional Scanned Utility Bill for OCR\nTesting\nSynthetic scanned utility bill with meter-style charges, usage rows, tax values, total payable amount, payment\nterms, stamp, handwritten-style note, and noisy/rotated scan effects.\nParsing challenge: extract bill number, issuer, line items, usage quantity, tax split, total payable, and payment notes from a\nscanned image.\nAdded at the end for complex image parsing, OCR fallback, layout-aware extraction, and multimodal RAG testing.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_023.png"
+  },
+  {
+    "page_number": 24,
+    "text": "Complex RAG Parsing Sample - appended instructor image\nAppendix page 6\nAppendix I: Profile Image for Multimodal Parsing\nThis page adds a portrait-style image to test how a parser or multimodal RAG system handles photographic\ncontent, captions, image metadata, and surrounding text. Text-only loaders may extract the caption but cannot\nunderstand the visual content unless OCR, vision, or multimodal parsing is used.\nCaption: Portrait-style instructor image with a bright background. Useful for testing image extraction, captioning,\nperson detection, layout preservation, and multimodal document understanding.\nElement\nParsing Challenge\nExpected Handling\nPortrait image\nPixels are not selectable PDF text.\nExtract image object or create visual summary with a\nmultimodal model.\nCaption text\nCaption should stay attached to image\ncontext.\nPreserve caption near the image in reading order.\nImage metadata\nFile name, page, and bounding box may be\nneeded.\nStore metadata for citation and retrieval.\nRAG usage\nText-only chunks may miss visual details.\nUse OCR or vision captioning before chunking if\nvisual content matters.\nAdded at the end for complex image parsing, multimodal RAG testing, caption grounding, and visual-content extraction checks.",
+    "image_count": 1,
+    "width": 595.2755737304688,
+    "height": 841.8897705078125,
+    "ocr_text": "[OCR_SKIPPED_OR_FAILED: tesseract is not installed or it's not in your PATH. See README file for more information.]",
+    "page_image_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\parsed_complex_pdf_output\\page_images\\page_024.png"
+  }
+]
