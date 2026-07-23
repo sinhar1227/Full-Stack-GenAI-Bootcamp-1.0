@@ -1,0 +1,8 @@
+| 0                   | 1                                    | 2                                           |
+|:--------------------|:-------------------------------------|:--------------------------------------------|
+| Layer               | Control                              | Failure mode if missing                     |
+| Authentication      | Identify user and organization       | Unknown user may access application         |
+| Authorization       | Map user to client_id and role       | User may retrieve another clients documents |
+| Vector retrieval    | Filter by client_id or namespace     | Retriever may return unauthorized chunks    |
+| Prompt construction | Send only allowed context            | LLM may see sensitive data                  |
+| Audit logging       | Record query, source chunks, user_id | No traceability during incident review      |

@@ -1,0 +1,1096 @@
+[
+  {
+    "table_number": 1,
+    "page_number": 1,
+    "item_index": 7,
+    "rows": [
+      [
+        "Section",
+        "Parsing challenge",
+        "Why it matters for RAG"
+      ],
+      [
+        "Contracts",
+        "Dense legal text, clause numbers, cross references",
+        "Need section-aware chunks and citations"
+      ],
+      [
+        "Tables",
+        "Merged headers, numeric columns, footnotes",
+        "Need row/column preservation"
+      ],
+      [
+        "Images",
+        "Architecture diagram, heatmap, scanned form",
+        "Need OCR or multimodal extraction"
+      ],
+      [
+        "Multi-tenant metadata",
+        "client_id, document_id, contract_group_id",
+        "Need access-safe retrieval"
+      ]
+    ],
+    "csv": "\"Section\",\"Parsing challenge\",\"Why it matters for RAG\"\n\"Contracts\",\"Dense legal text, clause numbers, cross references\",\"Need section-aware chunks and citations\"\n\"Tables\",\"Merged headers, numeric columns, footnotes\",\"Need row/column preservation\"\n\"Images\",\"Architecture diagram, heatmap, scanned form\",\"Need OCR or multimodal extraction\"\n\"Multi-tenant metadata\",\"client_id, document_id, contract_group_id\",\"Need access-safe retrieval\"",
+    "markdown": "| Section               | Parsing challenge                                  | Why it matters for RAG                  |\n| --------------------- | -------------------------------------------------- | --------------------------------------- |\n| Contracts             | Dense legal text, clause numbers, cross references | Need section-aware chunks and citations |\n| Tables                | Merged headers, numeric columns, footnotes         | Need row/column preservation            |\n| Images                | Architecture diagram, heatmap, scanned form        | Need OCR or multimodal extraction       |\n| Multi-tenant metadata | client\\_id, document\\_id, contract\\_group\\_id      | Need access-safe retrieval              |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Section</th>\n        <th>Parsing challenge</th>\n        <th>Why it matters for RAG</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Contracts</td>\n        <td>Dense legal text, clause numbers, cross references</td>\n        <td>Need section-aware chunks and citations</td>\n    </tr>\n    <tr>\n        <td>Tables</td>\n        <td>Merged headers, numeric columns, footnotes</td>\n        <td>Need row/column preservation</td>\n    </tr>\n    <tr>\n        <td>Images</td>\n        <td>Architecture diagram, heatmap, scanned form</td>\n        <td>Need OCR or multimodal extraction</td>\n    </tr>\n    <tr>\n        <td>Multi-tenant metadata</td>\n        <td>client_id, document_id, contract_group_id</td>\n        <td>Need access-safe retrieval</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 2,
+    "page_number": 2,
+    "item_index": 4,
+    "rows": [
+      [
+        "Client",
+        "Main document family",
+        "Risk",
+        "Primary users",
+        "Typical question"
+      ],
+      [
+        "Arka Finance",
+        "MSA, audit addendum, DPA",
+        "High",
+        "Legal and compliance",
+        "What audit rights exist in the DPA?"
+      ],
+      [
+        "BlueLeaf Retail",
+        "MSA, pricing, support SLA",
+        "Medium",
+        "Procurement",
+        "Which clause controls renewal pricing?"
+      ],
+      [
+        "CityRide Mobility",
+        "Ops reports, incident logs, SOPs",
+        "Medium",
+        "Operations",
+        "Which depot had repeated battery incidents?"
+      ]
+    ],
+    "csv": "\"Client\",\"Main document family\",\"Risk\",\"Primary users\",\"Typical question\"\n\"Arka Finance\",\"MSA, audit addendum, DPA\",\"High\",\"Legal and compliance\",\"What audit rights exist in the DPA?\"\n\"BlueLeaf Retail\",\"MSA, pricing, support SLA\",\"Medium\",\"Procurement\",\"Which clause controls renewal pricing?\"\n\"CityRide Mobility\",\"Ops reports, incident logs, SOPs\",\"Medium\",\"Operations\",\"Which depot had repeated battery incidents?\"",
+    "markdown": "| Client            | Main document family             | Risk   | Primary users        | Typical question                            |\n| ----------------- | -------------------------------- | ------ | -------------------- | ------------------------------------------- |\n| Arka Finance      | MSA, audit addendum, DPA         | High   | Legal and compliance | What audit rights exist in the DPA?         |\n| BlueLeaf Retail   | MSA, pricing, support SLA        | Medium | Procurement          | Which clause controls renewal pricing?      |\n| CityRide Mobility | Ops reports, incident logs, SOPs | Medium | Operations           | Which depot had repeated battery incidents? |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Client</th>\n        <th>Main document family</th>\n        <th>Risk</th>\n        <th>Primary users</th>\n        <th>Typical question</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Arka Finance</td>\n        <td>MSA, audit addendum, DPA</td>\n        <td>High</td>\n        <td>Legal and compliance</td>\n        <td>What audit rights exist in the DPA?</td>\n    </tr>\n    <tr>\n        <td>BlueLeaf Retail</td>\n        <td>MSA, pricing, support SLA</td>\n        <td>Medium</td>\n        <td>Procurement</td>\n        <td>Which clause controls renewal pricing?</td>\n    </tr>\n    <tr>\n        <td>CityRide Mobility</td>\n        <td>Ops reports, incident logs, SOPs</td>\n        <td>Medium</td>\n        <td>Operations</td>\n        <td>Which depot had repeated battery incidents?</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 3,
+    "page_number": 3,
+    "item_index": 3,
+    "rows": [
+      [
+        "Asset ID",
+        "Client",
+        "Format",
+        "Pages/Rows",
+        "Expected extraction",
+        "Notes"
+      ],
+      [
+        "ARK-MSA-001",
+        "Arka Finance",
+        "PDF",
+        "32 pages",
+        "Clauses, tables, signatures",
+        "Born-digital text with footer references"
+      ],
+      [
+        "ARK-DPA-002",
+        "Arka Finance",
+        "DOCX",
+        "18 pages",
+        "Headings, lists, tables",
+        "Track changes removed before ingestion"
+      ],
+      [
+        "BLR-PRICE-003",
+        "BlueLeaf Retail",
+        "XLSX",
+        "12 sheets",
+        "Rate cards, discounts",
+        "Merged cells and formulas"
+      ],
+      [
+        "BLR-SLA-004",
+        "BlueLeaf Retail",
+        "PDF",
+        "9 pages",
+        "SLA table, escalation matrix",
+        "Table crosses page boundary"
+      ],
+      [
+        "CRM-OPS-005",
+        "CityRide Mobility",
+        "CSV",
+        "48,200 rows",
+        "Incident records",
+        "Needs column type normalization"
+      ],
+      [
+        "CRM-FORM-006",
+        "CityRide Mobility",
+        "Scanned PDF",
+        "4 pages",
+        "OCR fields, checkbox",
+        "Low contrast and slight rotation"
+      ],
+      [
+        "KB-RUN-007",
+        "Shared",
+        "Markdown",
+        "14 files",
+        "Runbook sections",
+        "Good for heading-based chunks"
+      ],
+      [
+        "WEB-FAQ-008",
+        "Shared",
+        "HTML",
+        "23 pages",
+        "FAQ content, links",
+        "Needs boilerplate removal"
+      ]
+    ],
+    "csv": "\"Asset ID\",\"Client\",\"Format\",\"Pages/Rows\",\"Expected extraction\",\"Notes\"\n\"ARK-MSA-001\",\"Arka Finance\",\"PDF\",\"32 pages\",\"Clauses, tables, signatures\",\"Born-digital text with footer references\"\n\"ARK-DPA-002\",\"Arka Finance\",\"DOCX\",\"18 pages\",\"Headings, lists, tables\",\"Track changes removed before ingestion\"\n\"BLR-PRICE-003\",\"BlueLeaf Retail\",\"XLSX\",\"12 sheets\",\"Rate cards, discounts\",\"Merged cells and formulas\"\n\"BLR-SLA-004\",\"BlueLeaf Retail\",\"PDF\",\"9 pages\",\"SLA table, escalation matrix\",\"Table crosses page boundary\"\n\"CRM-OPS-005\",\"CityRide Mobility\",\"CSV\",\"48,200 rows\",\"Incident records\",\"Needs column type normalization\"\n\"CRM-FORM-006\",\"CityRide Mobility\",\"Scanned PDF\",\"4 pages\",\"OCR fields, checkbox\",\"Low contrast and slight rotation\"\n\"KB-RUN-007\",\"Shared\",\"Markdown\",\"14 files\",\"Runbook sections\",\"Good for heading-based chunks\"\n\"WEB-FAQ-008\",\"Shared\",\"HTML\",\"23 pages\",\"FAQ content, links\",\"Needs boilerplate removal\"",
+    "markdown": "| Asset ID      | Client            | Format      | Pages/Rows  | Expected extraction          | Notes                                    |\n| ------------- | ----------------- | ----------- | ----------- | ---------------------------- | ---------------------------------------- |\n| ARK-MSA-001   | Arka Finance      | PDF         | 32 pages    | Clauses, tables, signatures  | Born-digital text with footer references |\n| ARK-DPA-002   | Arka Finance      | DOCX        | 18 pages    | Headings, lists, tables      | Track changes removed before ingestion   |\n| BLR-PRICE-003 | BlueLeaf Retail   | XLSX        | 12 sheets   | Rate cards, discounts        | Merged cells and formulas                |\n| BLR-SLA-004   | BlueLeaf Retail   | PDF         | 9 pages     | SLA table, escalation matrix | Table crosses page boundary              |\n| CRM-OPS-005   | CityRide Mobility | CSV         | 48,200 rows | Incident records             | Needs column type normalization          |\n| CRM-FORM-006  | CityRide Mobility | Scanned PDF | 4 pages     | OCR fields, checkbox         | Low contrast and slight rotation         |\n| KB-RUN-007    | Shared            | Markdown    | 14 files    | Runbook sections             | Good for heading-based chunks            |\n| WEB-FAQ-008   | Shared            | HTML        | 23 pages    | FAQ content, links           | Needs boilerplate removal                |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Asset ID</th>\n        <th>Client</th>\n        <th>Format</th>\n        <th>Pages/Rows</th>\n        <th>Expected extraction</th>\n        <th>Notes</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>ARK-MSA-001</td>\n        <td>Arka Finance</td>\n        <td>PDF</td>\n        <td>32 pages</td>\n        <td>Clauses, tables, signatures</td>\n        <td>Born-digital text with footer references</td>\n    </tr>\n    <tr>\n        <td>ARK-DPA-002</td>\n        <td>Arka Finance</td>\n        <td>DOCX</td>\n        <td>18 pages</td>\n        <td>Headings, lists, tables</td>\n        <td>Track changes removed before ingestion</td>\n    </tr>\n    <tr>\n        <td>BLR-PRICE-003</td>\n        <td>BlueLeaf Retail</td>\n        <td>XLSX</td>\n        <td>12 sheets</td>\n        <td>Rate cards, discounts</td>\n        <td>Merged cells and formulas</td>\n    </tr>\n    <tr>\n        <td>BLR-SLA-004</td>\n        <td>BlueLeaf Retail</td>\n        <td>PDF</td>\n        <td>9 pages</td>\n        <td>SLA table, escalation matrix</td>\n        <td>Table crosses page boundary</td>\n    </tr>\n    <tr>\n        <td>CRM-OPS-005</td>\n        <td>CityRide Mobility</td>\n        <td>CSV</td>\n        <td>48,200 rows</td>\n        <td>Incident records</td>\n        <td>Needs column type normalization</td>\n    </tr>\n    <tr>\n        <td>CRM-FORM-006</td>\n        <td>CityRide Mobility</td>\n        <td>Scanned PDF</td>\n        <td>4 pages</td>\n        <td>OCR fields, checkbox</td>\n        <td>Low contrast and slight rotation</td>\n    </tr>\n    <tr>\n        <td>KB-RUN-007</td>\n        <td>Shared</td>\n        <td>Markdown</td>\n        <td>14 files</td>\n        <td>Runbook sections</td>\n        <td>Good for heading-based chunks</td>\n    </tr>\n    <tr>\n        <td>WEB-FAQ-008</td>\n        <td>Shared</td>\n        <td>HTML</td>\n        <td>23 pages</td>\n        <td>FAQ content, links</td>\n        <td>Needs boilerplate removal</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 4,
+    "page_number": 4,
+    "item_index": 6,
+    "rows": [
+      [
+        "Clause",
+        "Short name",
+        "Owner",
+        "Trigger",
+        "Required action",
+        "Citation hint"
+      ],
+      [
+        "7.2",
+        "Confidentiality",
+        "Receiving Party",
+        "Receipt of confidential material",
+        "Protect information with reasonable care and equivalent internal controls",
+        "Page 4, clause 7.2"
+      ],
+      [
+        "9.1",
+        "Data residency",
+        "Service Provider",
+        "SOW specifies region",
+        "Process production records only in approved region",
+        "Page 4, clause 9.1"
+      ],
+      [
+        "11.4",
+        "Termination assistance",
+        "Service Provider",
+        "Agreement termination",
+        "Provide export window for 30 days",
+        "Page 4, clause 11.4"
+      ]
+    ],
+    "csv": "\"Clause\",\"Short name\",\"Owner\",\"Trigger\",\"Required action\",\"Citation hint\"\n\"7.2\",\"Confidentiality\",\"Receiving Party\",\"Receipt of confidential material\",\"Protect information with reasonable care and equivalent internal controls\",\"Page 4, clause 7.2\"\n\"9.1\",\"Data residency\",\"Service Provider\",\"SOW specifies region\",\"Process production records only in approved region\",\"Page 4, clause 9.1\"\n\"11.4\",\"Termination assistance\",\"Service Provider\",\"Agreement termination\",\"Provide export window for 30 days\",\"Page 4, clause 11.4\"",
+    "markdown": "| Clause | Short name             | Owner            | Trigger                          | Required action                                                           | Citation hint       |\n| ------ | ---------------------- | ---------------- | -------------------------------- | ------------------------------------------------------------------------- | ------------------- |\n| 7.2    | Confidentiality        | Receiving Party  | Receipt of confidential material | Protect information with reasonable care and equivalent internal controls | Page 4, clause 7.2  |\n| 9.1    | Data residency         | Service Provider | SOW specifies region             | Process production records only in approved region                        | Page 4, clause 9.1  |\n| 11.4   | Termination assistance | Service Provider | Agreement termination            | Provide export window for 30 days                                         | Page 4, clause 11.4 |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Clause</th>\n        <th>Short name</th>\n        <th>Owner</th>\n        <th>Trigger</th>\n        <th>Required action</th>\n        <th>Citation hint</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>7.2</td>\n        <td>Confidentiality</td>\n        <td>Receiving Party</td>\n        <td>Receipt of confidential material</td>\n        <td>Protect information with reasonable care and equivalent internal controls</td>\n        <td>Page 4, clause 7.2</td>\n    </tr>\n    <tr>\n        <td>9.1</td>\n        <td>Data residency</td>\n        <td>Service Provider</td>\n        <td>SOW specifies region</td>\n        <td>Process production records only in approved region</td>\n        <td>Page 4, clause 9.1</td>\n    </tr>\n    <tr>\n        <td>11.4</td>\n        <td>Termination assistance</td>\n        <td>Service Provider</td>\n        <td>Agreement termination</td>\n        <td>Provide export window for 30 days</td>\n        <td>Page 4, clause 11.4</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 5,
+    "page_number": 5,
+    "item_index": 3,
+    "rows": [
+      [
+        "Policy Area",
+        "Rule",
+        "Owner",
+        "Review Cycle"
+      ],
+      [
+        "Refunds",
+        "Refund requests must be raised within 7 days of purchase.",
+        "Customer Support",
+        "Quarterly"
+      ],
+      [
+        "Data Export",
+        "Client admins can request export in CSV or JSON format.",
+        "Platform Ops",
+        "Monthly"
+      ],
+      [
+        "Access Review",
+        "Privileged access must be reviewed every 30 days.",
+        "Security",
+        "Monthly"
+      ],
+      [
+        "Incident Response",
+        "Critical incidents require acknowledgement within 30 minutes.",
+        "SRE",
+        "After each incident"
+      ],
+      [
+        "Vendor Review",
+        "High-risk vendors require annual risk assessment.",
+        "Procurement",
+        "Annual"
+      ]
+    ],
+    "csv": "\"Policy Area\",\"Rule\",\"Owner\",\"Review Cycle\"\n\"Refunds\",\"Refund requests must be raised within 7 days of purchase.\",\"Customer Support\",\"Quarterly\"\n\"Data Export\",\"Client admins can request export in CSV or JSON format.\",\"Platform Ops\",\"Monthly\"\n\"Access Review\",\"Privileged access must be reviewed every 30 days.\",\"Security\",\"Monthly\"\n\"Incident Response\",\"Critical incidents require acknowledgement within 30 minutes.\",\"SRE\",\"After each incident\"\n\"Vendor Review\",\"High-risk vendors require annual risk assessment.\",\"Procurement\",\"Annual\"",
+    "markdown": "| Policy Area       | Rule                                                          | Owner            | Review Cycle        |\n| ----------------- | ------------------------------------------------------------- | ---------------- | ------------------- |\n| Refunds           | Refund requests must be raised within 7 days of purchase.     | Customer Support | Quarterly           |\n| Data Export       | Client admins can request export in CSV or JSON format.       | Platform Ops     | Monthly             |\n| Access Review     | Privileged access must be reviewed every 30 days.             | Security         | Monthly             |\n| Incident Response | Critical incidents require acknowledgement within 30 minutes. | SRE              | After each incident |\n| Vendor Review     | High-risk vendors require annual risk assessment.             | Procurement      | Annual              |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Policy Area</th>\n        <th>Rule</th>\n        <th>Owner</th>\n        <th>Review Cycle</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Refunds</td>\n        <td>Refund requests must be raised within 7 days of purchase.</td>\n        <td>Customer Support</td>\n        <td>Quarterly</td>\n    </tr>\n    <tr>\n        <td>Data Export</td>\n        <td>Client admins can request export in CSV or JSON format.</td>\n        <td>Platform Ops</td>\n        <td>Monthly</td>\n    </tr>\n    <tr>\n        <td>Access Review</td>\n        <td>Privileged access must be reviewed every 30 days.</td>\n        <td>Security</td>\n        <td>Monthly</td>\n    </tr>\n    <tr>\n        <td>Incident Response</td>\n        <td>Critical incidents require acknowledgement within 30 minutes.</td>\n        <td>SRE</td>\n        <td>After each incident</td>\n    </tr>\n    <tr>\n        <td>Vendor Review</td>\n        <td>High-risk vendors require annual risk assessment.</td>\n        <td>Procurement</td>\n        <td>Annual</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 6,
+    "page_number": 6,
+    "item_index": 3,
+    "rows": [
+      [
+        "Service Category",
+        "Severity",
+        "Response Target",
+        "Resolution Target",
+        "Service Credit",
+        "Evidence Required"
+      ],
+      [
+        "API Availability",
+        "P1 - complete<br/>outage",
+        "15 minutes",
+        "4 hours",
+        "10 percent monthly<br/>fee credit",
+        "Monitoring logs and incident<br/>ticket"
+      ],
+      [
+        "API Availability",
+        "P2 - degraded<br/>performance",
+        "30 minutes",
+        "8 hours",
+        "5 percent monthly fee<br/>credit",
+        "Latency dashboard and<br/>affected endpoint list"
+      ],
+      [
+        "Data Pipeline",
+        "P1 - ingestion<br/>stopped",
+        "20 minutes",
+        "6 hours",
+        "8 percent pipeline fee<br/>credit",
+        "Queue depth, failed job IDs,<br/>replay report"
+      ],
+      [
+        "Data Pipeline",
+        "P3 - delayed<br/>batch",
+        "4 hours",
+        "Next business day",
+        "No automatic credit",
+        "Batch ID and SLA exception<br/>note"
+      ],
+      [
+        "Support",
+        "P2 - urgent<br/>support",
+        "1 hour",
+        "1 business day",
+        "2 percent support fee<br/>credit",
+        "Support ticket with timestamps"
+      ]
+    ],
+    "csv": "\"Service Category\",\"Severity\",\"Response Target\",\"Resolution Target\",\"Service Credit\",\"Evidence Required\"\n\"API Availability\",\"P1 - complete<br/>outage\",\"15 minutes\",\"4 hours\",\"10 percent monthly<br/>fee credit\",\"Monitoring logs and incident<br/>ticket\"\n\"API Availability\",\"P2 - degraded<br/>performance\",\"30 minutes\",\"8 hours\",\"5 percent monthly fee<br/>credit\",\"Latency dashboard and<br/>affected endpoint list\"\n\"Data Pipeline\",\"P1 - ingestion<br/>stopped\",\"20 minutes\",\"6 hours\",\"8 percent pipeline fee<br/>credit\",\"Queue depth, failed job IDs,<br/>replay report\"\n\"Data Pipeline\",\"P3 - delayed<br/>batch\",\"4 hours\",\"Next business day\",\"No automatic credit\",\"Batch ID and SLA exception<br/>note\"\n\"Support\",\"P2 - urgent<br/>support\",\"1 hour\",\"1 business day\",\"2 percent support fee<br/>credit\",\"Support ticket with timestamps\"",
+    "markdown": "| Service Category | Severity                      | Response Target | Resolution Target | Service Credit                    | Evidence Required                                |\n| ---------------- | ----------------------------- | --------------- | ----------------- | --------------------------------- | ------------------------------------------------ |\n| API Availability | P1 - complete<br/>outage      | 15 minutes      | 4 hours           | 10 percent monthly<br/>fee credit | Monitoring logs and incident<br/>ticket          |\n| API Availability | P2 - degraded<br/>performance | 30 minutes      | 8 hours           | 5 percent monthly fee<br/>credit  | Latency dashboard and<br/>affected endpoint list |\n| Data Pipeline    | P1 - ingestion<br/>stopped    | 20 minutes      | 6 hours           | 8 percent pipeline fee<br/>credit | Queue depth, failed job IDs,<br/>replay report   |\n| Data Pipeline    | P3 - delayed<br/>batch        | 4 hours         | Next business day | No automatic credit               | Batch ID and SLA exception<br/>note              |\n| Support          | P2 - urgent<br/>support       | 1 hour          | 1 business day    | 2 percent support fee<br/>credit  | Support ticket with timestamps                   |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Service Category</th>\n        <th>Severity</th>\n        <th>Response Target</th>\n        <th>Resolution Target</th>\n        <th>Service Credit</th>\n        <th>Evidence Required</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>API Availability</td>\n        <td>P1 - complete<br />outage</td>\n        <td>15 minutes</td>\n        <td>4 hours</td>\n        <td>10 percent monthly<br />fee credit</td>\n        <td>Monitoring logs and incident<br />ticket</td>\n    </tr>\n    <tr>\n        <td>API Availability</td>\n        <td>P2 - degraded<br />performance</td>\n        <td>30 minutes</td>\n        <td>8 hours</td>\n        <td>5 percent monthly fee<br />credit</td>\n        <td>Latency dashboard and<br />affected endpoint list</td>\n    </tr>\n    <tr>\n        <td>Data Pipeline</td>\n        <td>P1 - ingestion<br />stopped</td>\n        <td>20 minutes</td>\n        <td>6 hours</td>\n        <td>8 percent pipeline fee<br />credit</td>\n        <td>Queue depth, failed job IDs,<br />replay report</td>\n    </tr>\n    <tr>\n        <td>Data Pipeline</td>\n        <td>P3 - delayed<br />batch</td>\n        <td>4 hours</td>\n        <td>Next business day</td>\n        <td>No automatic credit</td>\n        <td>Batch ID and SLA exception<br />note</td>\n    </tr>\n    <tr>\n        <td>Support</td>\n        <td>P2 - urgent<br />support</td>\n        <td>1 hour</td>\n        <td>1 business day</td>\n        <td>2 percent support fee<br />credit</td>\n        <td>Support ticket with timestamps</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 7,
+    "page_number": 7,
+    "item_index": 7,
+    "rows": [
+      [
+        "Image element",
+        "Potential extraction method",
+        "Expected output"
+      ],
+      [
+        "Box labels",
+        "OCR or vision model",
+        "Raw Files, Parser, Chunks, Vector DB"
+      ],
+      [
+        "Arrows",
+        "Layout or vision understanding",
+        "Processing order"
+      ],
+      [
+        "Caption",
+        "Normal PDF text extraction",
+        "Description of the diagram"
+      ]
+    ],
+    "csv": "\"Image element\",\"Potential extraction method\",\"Expected output\"\n\"Box labels\",\"OCR or vision model\",\"Raw Files, Parser, Chunks, Vector DB\"\n\"Arrows\",\"Layout or vision understanding\",\"Processing order\"\n\"Caption\",\"Normal PDF text extraction\",\"Description of the diagram\"",
+    "markdown": "| Image element | Potential extraction method    | Expected output                      |\n| ------------- | ------------------------------ | ------------------------------------ |\n| Box labels    | OCR or vision model            | Raw Files, Parser, Chunks, Vector DB |\n| Arrows        | Layout or vision understanding | Processing order                     |\n| Caption       | Normal PDF text extraction     | Description of the diagram           |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Image element</th>\n        <th>Potential extraction method</th>\n        <th>Expected output</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Box labels</td>\n        <td>OCR or vision model</td>\n        <td>Raw Files, Parser, Chunks, Vector DB</td>\n    </tr>\n    <tr>\n        <td>Arrows</td>\n        <td>Layout or vision understanding</td>\n        <td>Processing order</td>\n    </tr>\n    <tr>\n        <td>Caption</td>\n        <td>Normal PDF text extraction</td>\n        <td>Description of the diagram</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 8,
+    "page_number": 8,
+    "item_index": 5,
+    "rows": [
+      [
+        "Runbook field",
+        "Value",
+        "Parsing expectation"
+      ],
+      [
+        "Title",
+        "Contract Ingestion Failure",
+        "Should become section title metadata"
+      ],
+      [
+        "Symptoms",
+        "Five bullet items",
+        "Should remain as list or separate lines"
+      ],
+      [
+        "Recovery Steps",
+        "Numbered sequence",
+        "Order must be preserved"
+      ]
+    ],
+    "csv": "\"Runbook field\",\"Value\",\"Parsing expectation\"\n\"Title\",\"Contract Ingestion Failure\",\"Should become section title metadata\"\n\"Symptoms\",\"Five bullet items\",\"Should remain as list or separate lines\"\n\"Recovery Steps\",\"Numbered sequence\",\"Order must be preserved\"",
+    "markdown": "| Runbook field  | Value                      | Parsing expectation                     |\n| -------------- | -------------------------- | --------------------------------------- |\n| Title          | Contract Ingestion Failure | Should become section title metadata    |\n| Symptoms       | Five bullet items          | Should remain as list or separate lines |\n| Recovery Steps | Numbered sequence          | Order must be preserved                 |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Runbook field</th>\n        <th>Value</th>\n        <th>Parsing expectation</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Title</td>\n        <td>Contract Ingestion Failure</td>\n        <td>Should become section title metadata</td>\n    </tr>\n    <tr>\n        <td>Symptoms</td>\n        <td>Five bullet items</td>\n        <td>Should remain as list or separate lines</td>\n    </tr>\n    <tr>\n        <td>Recovery Steps</td>\n        <td>Numbered sequence</td>\n        <td>Order must be preserved</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 9,
+    "page_number": 9,
+    "item_index": 6,
+    "rows": [
+      [
+        "Field",
+        "Expected OCR value",
+        "Validation rule"
+      ],
+      [
+        "Client Name",
+        "BlueLeaf Retail Pvt Ltd",
+        "Must match known client list"
+      ],
+      [
+        "Contract ID",
+        "BLR-MSA-2026-019",
+        "Pattern: client-code + type + year + sequence"
+      ],
+      [
+        "Effective Date",
+        "01 Apr 2026",
+        "Date parser should normalize to ISO format"
+      ],
+      [
+        "Approval checkbox",
+        "Checked",
+        "Boolean extraction required"
+      ]
+    ],
+    "csv": "\"Field\",\"Expected OCR value\",\"Validation rule\"\n\"Client Name\",\"BlueLeaf Retail Pvt Ltd\",\"Must match known client list\"\n\"Contract ID\",\"BLR-MSA-2026-019\",\"Pattern: client-code + type + year + sequence\"\n\"Effective Date\",\"01 Apr 2026\",\"Date parser should normalize to ISO format\"\n\"Approval checkbox\",\"Checked\",\"Boolean extraction required\"",
+    "markdown": "| Field             | Expected OCR value      | Validation rule                               |\n| ----------------- | ----------------------- | --------------------------------------------- |\n| Client Name       | BlueLeaf Retail Pvt Ltd | Must match known client list                  |\n| Contract ID       | BLR-MSA-2026-019        | Pattern: client-code + type + year + sequence |\n| Effective Date    | 01 Apr 2026             | Date parser should normalize to ISO format    |\n| Approval checkbox | Checked                 | Boolean extraction required                   |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Field</th>\n        <th>Expected OCR value</th>\n        <th>Validation rule</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Client Name</td>\n        <td>BlueLeaf Retail Pvt Ltd</td>\n        <td>Must match known client list</td>\n    </tr>\n    <tr>\n        <td>Contract ID</td>\n        <td>BLR-MSA-2026-019</td>\n        <td>Pattern: client-code + type + year + sequence</td>\n    </tr>\n    <tr>\n        <td>Effective Date</td>\n        <td>01 Apr 2026</td>\n        <td>Date parser should normalize to ISO format</td>\n    </tr>\n    <tr>\n        <td>Approval checkbox</td>\n        <td>Checked</td>\n        <td>Boolean extraction required</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 10,
+    "page_number": 10,
+    "item_index": 3,
+    "rows": [
+      [
+        "document_id",
+        "document_type",
+        "contract_group_id",
+        "effective_date",
+        "relationship"
+      ],
+      [
+        "BLR-MSA-001",
+        "Master Service Agreement",
+        "BLR-ACME-2026",
+        "2026-04-01",
+        "Base commercial agreement"
+      ],
+      [
+        "BLR-NDA-002",
+        "NDA",
+        "BLR-ACME-2026",
+        "2026-04-01",
+        "Confidentiality terms"
+      ],
+      [
+        "BLR-SOW-003",
+        "Statement of Work",
+        "BLR-ACME-2026",
+        "2026-04-15",
+        "Project scope and deliverables"
+      ],
+      [
+        "BLR-PRICE-004",
+        "Pricing Amendment",
+        "BLR-ACME-2026",
+        "2026-05-01",
+        "Updated pricing and discount tiers"
+      ],
+      [
+        "BLR-SLA-005",
+        "Support SLA",
+        "BLR-ACME-2026",
+        "2026-05-10",
+        "Support response and credits"
+      ]
+    ],
+    "csv": "\"document_id\",\"document_type\",\"contract_group_id\",\"effective_date\",\"relationship\"\n\"BLR-MSA-001\",\"Master Service Agreement\",\"BLR-ACME-2026\",\"2026-04-01\",\"Base commercial agreement\"\n\"BLR-NDA-002\",\"NDA\",\"BLR-ACME-2026\",\"2026-04-01\",\"Confidentiality terms\"\n\"BLR-SOW-003\",\"Statement of Work\",\"BLR-ACME-2026\",\"2026-04-15\",\"Project scope and deliverables\"\n\"BLR-PRICE-004\",\"Pricing Amendment\",\"BLR-ACME-2026\",\"2026-05-01\",\"Updated pricing and discount tiers\"\n\"BLR-SLA-005\",\"Support SLA\",\"BLR-ACME-2026\",\"2026-05-10\",\"Support response and credits\"",
+    "markdown": "| document\\_id  | document\\_type           | contract\\_group\\_id | effective\\_date | relationship                       |\n| ------------- | ------------------------ | ------------------- | --------------- | ---------------------------------- |\n| BLR-MSA-001   | Master Service Agreement | BLR-ACME-2026       | 2026-04-01      | Base commercial agreement          |\n| BLR-NDA-002   | NDA                      | BLR-ACME-2026       | 2026-04-01      | Confidentiality terms              |\n| BLR-SOW-003   | Statement of Work        | BLR-ACME-2026       | 2026-04-15      | Project scope and deliverables     |\n| BLR-PRICE-004 | Pricing Amendment        | BLR-ACME-2026       | 2026-05-01      | Updated pricing and discount tiers |\n| BLR-SLA-005   | Support SLA              | BLR-ACME-2026       | 2026-05-10      | Support response and credits       |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>document_id</th>\n        <th>document_type</th>\n        <th>contract_group_id</th>\n        <th>effective_date</th>\n        <th>relationship</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>BLR-MSA-001</td>\n        <td>Master Service Agreement</td>\n        <td>BLR-ACME-2026</td>\n        <td>2026-04-01</td>\n        <td>Base commercial agreement</td>\n    </tr>\n    <tr>\n        <td>BLR-NDA-002</td>\n        <td>NDA</td>\n        <td>BLR-ACME-2026</td>\n        <td>2026-04-01</td>\n        <td>Confidentiality terms</td>\n    </tr>\n    <tr>\n        <td>BLR-SOW-003</td>\n        <td>Statement of Work</td>\n        <td>BLR-ACME-2026</td>\n        <td>2026-04-15</td>\n        <td>Project scope and deliverables</td>\n    </tr>\n    <tr>\n        <td>BLR-PRICE-004</td>\n        <td>Pricing Amendment</td>\n        <td>BLR-ACME-2026</td>\n        <td>2026-05-01</td>\n        <td>Updated pricing and discount tiers</td>\n    </tr>\n    <tr>\n        <td>BLR-SLA-005</td>\n        <td>Support SLA</td>\n        <td>BLR-ACME-2026</td>\n        <td>2026-05-10</td>\n        <td>Support response and credits</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 11,
+    "page_number": 11,
+    "item_index": 3,
+    "rows": [
+      [
+        "Layer",
+        "Control",
+        "Failure mode if missing"
+      ],
+      [
+        "Authentication",
+        "Identify user and organization",
+        "Unknown user may access application"
+      ],
+      [
+        "Authorization",
+        "Map user to client_id and role",
+        "User may retrieve another clients documents"
+      ],
+      [
+        "Vector retrieval",
+        "Filter by client_id or namespace",
+        "Retriever may return unauthorized chunks"
+      ],
+      [
+        "Prompt construction",
+        "Send only allowed context",
+        "LLM may see sensitive data"
+      ],
+      [
+        "Audit logging",
+        "Record query, source chunks, user_id",
+        "No traceability during incident review"
+      ]
+    ],
+    "csv": "\"Layer\",\"Control\",\"Failure mode if missing\"\n\"Authentication\",\"Identify user and organization\",\"Unknown user may access application\"\n\"Authorization\",\"Map user to client_id and role\",\"User may retrieve another clients documents\"\n\"Vector retrieval\",\"Filter by client_id or namespace\",\"Retriever may return unauthorized chunks\"\n\"Prompt construction\",\"Send only allowed context\",\"LLM may see sensitive data\"\n\"Audit logging\",\"Record query, source chunks, user_id\",\"No traceability during incident review\"",
+    "markdown": "| Layer               | Control                               | Failure mode if missing                     |\n| ------------------- | ------------------------------------- | ------------------------------------------- |\n| Authentication      | Identify user and organization        | Unknown user may access application         |\n| Authorization       | Map user to client\\_id and role       | User may retrieve another clients documents |\n| Vector retrieval    | Filter by client\\_id or namespace     | Retriever may return unauthorized chunks    |\n| Prompt construction | Send only allowed context             | LLM may see sensitive data                  |\n| Audit logging       | Record query, source chunks, user\\_id | No traceability during incident review      |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Layer</th>\n        <th>Control</th>\n        <th>Failure mode if missing</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Authentication</td>\n        <td>Identify user and organization</td>\n        <td>Unknown user may access application</td>\n    </tr>\n    <tr>\n        <td>Authorization</td>\n        <td>Map user to client_id and role</td>\n        <td>User may retrieve another clients documents</td>\n    </tr>\n    <tr>\n        <td>Vector retrieval</td>\n        <td>Filter by client_id or namespace</td>\n        <td>Retriever may return unauthorized chunks</td>\n    </tr>\n    <tr>\n        <td>Prompt construction</td>\n        <td>Send only allowed context</td>\n        <td>LLM may see sensitive data</td>\n    </tr>\n    <tr>\n        <td>Audit logging</td>\n        <td>Record query, source chunks, user_id</td>\n        <td>No traceability during incident review</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 12,
+    "page_number": 12,
+    "item_index": 4,
+    "rows": [
+      [
+        "Time Slot",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri"
+      ],
+      [
+        "Morning",
+        "72",
+        "48",
+        "31",
+        "18",
+        "10"
+      ],
+      [
+        "Noon",
+        "65",
+        "54",
+        "39",
+        "20",
+        "15"
+      ],
+      [
+        "Evening",
+        "40",
+        "62",
+        "77",
+        "58",
+        "21"
+      ],
+      [
+        "Prime",
+        "28",
+        "43",
+        "69",
+        "88",
+        "60"
+      ],
+      [
+        "Late",
+        "18",
+        "24",
+        "45",
+        "72",
+        "93"
+      ]
+    ],
+    "csv": "\"Time Slot\",\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\"\n\"Morning\",\"72\",\"48\",\"31\",\"18\",\"10\"\n\"Noon\",\"65\",\"54\",\"39\",\"20\",\"15\"\n\"Evening\",\"40\",\"62\",\"77\",\"58\",\"21\"\n\"Prime\",\"28\",\"43\",\"69\",\"88\",\"60\"\n\"Late\",\"18\",\"24\",\"45\",\"72\",\"93\"",
+    "markdown": "| Time Slot | Mon | Tue | Wed | Thu | Fri |\n| --------- | --- | --- | --- | --- | --- |\n| Morning   | 72  | 48  | 31  | 18  | 10  |\n| Noon      | 65  | 54  | 39  | 20  | 15  |\n| Evening   | 40  | 62  | 77  | 58  | 21  |\n| Prime     | 28  | 43  | 69  | 88  | 60  |\n| Late      | 18  | 24  | 45  | 72  | 93  |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Time Slot</th>\n        <th>Mon</th>\n        <th>Tue</th>\n        <th>Wed</th>\n        <th>Thu</th>\n        <th>Fri</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Morning</td>\n        <td>72</td>\n        <td>48</td>\n        <td>31</td>\n        <td>18</td>\n        <td>10</td>\n    </tr>\n    <tr>\n        <td>Noon</td>\n        <td>65</td>\n        <td>54</td>\n        <td>39</td>\n        <td>20</td>\n        <td>15</td>\n    </tr>\n    <tr>\n        <td>Evening</td>\n        <td>40</td>\n        <td>62</td>\n        <td>77</td>\n        <td>58</td>\n        <td>21</td>\n    </tr>\n    <tr>\n        <td>Prime</td>\n        <td>28</td>\n        <td>43</td>\n        <td>69</td>\n        <td>88</td>\n        <td>60</td>\n    </tr>\n    <tr>\n        <td>Late</td>\n        <td>18</td>\n        <td>24</td>\n        <td>45</td>\n        <td>72</td>\n        <td>93</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 13,
+    "page_number": 12,
+    "item_index": 5,
+    "rows": [
+      [
+        "Observation",
+        "Supporting value",
+        "Scheduling implication"
+      ],
+      [
+        "Prime Friday performs best",
+        "93 retention score",
+        "Place premium content in Friday late/prime slots"
+      ],
+      [
+        "Early week late slots underperform",
+        "10 to 21 score range",
+        "Avoid launching new series in weak slots"
+      ],
+      [
+        "Evening improves midweek",
+        "77 on Wednesday evening",
+        "Use midweek evening for discovery content"
+      ]
+    ],
+    "csv": "\"Observation\",\"Supporting value\",\"Scheduling implication\"\n\"Prime Friday performs best\",\"93 retention score\",\"Place premium content in Friday late/prime slots\"\n\"Early week late slots underperform\",\"10 to 21 score range\",\"Avoid launching new series in weak slots\"\n\"Evening improves midweek\",\"77 on Wednesday evening\",\"Use midweek evening for discovery content\"",
+    "markdown": "| Observation                        | Supporting value        | Scheduling implication                           |\n| ---------------------------------- | ----------------------- | ------------------------------------------------ |\n| Prime Friday performs best         | 93 retention score      | Place premium content in Friday late/prime slots |\n| Early week late slots underperform | 10 to 21 score range    | Avoid launching new series in weak slots         |\n| Evening improves midweek           | 77 on Wednesday evening | Use midweek evening for discovery content        |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Observation</th>\n        <th>Supporting value</th>\n        <th>Scheduling implication</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Prime Friday performs best</td>\n        <td>93 retention score</td>\n        <td>Place premium content in Friday late/prime slots</td>\n    </tr>\n    <tr>\n        <td>Early week late slots underperform</td>\n        <td>10 to 21 score range</td>\n        <td>Avoid launching new series in weak slots</td>\n    </tr>\n    <tr>\n        <td>Evening improves midweek</td>\n        <td>77 on Wednesday evening</td>\n        <td>Use midweek evening for discovery content</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 14,
+    "page_number": 13,
+    "item_index": 3,
+    "rows": [
+      [
+        "Test ID",
+        "Question",
+        "Expected source",
+        "Expected answer element",
+        "Failure signal"
+      ],
+      [
+        "Q-001",
+        "What is the refund window?",
+        "Policy Rules table",
+        "7 days",
+        "Answer says 30 days"
+      ],
+      [
+        "Q-002",
+        "Which clause covers data residency?",
+        "Clause 9.1",
+        "Approved processing region",
+        "No clause citation"
+      ],
+      [
+        "Q-003",
+        "What is P1 API response target?",
+        "SLA table",
+        "15 minutes",
+        "Wrong severity row"
+      ],
+      [
+        "Q-004",
+        "Which documents belong to BLR-ACME-2026?",
+        "Relationship table",
+        "Five related documents",
+        "Only one document returned"
+      ],
+      [
+        "Q-005",
+        "Who owns access review?",
+        "Policy Rules table",
+        "Security",
+        "Owner missing"
+      ]
+    ],
+    "csv": "\"Test ID\",\"Question\",\"Expected source\",\"Expected answer element\",\"Failure signal\"\n\"Q-001\",\"What is the refund window?\",\"Policy Rules table\",\"7 days\",\"Answer says 30 days\"\n\"Q-002\",\"Which clause covers data residency?\",\"Clause 9.1\",\"Approved processing region\",\"No clause citation\"\n\"Q-003\",\"What is P1 API response target?\",\"SLA table\",\"15 minutes\",\"Wrong severity row\"\n\"Q-004\",\"Which documents belong to BLR-ACME-2026?\",\"Relationship table\",\"Five related documents\",\"Only one document returned\"\n\"Q-005\",\"Who owns access review?\",\"Policy Rules table\",\"Security\",\"Owner missing\"",
+    "markdown": "| Test ID | Question                                 | Expected source    | Expected answer element    | Failure signal             |\n| ------- | ---------------------------------------- | ------------------ | -------------------------- | -------------------------- |\n| Q-001   | What is the refund window?               | Policy Rules table | 7 days                     | Answer says 30 days        |\n| Q-002   | Which clause covers data residency?      | Clause 9.1         | Approved processing region | No clause citation         |\n| Q-003   | What is P1 API response target?          | SLA table          | 15 minutes                 | Wrong severity row         |\n| Q-004   | Which documents belong to BLR-ACME-2026? | Relationship table | Five related documents     | Only one document returned |\n| Q-005   | Who owns access review?                  | Policy Rules table | Security                   | Owner missing              |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Test ID</th>\n        <th>Question</th>\n        <th>Expected source</th>\n        <th>Expected answer element</th>\n        <th>Failure signal</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Q-001</td>\n        <td>What is the refund window?</td>\n        <td>Policy Rules table</td>\n        <td>7 days</td>\n        <td>Answer says 30 days</td>\n    </tr>\n    <tr>\n        <td>Q-002</td>\n        <td>Which clause covers data residency?</td>\n        <td>Clause 9.1</td>\n        <td>Approved processing region</td>\n        <td>No clause citation</td>\n    </tr>\n    <tr>\n        <td>Q-003</td>\n        <td>What is P1 API response target?</td>\n        <td>SLA table</td>\n        <td>15 minutes</td>\n        <td>Wrong severity row</td>\n    </tr>\n    <tr>\n        <td>Q-004</td>\n        <td>Which documents belong to BLR-ACME-2026?</td>\n        <td>Relationship table</td>\n        <td>Five related documents</td>\n        <td>Only one document returned</td>\n    </tr>\n    <tr>\n        <td>Q-005</td>\n        <td>Who owns access review?</td>\n        <td>Policy Rules table</td>\n        <td>Security</td>\n        <td>Owner missing</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 15,
+    "page_number": 14,
+    "item_index": 3,
+    "rows": [
+      [
+        "Edge case",
+        "Example",
+        "Recommended handling"
+      ],
+      [
+        "Repeated headers and footers",
+        "Page number, confidentiality banner",
+        "Remove or store separately as metadata"
+      ],
+      [
+        "Hyphenated line breaks",
+        "termi- nation assistance",
+        "Normalize during cleaning"
+      ],
+      [
+        "Rotated tables",
+        "Landscape appendix in PDF",
+        "Use layout-aware parser or OCR"
+      ],
+      [
+        "Merged cells",
+        "Pricing table with grouped plans",
+        "Preserve hierarchy in row text"
+      ],
+      [
+        "Scanned signatures",
+        "Signature block as image",
+        "OCR if text is needed; store image reference"
+      ],
+      [
+        "Boilerplate navigation",
+        "Website header and footer",
+        "Use boilerplate removal"
+      ],
+      [
+        "Duplicate chunks",
+        "Same policy in FAQ and PDF",
+        "Deduplicate using source and hash"
+      ]
+    ],
+    "csv": "\"Edge case\",\"Example\",\"Recommended handling\"\n\"Repeated headers and footers\",\"Page number, confidentiality banner\",\"Remove or store separately as metadata\"\n\"Hyphenated line breaks\",\"termi- nation assistance\",\"Normalize during cleaning\"\n\"Rotated tables\",\"Landscape appendix in PDF\",\"Use layout-aware parser or OCR\"\n\"Merged cells\",\"Pricing table with grouped plans\",\"Preserve hierarchy in row text\"\n\"Scanned signatures\",\"Signature block as image\",\"OCR if text is needed; store image reference\"\n\"Boilerplate navigation\",\"Website header and footer\",\"Use boilerplate removal\"\n\"Duplicate chunks\",\"Same policy in FAQ and PDF\",\"Deduplicate using source and hash\"",
+    "markdown": "| Edge case                    | Example                             | Recommended handling                         |\n| ---------------------------- | ----------------------------------- | -------------------------------------------- |\n| Repeated headers and footers | Page number, confidentiality banner | Remove or store separately as metadata       |\n| Hyphenated line breaks       | termi- nation assistance            | Normalize during cleaning                    |\n| Rotated tables               | Landscape appendix in PDF           | Use layout-aware parser or OCR               |\n| Merged cells                 | Pricing table with grouped plans    | Preserve hierarchy in row text               |\n| Scanned signatures           | Signature block as image            | OCR if text is needed; store image reference |\n| Boilerplate navigation       | Website header and footer           | Use boilerplate removal                      |\n| Duplicate chunks             | Same policy in FAQ and PDF          | Deduplicate using source and hash            |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Edge case</th>\n        <th>Example</th>\n        <th>Recommended handling</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Repeated headers and footers</td>\n        <td>Page number, confidentiality banner</td>\n        <td>Remove or store separately as metadata</td>\n    </tr>\n    <tr>\n        <td>Hyphenated line breaks</td>\n        <td>termi- nation assistance</td>\n        <td>Normalize during cleaning</td>\n    </tr>\n    <tr>\n        <td>Rotated tables</td>\n        <td>Landscape appendix in PDF</td>\n        <td>Use layout-aware parser or OCR</td>\n    </tr>\n    <tr>\n        <td>Merged cells</td>\n        <td>Pricing table with grouped plans</td>\n        <td>Preserve hierarchy in row text</td>\n    </tr>\n    <tr>\n        <td>Scanned signatures</td>\n        <td>Signature block as image</td>\n        <td>OCR if text is needed; store image reference</td>\n    </tr>\n    <tr>\n        <td>Boilerplate navigation</td>\n        <td>Website header and footer</td>\n        <td>Use boilerplate removal</td>\n    </tr>\n    <tr>\n        <td>Duplicate chunks</td>\n        <td>Same policy in FAQ and PDF</td>\n        <td>Deduplicate using source and hash</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 16,
+    "page_number": 15,
+    "item_index": 3,
+    "rows": [
+      [
+        "Checklist item",
+        "Status to verify",
+        "Why it matters"
+      ],
+      [
+        "Text extraction",
+        "Paragraphs are readable and ordered",
+        "Prevents noisy chunks"
+      ],
+      [
+        "Table extraction",
+        "Rows, columns, headers, and footnotes preserved",
+        "Protects factual answers"
+      ],
+      [
+        "Image handling",
+        "Captions indexed and OCR done if required",
+        "Avoids missing visual information"
+      ],
+      [
+        "Metadata",
+        "source, page, client_id, document_id captured",
+        "Enables citations and access control"
+      ],
+      [
+        "Chunking",
+        "Chunks preserve meaning and section boundaries",
+        "Improves retrieval relevance"
+      ],
+      [
+        "Access control",
+        "Retrieval filters use authenticated client_id",
+        "Prevents data leakage"
+      ],
+      [
+        "Evaluation",
+        "Golden questions tested with citations",
+        "Measures real answer quality"
+      ]
+    ],
+    "csv": "\"Checklist item\",\"Status to verify\",\"Why it matters\"\n\"Text extraction\",\"Paragraphs are readable and ordered\",\"Prevents noisy chunks\"\n\"Table extraction\",\"Rows, columns, headers, and footnotes preserved\",\"Protects factual answers\"\n\"Image handling\",\"Captions indexed and OCR done if required\",\"Avoids missing visual information\"\n\"Metadata\",\"source, page, client_id, document_id captured\",\"Enables citations and access control\"\n\"Chunking\",\"Chunks preserve meaning and section boundaries\",\"Improves retrieval relevance\"\n\"Access control\",\"Retrieval filters use authenticated client_id\",\"Prevents data leakage\"\n\"Evaluation\",\"Golden questions tested with citations\",\"Measures real answer quality\"",
+    "markdown": "| Checklist item   | Status to verify                                | Why it matters                       |\n| ---------------- | ----------------------------------------------- | ------------------------------------ |\n| Text extraction  | Paragraphs are readable and ordered             | Prevents noisy chunks                |\n| Table extraction | Rows, columns, headers, and footnotes preserved | Protects factual answers             |\n| Image handling   | Captions indexed and OCR done if required       | Avoids missing visual information    |\n| Metadata         | source, page, client\\_id, document\\_id captured | Enables citations and access control |\n| Chunking         | Chunks preserve meaning and section boundaries  | Improves retrieval relevance         |\n| Access control   | Retrieval filters use authenticated client\\_id  | Prevents data leakage                |\n| Evaluation       | Golden questions tested with citations          | Measures real answer quality         |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Checklist item</th>\n        <th>Status to verify</th>\n        <th>Why it matters</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Text extraction</td>\n        <td>Paragraphs are readable and ordered</td>\n        <td>Prevents noisy chunks</td>\n    </tr>\n    <tr>\n        <td>Table extraction</td>\n        <td>Rows, columns, headers, and footnotes preserved</td>\n        <td>Protects factual answers</td>\n    </tr>\n    <tr>\n        <td>Image handling</td>\n        <td>Captions indexed and OCR done if required</td>\n        <td>Avoids missing visual information</td>\n    </tr>\n    <tr>\n        <td>Metadata</td>\n        <td>source, page, client_id, document_id captured</td>\n        <td>Enables citations and access control</td>\n    </tr>\n    <tr>\n        <td>Chunking</td>\n        <td>Chunks preserve meaning and section boundaries</td>\n        <td>Improves retrieval relevance</td>\n    </tr>\n    <tr>\n        <td>Access control</td>\n        <td>Retrieval filters use authenticated client_id</td>\n        <td>Prevents data leakage</td>\n    </tr>\n    <tr>\n        <td>Evaluation</td>\n        <td>Golden questions tested with citations</td>\n        <td>Measures real answer quality</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 17,
+    "page_number": 16,
+    "item_index": 5,
+    "rows": [
+      [
+        "Clause Group",
+        "Obligation",
+        "Responsible Team",
+        "Trigger",
+        "Evidence Required",
+        "Risk"
+      ],
+      [
+        "Data Protection",
+        "Delete client data after contract termination unless retention is legally required.",
+        "Owner Compliance<br/>Backup Legal",
+        "Termination notice received",
+        "Deletion certificate + audit log export",
+        "High"
+      ],
+      [
+        "",
+        "Notify client about any confirmed data incident within 72 hours.",
+        "Owner Security<br/>Backup DPO",
+        "Incident classified as confirmed breach",
+        "Incident report, timeline, notification proof",
+        "Critical"
+      ],
+      [
+        "Billing",
+        "Apply annual platform fee adjustment only after renewal confirmation.",
+        "Owner Finance<br/>Backup CSM",
+        "Renewal order approved",
+        "Approved renewal sheet + invoice draft",
+        "Medium"
+      ],
+      [
+        "",
+        "Do not bill inactive campuses during suspension period.",
+        "Owner Revenue Ops<br/>Backup Finance",
+        "Campus status = suspended",
+        "ERP campus status export",
+        "High"
+      ],
+      [
+        "Support",
+        "Provide P1 response within 30 minutes during school operating hours.",
+        "Owner Support L2<br/>Backup Ops Manager",
+        "Ticket priority = P1",
+        "Ticket timestamps + agent assignment log",
+        "High"
+      ],
+      [
+        "",
+        "Escalate unresolved P2 tickets after 4 business hours.",
+        "Owner Support L1<br/>Backup Support L2",
+        "Ticket age > 4 business hours",
+        "Escalation log",
+        "Medium"
+      ]
+    ],
+    "csv": "\"Clause Group\",\"Obligation\",\"Responsible Team\",\"Trigger\",\"Evidence Required\",\"Risk\"\n\"Data Protection\",\"Delete client data after contract termination unless retention is legally required.\",\"Owner Compliance<br/>Backup Legal\",\"Termination notice received\",\"Deletion certificate + audit log export\",\"High\"\n,\"Notify client about any confirmed data incident within 72 hours.\",\"Owner Security<br/>Backup DPO\",\"Incident classified as confirmed breach\",\"Incident report, timeline, notification proof\",\"Critical\"\n\"Billing\",\"Apply annual platform fee adjustment only after renewal confirmation.\",\"Owner Finance<br/>Backup CSM\",\"Renewal order approved\",\"Approved renewal sheet + invoice draft\",\"Medium\"\n,\"Do not bill inactive campuses during suspension period.\",\"Owner Revenue Ops<br/>Backup Finance\",\"Campus status = suspended\",\"ERP campus status export\",\"High\"\n\"Support\",\"Provide P1 response within 30 minutes during school operating hours.\",\"Owner Support L2<br/>Backup Ops Manager\",\"Ticket priority = P1\",\"Ticket timestamps + agent assignment log\",\"High\"\n,\"Escalate unresolved P2 tickets after 4 business hours.\",\"Owner Support L1<br/>Backup Support L2\",\"Ticket age > 4 business hours\",\"Escalation log\",\"Medium\"",
+    "markdown": "| Clause Group    | Obligation                                                                          | Responsible Team                                | Trigger                                 | Evidence Required                             | Risk     |\n| --------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------- | --------------------------------------- | --------------------------------------------- | -------- |\n| Data Protection | Delete client data after contract termination unless retention is legally required. | **Owner** Compliance<br/>**Backup** Legal       | Termination notice received             | Deletion certificate + audit log export       | High     |\n|                 | Notify client about any confirmed data incident within 72 hours.                    | **Owner** Security<br/>**Backup** DPO           | Incident classified as confirmed breach | Incident report, timeline, notification proof | Critical |\n| Billing         | Apply annual platform fee adjustment only after renewal confirmation.               | **Owner** Finance<br/>**Backup** CSM            | Renewal order approved                  | Approved renewal sheet + invoice draft        | Medium   |\n|                 | Do not bill inactive campuses during suspension period.                             | **Owner** Revenue Ops<br/>**Backup** Finance    | Campus status = suspended               | ERP campus status export                      | High     |\n| Support         | Provide P1 response within 30 minutes during school operating hours.                | **Owner** Support L2<br/>**Backup** Ops Manager | Ticket priority = P1                    | Ticket timestamps + agent assignment log      | High     |\n|                 | Escalate unresolved P2 tickets after 4 business hours.                              | **Owner** Support L1<br/>**Backup** Support L2  | Ticket age > 4 business hours           | Escalation log                                | Medium   |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Clause Group</th>\n        <th>Obligation</th>\n        <th>Responsible Team</th>\n        <th>Trigger</th>\n        <th>Evidence Required</th>\n        <th>Risk</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td rowspan=\"2\">Data Protection</td>\n        <td>Delete client data after contract termination unless retention is legally required.</td>\n        <td><strong>Owner</strong> Compliance<br /><strong>Backup</strong> Legal</td>\n        <td>Termination notice received</td>\n        <td>Deletion certificate + audit log export</td>\n        <td>High</td>\n    </tr>\n    <tr>\n        <td>Notify client about any confirmed data incident within 72 hours.</td>\n        <td><strong>Owner</strong> Security<br /><strong>Backup</strong> DPO</td>\n        <td>Incident classified as confirmed breach</td>\n        <td>Incident report, timeline, notification proof</td>\n        <td>Critical</td>\n    </tr>\n    <tr>\n        <td rowspan=\"2\">Billing</td>\n        <td>Apply annual platform fee adjustment only after renewal confirmation.</td>\n        <td><strong>Owner</strong> Finance<br /><strong>Backup</strong> CSM</td>\n        <td>Renewal order approved</td>\n        <td>Approved renewal sheet + invoice draft</td>\n        <td>Medium</td>\n    </tr>\n    <tr>\n        <td>Do not bill inactive campuses during suspension period.</td>\n        <td><strong>Owner</strong> Revenue Ops<br /><strong>Backup</strong> Finance</td>\n        <td>Campus status = suspended</td>\n        <td>ERP campus status export</td>\n        <td>High</td>\n    </tr>\n    <tr>\n        <td rowspan=\"2\">Support</td>\n        <td>Provide P1 response within 30 minutes during school operating hours.</td>\n        <td><strong>Owner</strong> Support L2<br /><strong>Backup</strong> Ops Manager</td>\n        <td>Ticket priority = P1</td>\n        <td>Ticket timestamps + agent assignment log</td>\n        <td>High</td>\n    </tr>\n    <tr>\n        <td>Escalate unresolved P2 tickets after 4 business hours.</td>\n        <td><strong>Owner</strong> Support L1<br /><strong>Backup</strong> Support L2</td>\n        <td>Ticket age > 4 business hours</td>\n        <td>Escalation log</td>\n        <td>Medium</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 18,
+    "page_number": 17,
+    "item_index": 4,
+    "rows": [
+      [
+        "Plan",
+        "Student Volume",
+        "Annual Platform Charges<br/>India Region",
+        "Annual Platform Charges<br/>International",
+        "Usage Add-ons<br/>SMS",
+        "Usage Add-ons<br/>WhatsApp",
+        "Billing Rule"
+      ],
+      [
+        "Starter",
+        "0 - 2,000 students",
+        "Base INR 4.5L<br/>Support INR 60K",
+        "USD 7,200",
+        "INR 0.18/message",
+        "INR 0.42/message",
+        "Quarterly advance"
+      ],
+      [
+        "Growth",
+        "2,001 - 10,000 students",
+        "Base INR 11L<br/>Support INR 1.4L",
+        "USD 18,000",
+        "INR 0.15/message",
+        "INR 0.38/message",
+        "50% advance + monthly usage"
+      ],
+      [
+        "Enterprise",
+        "10,001+ students",
+        "Base Custom<br/>Support Included",
+        "Custom",
+        "Negotiated",
+        "Negotiated",
+        "Signed order form required"
+      ],
+      [
+        "Exception",
+        "Government schools",
+        "Discount may apply after approval",
+        "",
+        "No discount on pass-through cost",
+        "",
+        "Requires CFO approval"
+      ]
+    ],
+    "csv": "\"Plan\",\"Student Volume\",\"Annual Platform Charges<br/>India Region\",\"Annual Platform Charges<br/>International\",\"Usage Add-ons<br/>SMS\",\"Usage Add-ons<br/>WhatsApp\",\"Billing Rule\"\n\"Starter\",\"0 - 2,000 students\",\"Base INR 4.5L<br/>Support INR 60K\",\"USD 7,200\",\"INR 0.18/message\",\"INR 0.42/message\",\"Quarterly advance\"\n\"Growth\",\"2,001 - 10,000 students\",\"Base INR 11L<br/>Support INR 1.4L\",\"USD 18,000\",\"INR 0.15/message\",\"INR 0.38/message\",\"50% advance + monthly usage\"\n\"Enterprise\",\"10,001+ students\",\"Base Custom<br/>Support Included\",\"Custom\",\"Negotiated\",\"Negotiated\",\"Signed order form required\"\n\"Exception\",\"Government schools\",\"Discount may apply after approval\",,\"No discount on pass-through cost\",,\"Requires CFO approval\"",
+    "markdown": "| Plan       | Student Volume          | Annual Platform Charges<br/>India Region  | Annual Platform Charges<br/>International | Usage Add-ons<br/>SMS            | Usage Add-ons<br/>WhatsApp | Billing Rule                |\n| ---------- | ----------------------- | ----------------------------------------- | ----------------------------------------- | -------------------------------- | -------------------------- | --------------------------- |\n| Starter    | 0 - 2,000 students      | **Base** INR 4.5L<br/>**Support** INR 60K | USD 7,200                                 | INR 0.18/message                 | INR 0.42/message           | Quarterly advance           |\n| Growth     | 2,001 - 10,000 students | **Base** INR 11L<br/>**Support** INR 1.4L | USD 18,000                                | INR 0.15/message                 | INR 0.38/message           | 50% advance + monthly usage |\n| Enterprise | 10,001+ students        | **Base** Custom<br/>**Support** Included  | Custom                                    | Negotiated                       | Negotiated                 | Signed order form required  |\n| Exception  | Government schools      | Discount may apply after approval         |                                           | No discount on pass-through cost |                            | Requires CFO approval       |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th rowspan=\"2\">Plan</th>\n        <th rowspan=\"2\">Student Volume</th>\n        <th colspan=\"2\">Annual Platform Charges</th>\n        <th colspan=\"2\">Usage Add-ons</th>\n        <th rowspan=\"2\">Billing Rule</th>\n    </tr>\n    <tr>\n        <th>India Region</th>\n        <th>International</th>\n        <th>SMS</th>\n        <th>WhatsApp</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Starter</td>\n        <td>0 - 2,000 students</td>\n        <td><strong>Base</strong> INR 4.5L<br /><strong>Support</strong> INR 60K</td>\n        <td>USD 7,200</td>\n        <td>INR 0.18/message</td>\n        <td>INR 0.42/message</td>\n        <td>Quarterly advance</td>\n    </tr>\n    <tr>\n        <td>Growth</td>\n        <td>2,001 - 10,000 students</td>\n        <td><strong>Base</strong> INR 11L<br /><strong>Support</strong> INR 1.4L</td>\n        <td>USD 18,000</td>\n        <td>INR 0.15/message</td>\n        <td>INR 0.38/message</td>\n        <td>50% advance + monthly usage</td>\n    </tr>\n    <tr>\n        <td>Enterprise</td>\n        <td>10,001+ students</td>\n        <td><strong>Base</strong> Custom<br /><strong>Support</strong> Included</td>\n        <td>Custom</td>\n        <td>Negotiated</td>\n        <td>Negotiated</td>\n        <td>Signed order form required</td>\n    </tr>\n    <tr>\n        <td>Exception</td>\n        <td>Government schools</td>\n        <td colspan=\"2\">Discount may apply after approval</td>\n        <td colspan=\"2\">No discount on pass-through cost</td>\n        <td>Requires CFO approval</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 19,
+    "page_number": 18,
+    "item_index": 4,
+    "rows": [
+      [
+        "Item Group",
+        "Line Item",
+        "Qty",
+        "Rate",
+        "Tax Split<br/>CGST",
+        "Tax Split<br/>SGST",
+        "Total"
+      ],
+      [
+        "ERP Platform",
+        "Annual School360 Enterprise Subscription -<br/>12 campuses",
+        "1",
+        "INR 11,00,000",
+        "9%",
+        "9%",
+        "INR 12,98,000"
+      ],
+      [
+        "",
+        "Parent communication add-on - estimated<br/>message pack",
+        "2,00,000 msgs",
+        "INR 0.36/msg",
+        "9%",
+        "9%",
+        "INR 89,680"
+      ],
+      [
+        "Implementation",
+        "Data migration + training + go-live support",
+        "1",
+        "INR 2,40,000",
+        "9%",
+        "9%",
+        "INR 2,83,200"
+      ],
+      [
+        "Summary",
+        "Subtotal and taxes",
+        "\\*",
+        "INR 14,16,000",
+        "INR 1,27,440",
+        "INR 1,27,440",
+        "INR 16,70,880"
+      ]
+    ],
+    "csv": "\"Item Group\",\"Line Item\",\"Qty\",\"Rate\",\"Tax Split<br/>CGST\",\"Tax Split<br/>SGST\",\"Total\"\n\"ERP Platform\",\"Annual School360 Enterprise Subscription -<br/>12 campuses\",\"1\",\"INR 11,00,000\",\"9%\",\"9%\",\"INR 12,98,000\"\n,\"Parent communication add-on - estimated<br/>message pack\",\"2,00,000 msgs\",\"INR 0.36/msg\",\"9%\",\"9%\",\"INR 89,680\"\n\"Implementation\",\"Data migration + training + go-live support\",\"1\",\"INR 2,40,000\",\"9%\",\"9%\",\"INR 2,83,200\"\n\"Summary\",\"Subtotal and taxes\",\"\\*\",\"INR 14,16,000\",\"INR 1,27,440\",\"INR 1,27,440\",\"INR 16,70,880\"",
+    "markdown": "| Item Group     | Line Item                                                  | Qty           | Rate          | Tax Split<br/>CGST | Tax Split<br/>SGST | Total         |\n| -------------- | ---------------------------------------------------------- | ------------- | ------------- | ------------------ | ------------------ | ------------- |\n| ERP Platform   | Annual School360 Enterprise Subscription -<br/>12 campuses | 1             | INR 11,00,000 | 9%                 | 9%                 | INR 12,98,000 |\n|                | Parent communication add-on - estimated<br/>message pack   | 2,00,000 msgs | INR 0.36/msg  | 9%                 | 9%                 | INR 89,680    |\n| Implementation | Data migration + training + go-live support                | 1             | INR 2,40,000  | 9%                 | 9%                 | INR 2,83,200  |\n| Summary        | Subtotal and taxes                                         | \\\\\\*          | INR 14,16,000 | INR 1,27,440       | INR 1,27,440       | INR 16,70,880 |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th rowspan=\"2\">Item Group</th>\n        <th rowspan=\"2\">Line Item</th>\n        <th rowspan=\"2\">Qty</th>\n        <th rowspan=\"2\">Rate</th>\n        <th colspan=\"2\">Tax Split</th>\n        <th rowspan=\"2\">Total</th>\n    </tr>\n    <tr>\n        <th>CGST</th>\n        <th>SGST</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td rowspan=\"2\">ERP Platform</td>\n        <td>Annual School360 Enterprise Subscription -<br />12 campuses</td>\n        <td>1</td>\n        <td>INR 11,00,000</td>\n        <td>9%</td>\n        <td>9%</td>\n        <td>INR 12,98,000</td>\n    </tr>\n    <tr>\n        <td>Parent communication add-on - estimated<br />message pack</td>\n        <td>2,00,000 msgs</td>\n        <td>INR 0.36/msg</td>\n        <td>9%</td>\n        <td>9%</td>\n        <td>INR 89,680</td>\n    </tr>\n    <tr>\n        <td>Implementation</td>\n        <td>Data migration + training + go-live support</td>\n        <td>1</td>\n        <td>INR 2,40,000</td>\n        <td>9%</td>\n        <td>9%</td>\n        <td>INR 2,83,200</td>\n    </tr>\n    <tr>\n        <td>Summary</td>\n        <td>Subtotal and taxes</td>\n        <td>\\*</td>\n        <td>INR 14,16,000</td>\n        <td>INR 1,27,440</td>\n        <td>INR 1,27,440</td>\n        <td>INR 16,70,880</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 20,
+    "page_number": 20,
+    "item_index": 7,
+    "rows": [
+      [
+        "Month",
+        "Open Risks"
+      ],
+      [
+        "Jan",
+        "18"
+      ],
+      [
+        "Feb",
+        "24"
+      ],
+      [
+        "Mar",
+        "31"
+      ],
+      [
+        "Apr",
+        "26"
+      ],
+      [
+        "May",
+        "38"
+      ],
+      [
+        "Jun",
+        "45"
+      ]
+    ],
+    "csv": "\"Month\",\"Open Risks\"\n\"Jan\",\"18\"\n\"Feb\",\"24\"\n\"Mar\",\"31\"\n\"Apr\",\"26\"\n\"May\",\"38\"\n\"Jun\",\"45\"",
+    "markdown": "| Month | Open Risks |\n| ----- | ---------- |\n| Jan   | 18         |\n| Feb   | 24         |\n| Mar   | 31         |\n| Apr   | 26         |\n| May   | 38         |\n| Jun   | 45         |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Month</th>\n        <th>Open Risks</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Jan</td>\n        <td>18</td>\n    </tr>\n    <tr>\n        <td>Feb</td>\n        <td>24</td>\n    </tr>\n    <tr>\n        <td>Mar</td>\n        <td>31</td>\n    </tr>\n    <tr>\n        <td>Apr</td>\n        <td>26</td>\n    </tr>\n    <tr>\n        <td>May</td>\n        <td>38</td>\n    </tr>\n    <tr>\n        <td>Jun</td>\n        <td>45</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 21,
+    "page_number": 20,
+    "item_index": 9,
+    "rows": [
+      [
+        "Client",
+        "Open",
+        "Critical",
+        "Owner"
+      ],
+      [
+        "Arka",
+        "17",
+        "4",
+        "Legal"
+      ],
+      [
+        "BlueLeaf",
+        "22",
+        "6",
+        "Procurement"
+      ],
+      [
+        "CityRide",
+        "16",
+        "2",
+        "Ops"
+      ]
+    ],
+    "csv": "\"Client\",\"Open\",\"Critical\",\"Owner\"\n\"Arka\",\"17\",\"4\",\"Legal\"\n\"BlueLeaf\",\"22\",\"6\",\"Procurement\"\n\"CityRide\",\"16\",\"2\",\"Ops\"",
+    "markdown": "| Client   | Open | Critical | Owner       |\n| -------- | ---- | -------- | ----------- |\n| Arka     | 17   | 4        | Legal       |\n| BlueLeaf | 22   | 6        | Procurement |\n| CityRide | 16   | 2        | Ops         |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Client</th>\n        <th>Open</th>\n        <th>Critical</th>\n        <th>Owner</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Arka</td>\n        <td>17</td>\n        <td>4</td>\n        <td>Legal</td>\n    </tr>\n    <tr>\n        <td>BlueLeaf</td>\n        <td>22</td>\n        <td>6</td>\n        <td>Procurement</td>\n    </tr>\n    <tr>\n        <td>CityRide</td>\n        <td>16</td>\n        <td>2</td>\n        <td>Ops</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 22,
+    "page_number": 22,
+    "item_index": 10,
+    "rows": [
+      [
+        "#",
+        "Description",
+        "Qty",
+        "Rate",
+        "Amount"
+      ],
+      [
+        "1",
+        "Annual platform subscription",
+        "1",
+        "INR 95,000",
+        "95,000"
+      ],
+      [
+        "2",
+        "Implementation and onboarding",
+        "1",
+        "INR 22,500",
+        "22,500"
+      ],
+      [
+        "3",
+        "Support add-on / message pack",
+        "3,500",
+        "INR 0.40",
+        "1,400"
+      ]
+    ],
+    "csv": "\"#\",\"Description\",\"Qty\",\"Rate\",\"Amount\"\n\"1\",\"Annual platform subscription\",\"1\",\"INR 95,000\",\"95,000\"\n\"2\",\"Implementation and onboarding\",\"1\",\"INR 22,500\",\"22,500\"\n\"3\",\"Support add-on / message pack\",\"3,500\",\"INR 0.40\",\"1,400\"",
+    "markdown": "| # | Description                   | Qty   | Rate       | Amount |\n| - | ----------------------------- | ----- | ---------- | ------ |\n| 1 | Annual platform subscription  | 1     | INR 95,000 | 95,000 |\n| 2 | Implementation and onboarding | 1     | INR 22,500 | 22,500 |\n| 3 | Support add-on / message pack | 3,500 | INR 0.40   | 1,400  |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>#</th>\n        <th>Description</th>\n        <th>Qty</th>\n        <th>Rate</th>\n        <th>Amount</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>1</td>\n        <td>Annual platform subscription</td>\n        <td>1</td>\n        <td>INR 95,000</td>\n        <td>95,000</td>\n    </tr>\n    <tr>\n        <td>2</td>\n        <td>Implementation and onboarding</td>\n        <td>1</td>\n        <td>INR 22,500</td>\n        <td>22,500</td>\n    </tr>\n    <tr>\n        <td>3</td>\n        <td>Support add-on / message pack</td>\n        <td>3,500</td>\n        <td>INR 0.40</td>\n        <td>1,400</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 23,
+    "page_number": 23,
+    "item_index": 10,
+    "rows": [
+      [
+        "#",
+        "Description",
+        "Qty",
+        "Rate",
+        "Amount"
+      ],
+      [
+        "1",
+        "Electricity fixed charges",
+        "1",
+        "INR 1,250",
+        "1,250"
+      ],
+      [
+        "2",
+        "Energy usage - peak units",
+        "842",
+        "INR 8.20",
+        "6,904"
+      ],
+      [
+        "3",
+        "Energy usage - off-peak units",
+        "313",
+        "INR 5.70",
+        "1,784"
+      ],
+      [
+        "4",
+        "Meter service adjustment",
+        "1",
+        "INR 340",
+        "340"
+      ]
+    ],
+    "csv": "\"#\",\"Description\",\"Qty\",\"Rate\",\"Amount\"\n\"1\",\"Electricity fixed charges\",\"1\",\"INR 1,250\",\"1,250\"\n\"2\",\"Energy usage - peak units\",\"842\",\"INR 8.20\",\"6,904\"\n\"3\",\"Energy usage - off-peak units\",\"313\",\"INR 5.70\",\"1,784\"\n\"4\",\"Meter service adjustment\",\"1\",\"INR 340\",\"340\"",
+    "markdown": "| # | Description                   | Qty | Rate      | Amount |\n| - | ----------------------------- | --- | --------- | ------ |\n| 1 | Electricity fixed charges     | 1   | INR 1,250 | 1,250  |\n| 2 | Energy usage - peak units     | 842 | INR 8.20  | 6,904  |\n| 3 | Energy usage - off-peak units | 313 | INR 5.70  | 1,784  |\n| 4 | Meter service adjustment      | 1   | INR 340   | 340    |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>#</th>\n        <th>Description</th>\n        <th>Qty</th>\n        <th>Rate</th>\n        <th>Amount</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>1</td>\n        <td>Electricity fixed charges</td>\n        <td>1</td>\n        <td>INR 1,250</td>\n        <td>1,250</td>\n    </tr>\n    <tr>\n        <td>2</td>\n        <td>Energy usage - peak units</td>\n        <td>842</td>\n        <td>INR 8.20</td>\n        <td>6,904</td>\n    </tr>\n    <tr>\n        <td>3</td>\n        <td>Energy usage - off-peak units</td>\n        <td>313</td>\n        <td>INR 5.70</td>\n        <td>1,784</td>\n    </tr>\n    <tr>\n        <td>4</td>\n        <td>Meter service adjustment</td>\n        <td>1</td>\n        <td>INR 340</td>\n        <td>340</td>\n    </tr>\n  </tbody>\n</table>"
+  },
+  {
+    "table_number": 24,
+    "page_number": 24,
+    "item_index": 5,
+    "rows": [
+      [
+        "Element",
+        "Parsing Challenge",
+        "Expected Handling"
+      ],
+      [
+        "Portrait image",
+        "Pixels are not selectable PDF text.",
+        "Extract image object or create visual summary with a multimodal model."
+      ],
+      [
+        "Caption text",
+        "Caption should stay attached to image context.",
+        "Preserve caption near the image in reading order."
+      ],
+      [
+        "Image metadata",
+        "File name, page, and bounding box may be needed.",
+        "Store metadata for citation and retrieval."
+      ],
+      [
+        "RAG usage",
+        "Text-only chunks may miss visual details.",
+        "Use OCR or vision captioning before chunking if visual content matters."
+      ]
+    ],
+    "csv": "\"Element\",\"Parsing Challenge\",\"Expected Handling\"\n\"Portrait image\",\"Pixels are not selectable PDF text.\",\"Extract image object or create visual summary with a multimodal model.\"\n\"Caption text\",\"Caption should stay attached to image context.\",\"Preserve caption near the image in reading order.\"\n\"Image metadata\",\"File name, page, and bounding box may be needed.\",\"Store metadata for citation and retrieval.\"\n\"RAG usage\",\"Text-only chunks may miss visual details.\",\"Use OCR or vision captioning before chunking if visual content matters.\"",
+    "markdown": "| Element        | Parsing Challenge                                | Expected Handling                                                       |\n| -------------- | ------------------------------------------------ | ----------------------------------------------------------------------- |\n| Portrait image | Pixels are not selectable PDF text.              | Extract image object or create visual summary with a multimodal model.  |\n| Caption text   | Caption should stay attached to image context.   | Preserve caption near the image in reading order.                       |\n| Image metadata | File name, page, and bounding box may be needed. | Store metadata for citation and retrieval.                              |\n| RAG usage      | Text-only chunks may miss visual details.        | Use OCR or vision captioning before chunking if visual content matters. |",
+    "html": "<table>\n  <thead>\n    <tr>\n        <th>Element</th>\n        <th>Parsing Challenge</th>\n        <th>Expected Handling</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n        <td>Portrait image</td>\n        <td>Pixels are not selectable PDF text.</td>\n        <td>Extract image object or create visual summary with a multimodal model.</td>\n    </tr>\n    <tr>\n        <td>Caption text</td>\n        <td>Caption should stay attached to image context.</td>\n        <td>Preserve caption near the image in reading order.</td>\n    </tr>\n    <tr>\n        <td>Image metadata</td>\n        <td>File name, page, and bounding box may be needed.</td>\n        <td>Store metadata for citation and retrieval.</td>\n    </tr>\n    <tr>\n        <td>RAG usage</td>\n        <td>Text-only chunks may miss visual details.</td>\n        <td>Use OCR or vision captioning before chunking if visual content matters.</td>\n    </tr>\n  </tbody>\n</table>"
+  }
+]

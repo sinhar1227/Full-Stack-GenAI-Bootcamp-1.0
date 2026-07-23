@@ -1,0 +1,7 @@
+Clause Group,Obligation,Responsible Team,Responsible Team,Trigger,Evidence Required,Risk
+Data Protection,=§ Delete client data after contract termination unless retention is legally required.,Owner Backup,Compliance Legal,Termination notice received,Deletion certificate + audit lag export,High
+Data Protection,Notify client about any confirmed data incident within 72 hours.,= Owner Backup,Security oro,Incident classified as confirmed breach,"Incident report, timeline, Notification proof",Critical
+Billing,Apply annual platlorm fee adjustment only after renewal confirmation.,Owner Backup,Finance csM,Renewal order approved,| Approved renewal sheet + invoice draft,Medium
+Billing,Do not bill inactive campuses during suspension period.,Owner Backup,Revenue Ops Finance,Campus status = suspended,ERP campus status export,High
+Support,Provide Pl response within 30 minutes during school operating hours.,Owner Backup,Support L2 Ops Manager,Ticket priority = P1,Ticket timestamps + agent assignment log,High
+Support,Escalate unresolved P2 tickets after 4 business hours.,Owner Backup,Support 1 Suppart L2,Ticket age > 4 business hours,| Escalation log,Medium

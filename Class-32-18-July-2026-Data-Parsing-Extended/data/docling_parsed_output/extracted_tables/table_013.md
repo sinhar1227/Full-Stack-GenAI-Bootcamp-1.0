@@ -1,0 +1,8 @@
+| 0       | 1                                        | 2                  | 3                          | 4                          |
+|:--------|:-----------------------------------------|:-------------------|:---------------------------|:---------------------------|
+| Test ID | Question                                 | Expected source    | Expected answer element    | Failure signal             |
+| Q-001   | What is the refund window?               | Policy Rules table | 7 days                     | Answer says 30 days        |
+| Q-002   | Which clause covers data residency?      | Clause 9.1         | Approved processing region | No clause citation         |
+| Q-003   | What is P1 API response target?          | SLA table          | 15 minutes                 | Wrong severity row         |
+| Q-004   | Which documents belong to BLR-ACME-2026? | Relationship table | Five related documents     | Only one document returned |
+| Q-005   | Who owns access review?                  | Policy Rules table | Security                   | Owner missing              |

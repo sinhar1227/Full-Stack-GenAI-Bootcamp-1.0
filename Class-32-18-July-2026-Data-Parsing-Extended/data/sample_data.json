@@ -1,0 +1,29 @@
+[
+  {
+    "id": "doc-001",
+    "title": "Refund Policy",
+    "content": "Refunds are allowed within 7 days of purchase if the product is unused.",
+    "metadata": {
+      "department": "Support",
+      "source": "policy_portal"
+    }
+  },
+  {
+    "id": "doc-002",
+    "title": "Leave Policy",
+    "content": "Employees receive 18 paid leaves per year and 8 sick leaves per year.",
+    "metadata": {
+      "department": "HR",
+      "source": "employee_handbook"
+    }
+  },
+  {
+    "id": "doc-003",
+    "title": "Security Policy",
+    "content": "API keys must be stored in a secure secrets manager and never committed to Git.",
+    "metadata": {
+      "department": "Engineering",
+      "source": "security_manual"
+    }
+  }
+]

@@ -1,0 +1,5 @@
+0,1,2,3,4,5
+Clause,Short name,Owner,Trigger,Required action,Citation hint
+7.2,Confidentiality,Receiving Party,Receipt of confidential material,Protect information with reasonable care and equivalent internal controls,"Page 4, clause 7.2"
+9.1,Data residency,Service Provider,SOW specifies region,Process production records only in approved region,"Page 4, clause 9.1"
+11.4,Termination assistance,Service Provider,Agreement termination,Provide export window for 30 days,"Page 4, clause 11.4"

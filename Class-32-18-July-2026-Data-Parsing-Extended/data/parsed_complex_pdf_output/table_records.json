@@ -1,0 +1,675 @@
+[
+  {
+    "page_number": 1,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Section",
+        "Parsing challenge",
+        "Why it matters for RAG"
+      ],
+      [
+        "Contracts",
+        "Dense legal text, clause numbers, cross\nreferences",
+        "Need section-aware chunks and citations"
+      ],
+      [
+        "Tables",
+        "Merged headers, numeric columns,\nfootnotes",
+        "Need row/column preservation"
+      ],
+      [
+        "Images",
+        "Architecture diagram, heatmap, scanned\nform",
+        "Need OCR or multimodal extraction"
+      ],
+      [
+        "Multi-tenant metadata",
+        "client_id, document_id,\ncontract_group_id",
+        "Need access-safe retrieval"
+      ]
+    ],
+    "markdown": "| Section               | Parsing challenge                       | Why it matters for RAG                  |\n|:----------------------|:----------------------------------------|:----------------------------------------|\n| Contracts             | Dense legal text, clause numbers, cross | Need section-aware chunks and citations |\n|                       | references                              |                                         |\n| Tables                | Merged headers, numeric columns,        | Need row/column preservation            |\n|                       | footnotes                               |                                         |\n| Images                | Architecture diagram, heatmap, scanned  | Need OCR or multimodal extraction       |\n|                       | form                                    |                                         |\n| Multi-tenant metadata | client_id, document_id,                 | Need access-safe retrieval              |\n|                       | contract_group_id                       |                                         |",
+    "csv": "Section,Parsing challenge,Why it matters for RAG\r\nContracts,\"Dense legal text, clause numbers, cross\nreferences\",Need section-aware chunks and citations\r\nTables,\"Merged headers, numeric columns,\nfootnotes\",Need row/column preservation\r\nImages,\"Architecture diagram, heatmap, scanned\nform\",Need OCR or multimodal extraction\r\nMulti-tenant metadata,\"client_id, document_id,\ncontract_group_id\",Need access-safe retrieval\r\n"
+  },
+  {
+    "page_number": 2,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Client",
+        "Main document family",
+        "Risk",
+        "Primary users",
+        "Typical question"
+      ],
+      [
+        "Arka Finance",
+        "MSA, audit addendum, DPA",
+        "High",
+        "Legal and compliance",
+        "What audit rights exist in the DPA?"
+      ],
+      [
+        "BlueLeaf Retail",
+        "MSA, pricing, support SLA",
+        "Medium",
+        "Procurement",
+        "Which clause controls renewal\npricing?"
+      ],
+      [
+        "CityRide Mobility",
+        "Ops reports, incident logs,\nSOPs",
+        "Medium",
+        "Operations",
+        "Which depot had repeated battery\nincidents?"
+      ]
+    ],
+    "markdown": "| Client            | Main document family        | Risk   | Primary users        | Typical question                    |\n|:------------------|:----------------------------|:-------|:---------------------|:------------------------------------|\n| Arka Finance      | MSA, audit addendum, DPA    | High   | Legal and compliance | What audit rights exist in the DPA? |\n| BlueLeaf Retail   | MSA, pricing, support SLA   | Medium | Procurement          | Which clause controls renewal       |\n|                   |                             |        |                      | pricing?                            |\n| CityRide Mobility | Ops reports, incident logs, | Medium | Operations           | Which depot had repeated battery    |\n|                   | SOPs                        |        |                      | incidents?                          |",
+    "csv": "Client,Main document family,Risk,Primary users,Typical question\r\nArka Finance,\"MSA, audit addendum, DPA\",High,Legal and compliance,What audit rights exist in the DPA?\r\nBlueLeaf Retail,\"MSA, pricing, support SLA\",Medium,Procurement,\"Which clause controls renewal\npricing?\"\r\nCityRide Mobility,\"Ops reports, incident logs,\nSOPs\",Medium,Operations,\"Which depot had repeated battery\nincidents?\"\r\n"
+  },
+  {
+    "page_number": 3,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Asset ID",
+        "Client",
+        "Format",
+        "Pages/Rows",
+        "Expected extraction",
+        "Notes"
+      ],
+      [
+        "ARK-MSA-001",
+        "Arka Finance",
+        "PDF",
+        "32 pages",
+        "Clauses, tables, signatures",
+        "Born-digital text with footer\nreferences"
+      ],
+      [
+        "ARK-DPA-002",
+        "Arka Finance",
+        "DOCX",
+        "18 pages",
+        "Headings, lists, tables",
+        "Track changes removed\nbefore ingestion"
+      ],
+      [
+        "BLR-PRICE-00\n3",
+        "BlueLeaf Retail",
+        "XLSX",
+        "12 sheets",
+        "Rate cards, discounts",
+        "Merged cells and formulas"
+      ],
+      [
+        "BLR-SLA-004",
+        "BlueLeaf Retail",
+        "PDF",
+        "9 pages",
+        "SLA table, escalation matrix",
+        "Table crosses page boundary"
+      ],
+      [
+        "CRM-OPS-005",
+        "CityRide Mobility",
+        "CSV",
+        "48,200 rows",
+        "Incident records",
+        "Needs column type\nnormalization"
+      ],
+      [
+        "CRM-FORM-00\n6",
+        "CityRide Mobility",
+        "Scanned PDF",
+        "4 pages",
+        "OCR fields, checkbox",
+        "Low contrast and slight\nrotation"
+      ],
+      [
+        "KB-RUN-007",
+        "Shared",
+        "Markdown",
+        "14 files",
+        "Runbook sections",
+        "Good for heading-based\nchunks"
+      ],
+      [
+        "WEB-FAQ-008",
+        "Shared",
+        "HTML",
+        "23 pages",
+        "FAQ content, links",
+        "Needs boilerplate removal"
+      ]
+    ],
+    "markdown": "| Asset ID     | Client            | Format      | Pages/Rows   | Expected extraction          | Notes                         |\n|:-------------|:------------------|:------------|:-------------|:-----------------------------|:------------------------------|\n| ARK-MSA-001  | Arka Finance      | PDF         | 32 pages     | Clauses, tables, signatures  | Born-digital text with footer |\n|              |                   |             |              |                              | references                    |\n| ARK-DPA-002  | Arka Finance      | DOCX        | 18 pages     | Headings, lists, tables      | Track changes removed         |\n|              |                   |             |              |                              | before ingestion              |\n| BLR-PRICE-00 | BlueLeaf Retail   | XLSX        | 12 sheets    | Rate cards, discounts        | Merged cells and formulas     |\n| 3            |                   |             |              |                              |                               |\n| BLR-SLA-004  | BlueLeaf Retail   | PDF         | 9 pages      | SLA table, escalation matrix | Table crosses page boundary   |\n| CRM-OPS-005  | CityRide Mobility | CSV         | 48,200 rows  | Incident records             | Needs column type             |\n|              |                   |             |              |                              | normalization                 |\n| CRM-FORM-00  | CityRide Mobility | Scanned PDF | 4 pages      | OCR fields, checkbox         | Low contrast and slight       |\n| 6            |                   |             |              |                              | rotation                      |\n| KB-RUN-007   | Shared            | Markdown    | 14 files     | Runbook sections             | Good for heading-based        |\n|              |                   |             |              |                              | chunks                        |\n| WEB-FAQ-008  | Shared            | HTML        | 23 pages     | FAQ content, links           | Needs boilerplate removal     |",
+    "csv": "Asset ID,Client,Format,Pages/Rows,Expected extraction,Notes\r\nARK-MSA-001,Arka Finance,PDF,32 pages,\"Clauses, tables, signatures\",\"Born-digital text with footer\nreferences\"\r\nARK-DPA-002,Arka Finance,DOCX,18 pages,\"Headings, lists, tables\",\"Track changes removed\nbefore ingestion\"\r\n\"BLR-PRICE-00\n3\",BlueLeaf Retail,XLSX,12 sheets,\"Rate cards, discounts\",Merged cells and formulas\r\nBLR-SLA-004,BlueLeaf Retail,PDF,9 pages,\"SLA table, escalation matrix\",Table crosses page boundary\r\nCRM-OPS-005,CityRide Mobility,CSV,\"48,200 rows\",Incident records,\"Needs column type\nnormalization\"\r\n\"CRM-FORM-00\n6\",CityRide Mobility,Scanned PDF,4 pages,\"OCR fields, checkbox\",\"Low contrast and slight\nrotation\"\r\nKB-RUN-007,Shared,Markdown,14 files,Runbook sections,\"Good for heading-based\nchunks\"\r\nWEB-FAQ-008,Shared,HTML,23 pages,\"FAQ content, links\",Needs boilerplate removal\r\n"
+  },
+  {
+    "page_number": 4,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Clause",
+        "Short name",
+        "Owner",
+        "Trigger",
+        "Required action",
+        "Citation hint"
+      ],
+      [
+        "7.2",
+        "Confidentiality",
+        "Receiving Party",
+        "Receipt of confidential\nmaterial",
+        "Protect information with reasonable care\nand equivalent internal controls",
+        "Page 4, clause\n7.2"
+      ],
+      [
+        "9.1",
+        "Data residency",
+        "Service Provider",
+        "SOW specifies region",
+        "Process production records only in\napproved region",
+        "Page 4, clause\n9.1"
+      ],
+      [
+        "11.4",
+        "Termination\nassistance",
+        "Service Provider",
+        "Agreement\ntermination",
+        "Provide export window for 30 days",
+        "Page 4, clause\n11.4"
+      ]
+    ],
+    "markdown": "|   Clause | Short name      | Owner            | Trigger                 | Required action                          | Citation hint   |\n|---------:|:----------------|:-----------------|:------------------------|:-----------------------------------------|:----------------|\n|      7.2 | Confidentiality | Receiving Party  | Receipt of confidential | Protect information with reasonable care | Page 4, clause  |\n|          |                 |                  | material                | and equivalent internal controls         | 7.2             |\n|      9.1 | Data residency  | Service Provider | SOW specifies region    | Process production records only in       | Page 4, clause  |\n|          |                 |                  |                         | approved region                          | 9.1             |\n|     11.4 | Termination     | Service Provider | Agreement               | Provide export window for 30 days        | Page 4, clause  |\n|          | assistance      |                  | termination             |                                          | 11.4            |",
+    "csv": "Clause,Short name,Owner,Trigger,Required action,Citation hint\r\n7.2,Confidentiality,Receiving Party,\"Receipt of confidential\nmaterial\",\"Protect information with reasonable care\nand equivalent internal controls\",\"Page 4, clause\n7.2\"\r\n9.1,Data residency,Service Provider,SOW specifies region,\"Process production records only in\napproved region\",\"Page 4, clause\n9.1\"\r\n11.4,\"Termination\nassistance\",Service Provider,\"Agreement\ntermination\",Provide export window for 30 days,\"Page 4, clause\n11.4\"\r\n"
+  },
+  {
+    "page_number": 5,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Policy Area",
+        "Rule",
+        "Owner",
+        "Review Cycle"
+      ],
+      [
+        "Refunds",
+        "Refund requests must be raised within 7 days of\npurchase.",
+        "Customer Support",
+        "Quarterly"
+      ],
+      [
+        "Data Export",
+        "Client admins can request export in CSV or JSON\nformat.",
+        "Platform Ops",
+        "Monthly"
+      ],
+      [
+        "Access Review",
+        "Privileged access must be reviewed every 30 days.",
+        "Security",
+        "Monthly"
+      ],
+      [
+        "Incident Response",
+        "Critical incidents require acknowledgement within 30\nminutes.",
+        "SRE",
+        "After each incident"
+      ],
+      [
+        "Vendor Review",
+        "High-risk vendors require annual risk assessment.",
+        "Procurement",
+        "Annual"
+      ]
+    ],
+    "markdown": "| Policy Area       | Rule                                                 | Owner            | Review Cycle        |\n|:------------------|:-----------------------------------------------------|:-----------------|:--------------------|\n| Refunds           | Refund requests must be raised within 7 days of      | Customer Support | Quarterly           |\n|                   | purchase.                                            |                  |                     |\n| Data Export       | Client admins can request export in CSV or JSON      | Platform Ops     | Monthly             |\n|                   | format.                                              |                  |                     |\n| Access Review     | Privileged access must be reviewed every 30 days.    | Security         | Monthly             |\n| Incident Response | Critical incidents require acknowledgement within 30 | SRE              | After each incident |\n|                   | minutes.                                             |                  |                     |\n| Vendor Review     | High-risk vendors require annual risk assessment.    | Procurement      | Annual              |",
+    "csv": "Policy Area,Rule,Owner,Review Cycle\r\nRefunds,\"Refund requests must be raised within 7 days of\npurchase.\",Customer Support,Quarterly\r\nData Export,\"Client admins can request export in CSV or JSON\nformat.\",Platform Ops,Monthly\r\nAccess Review,Privileged access must be reviewed every 30 days.,Security,Monthly\r\nIncident Response,\"Critical incidents require acknowledgement within 30\nminutes.\",SRE,After each incident\r\nVendor Review,High-risk vendors require annual risk assessment.,Procurement,Annual\r\n"
+  },
+  {
+    "page_number": 6,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Service Category",
+        "Severity",
+        "Response Target",
+        "Resolution Target",
+        "Service Credit",
+        "Evidence Required"
+      ],
+      [
+        "API Availability",
+        "P1 - complete\noutage",
+        "15 minutes",
+        "4 hours",
+        "10 percent monthly\nfee credit",
+        "Monitoring logs and incident\nticket"
+      ],
+      [
+        "API Availability",
+        "P2 - degraded\nperformance",
+        "30 minutes",
+        "8 hours",
+        "5 percent monthly fee\ncredit",
+        "Latency dashboard and\naffected endpoint list"
+      ],
+      [
+        "Data Pipeline",
+        "P1 - ingestion\nstopped",
+        "20 minutes",
+        "6 hours",
+        "8 percent pipeline fee\ncredit",
+        "Queue depth, failed job IDs,\nreplay report"
+      ],
+      [
+        "Data Pipeline",
+        "P3 - delayed\nbatch",
+        "4 hours",
+        "Next business day",
+        "No automatic credit",
+        "Batch ID and SLA exception\nnote"
+      ],
+      [
+        "Support",
+        "P2 - urgent\nsupport",
+        "1 hour",
+        "1 business day",
+        "2 percent support fee\ncredit",
+        "Support ticket with timestamps"
+      ]
+    ],
+    "markdown": "| Service Category   | Severity       | Response Target   | Resolution Target   | Service Credit         | Evidence Required              |\n|:-------------------|:---------------|:------------------|:--------------------|:-----------------------|:-------------------------------|\n| API Availability   | P1 - complete  | 15 minutes        | 4 hours             | 10 percent monthly     | Monitoring logs and incident   |\n|                    | outage         |                   |                     | fee credit             | ticket                         |\n| API Availability   | P2 - degraded  | 30 minutes        | 8 hours             | 5 percent monthly fee  | Latency dashboard and          |\n|                    | performance    |                   |                     | credit                 | affected endpoint list         |\n| Data Pipeline      | P1 - ingestion | 20 minutes        | 6 hours             | 8 percent pipeline fee | Queue depth, failed job IDs,   |\n|                    | stopped        |                   |                     | credit                 | replay report                  |\n| Data Pipeline      | P3 - delayed   | 4 hours           | Next business day   | No automatic credit    | Batch ID and SLA exception     |\n|                    | batch          |                   |                     |                        | note                           |\n| Support            | P2 - urgent    | 1 hour            | 1 business day      | 2 percent support fee  | Support ticket with timestamps |\n|                    | support        |                   |                     | credit                 |                                |",
+    "csv": "Service Category,Severity,Response Target,Resolution Target,Service Credit,Evidence Required\r\nAPI Availability,\"P1 - complete\noutage\",15 minutes,4 hours,\"10 percent monthly\nfee credit\",\"Monitoring logs and incident\nticket\"\r\nAPI Availability,\"P2 - degraded\nperformance\",30 minutes,8 hours,\"5 percent monthly fee\ncredit\",\"Latency dashboard and\naffected endpoint list\"\r\nData Pipeline,\"P1 - ingestion\nstopped\",20 minutes,6 hours,\"8 percent pipeline fee\ncredit\",\"Queue depth, failed job IDs,\nreplay report\"\r\nData Pipeline,\"P3 - delayed\nbatch\",4 hours,Next business day,No automatic credit,\"Batch ID and SLA exception\nnote\"\r\nSupport,\"P2 - urgent\nsupport\",1 hour,1 business day,\"2 percent support fee\ncredit\",Support ticket with timestamps\r\n"
+  },
+  {
+    "page_number": 7,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Image element",
+        "Potential extraction method",
+        "Expected output"
+      ],
+      [
+        "Box labels",
+        "OCR or vision model",
+        "Raw Files, Parser, Chunks, Vector DB"
+      ],
+      [
+        "Arrows",
+        "Layout or vision understanding",
+        "Processing order"
+      ],
+      [
+        "Caption",
+        "Normal PDF text extraction",
+        "Description of the diagram"
+      ]
+    ],
+    "markdown": "| Image element   | Potential extraction method    | Expected output                      |\n|:----------------|:-------------------------------|:-------------------------------------|\n| Box labels      | OCR or vision model            | Raw Files, Parser, Chunks, Vector DB |\n| Arrows          | Layout or vision understanding | Processing order                     |\n| Caption         | Normal PDF text extraction     | Description of the diagram           |",
+    "csv": "Image element,Potential extraction method,Expected output\r\nBox labels,OCR or vision model,\"Raw Files, Parser, Chunks, Vector DB\"\r\nArrows,Layout or vision understanding,Processing order\r\nCaption,Normal PDF text extraction,Description of the diagram\r\n"
+  },
+  {
+    "page_number": 8,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Runbook field",
+        "Value",
+        "Parsing expectation"
+      ],
+      [
+        "Title",
+        "Contract Ingestion Failure",
+        "Should become section title metadata"
+      ],
+      [
+        "Symptoms",
+        "Five bullet items",
+        "Should remain as list or separate lines"
+      ],
+      [
+        "Recovery Steps",
+        "Numbered sequence",
+        "Order must be preserved"
+      ]
+    ],
+    "markdown": "| Runbook field   | Value                      | Parsing expectation                     |\n|:----------------|:---------------------------|:----------------------------------------|\n| Title           | Contract Ingestion Failure | Should become section title metadata    |\n| Symptoms        | Five bullet items          | Should remain as list or separate lines |\n| Recovery Steps  | Numbered sequence          | Order must be preserved                 |",
+    "csv": "Runbook field,Value,Parsing expectation\r\nTitle,Contract Ingestion Failure,Should become section title metadata\r\nSymptoms,Five bullet items,Should remain as list or separate lines\r\nRecovery Steps,Numbered sequence,Order must be preserved\r\n"
+  },
+  {
+    "page_number": 9,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Field",
+        "Expected OCR value",
+        "Validation rule"
+      ],
+      [
+        "Client Name",
+        "BlueLeaf Retail Pvt Ltd",
+        "Must match known client list"
+      ],
+      [
+        "Contract ID",
+        "BLR-MSA-2026-019",
+        "Pattern: client-code + type + year +\nsequence"
+      ],
+      [
+        "Effective Date",
+        "01 Apr 2026",
+        "Date parser should normalize to ISO\nformat"
+      ],
+      [
+        "Approval checkbox",
+        "Checked",
+        "Boolean extraction required"
+      ]
+    ],
+    "markdown": "| Field             | Expected OCR value      | Validation rule                      |\n|:------------------|:------------------------|:-------------------------------------|\n| Client Name       | BlueLeaf Retail Pvt Ltd | Must match known client list         |\n| Contract ID       | BLR-MSA-2026-019        | Pattern: client-code + type + year + |\n|                   |                         | sequence                             |\n| Effective Date    | 01 Apr 2026             | Date parser should normalize to ISO  |\n|                   |                         | format                               |\n| Approval checkbox | Checked                 | Boolean extraction required          |",
+    "csv": "Field,Expected OCR value,Validation rule\r\nClient Name,BlueLeaf Retail Pvt Ltd,Must match known client list\r\nContract ID,BLR-MSA-2026-019,\"Pattern: client-code + type + year +\nsequence\"\r\nEffective Date,01 Apr 2026,\"Date parser should normalize to ISO\nformat\"\r\nApproval checkbox,Checked,Boolean extraction required\r\n"
+  },
+  {
+    "page_number": 10,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "document_id",
+        "document_type",
+        "contract_group_id",
+        "effective_date",
+        "relationship"
+      ],
+      [
+        "BLR-MSA-001",
+        "Master Service\nAgreement",
+        "BLR-ACME-2026",
+        "2026-04-01",
+        "Base commercial agreement"
+      ],
+      [
+        "BLR-NDA-002",
+        "NDA",
+        "BLR-ACME-2026",
+        "2026-04-01",
+        "Confidentiality terms"
+      ],
+      [
+        "BLR-SOW-003",
+        "Statement of Work",
+        "BLR-ACME-2026",
+        "2026-04-15",
+        "Project scope and deliverables"
+      ],
+      [
+        "BLR-PRICE-004",
+        "Pricing Amendment",
+        "BLR-ACME-2026",
+        "2026-05-01",
+        "Updated pricing and discount tiers"
+      ],
+      [
+        "BLR-SLA-005",
+        "Support SLA",
+        "BLR-ACME-2026",
+        "2026-05-10",
+        "Support response and credits"
+      ]
+    ],
+    "markdown": "| document_id   | document_type     | contract_group_id   | effective_date   | relationship                       |\n|:--------------|:------------------|:--------------------|:-----------------|:-----------------------------------|\n| BLR-MSA-001   | Master Service    | BLR-ACME-2026       | 2026-04-01       | Base commercial agreement          |\n|               | Agreement         |                     |                  |                                    |\n| BLR-NDA-002   | NDA               | BLR-ACME-2026       | 2026-04-01       | Confidentiality terms              |\n| BLR-SOW-003   | Statement of Work | BLR-ACME-2026       | 2026-04-15       | Project scope and deliverables     |\n| BLR-PRICE-004 | Pricing Amendment | BLR-ACME-2026       | 2026-05-01       | Updated pricing and discount tiers |\n| BLR-SLA-005   | Support SLA       | BLR-ACME-2026       | 2026-05-10       | Support response and credits       |",
+    "csv": "document_id,document_type,contract_group_id,effective_date,relationship\r\nBLR-MSA-001,\"Master Service\nAgreement\",BLR-ACME-2026,2026-04-01,Base commercial agreement\r\nBLR-NDA-002,NDA,BLR-ACME-2026,2026-04-01,Confidentiality terms\r\nBLR-SOW-003,Statement of Work,BLR-ACME-2026,2026-04-15,Project scope and deliverables\r\nBLR-PRICE-004,Pricing Amendment,BLR-ACME-2026,2026-05-01,Updated pricing and discount tiers\r\nBLR-SLA-005,Support SLA,BLR-ACME-2026,2026-05-10,Support response and credits\r\n"
+  },
+  {
+    "page_number": 11,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Layer",
+        "Control",
+        "Failure mode if missing"
+      ],
+      [
+        "Authentication",
+        "Identify user and organization",
+        "Unknown user may access application"
+      ],
+      [
+        "Authorization",
+        "Map user to client_id and role",
+        "User may retrieve another clients documents"
+      ],
+      [
+        "Vector retrieval",
+        "Filter by client_id or namespace",
+        "Retriever may return unauthorized chunks"
+      ],
+      [
+        "Prompt construction",
+        "Send only allowed context",
+        "LLM may see sensitive data"
+      ],
+      [
+        "Audit logging",
+        "Record query, source chunks, user_id",
+        "No traceability during incident review"
+      ]
+    ],
+    "markdown": "| Layer               | Control                              | Failure mode if missing                     |\n|:--------------------|:-------------------------------------|:--------------------------------------------|\n| Authentication      | Identify user and organization       | Unknown user may access application         |\n| Authorization       | Map user to client_id and role       | User may retrieve another clients documents |\n| Vector retrieval    | Filter by client_id or namespace     | Retriever may return unauthorized chunks    |\n| Prompt construction | Send only allowed context            | LLM may see sensitive data                  |\n| Audit logging       | Record query, source chunks, user_id | No traceability during incident review      |",
+    "csv": "Layer,Control,Failure mode if missing\r\nAuthentication,Identify user and organization,Unknown user may access application\r\nAuthorization,Map user to client_id and role,User may retrieve another clients documents\r\nVector retrieval,Filter by client_id or namespace,Retriever may return unauthorized chunks\r\nPrompt construction,Send only allowed context,LLM may see sensitive data\r\nAudit logging,\"Record query, source chunks, user_id\",No traceability during incident review\r\n"
+  },
+  {
+    "page_number": 12,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Observation",
+        "Supporting value",
+        "Scheduling implication"
+      ],
+      [
+        "Prime Friday performs best",
+        "93 retention score",
+        "Place premium content in Friday late/prime slots"
+      ],
+      [
+        "Early week late slots\nunderperform",
+        "10 to 21 score range",
+        "Avoid launching new series in weak slots"
+      ],
+      [
+        "Evening improves midweek",
+        "77 on Wednesday evening",
+        "Use midweek evening for discovery content"
+      ]
+    ],
+    "markdown": "| Observation                | Supporting value        | Scheduling implication                           |\n|:---------------------------|:------------------------|:-------------------------------------------------|\n| Prime Friday performs best | 93 retention score      | Place premium content in Friday late/prime slots |\n| Early week late slots      | 10 to 21 score range    | Avoid launching new series in weak slots         |\n| underperform               |                         |                                                  |\n| Evening improves midweek   | 77 on Wednesday evening | Use midweek evening for discovery content        |",
+    "csv": "Observation,Supporting value,Scheduling implication\r\nPrime Friday performs best,93 retention score,Place premium content in Friday late/prime slots\r\n\"Early week late slots\nunderperform\",10 to 21 score range,Avoid launching new series in weak slots\r\nEvening improves midweek,77 on Wednesday evening,Use midweek evening for discovery content\r\n"
+  },
+  {
+    "page_number": 13,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Test ID",
+        "Question",
+        "Expected source",
+        "Expected answer element",
+        "Failure signal"
+      ],
+      [
+        "Q-001",
+        "What is the refund window?",
+        "Policy Rules table",
+        "7 days",
+        "Answer says 30 days"
+      ],
+      [
+        "Q-002",
+        "Which clause covers data\nresidency?",
+        "Clause 9.1",
+        "Approved processing region",
+        "No clause citation"
+      ],
+      [
+        "Q-003",
+        "What is P1 API response target?",
+        "SLA table",
+        "15 minutes",
+        "Wrong severity row"
+      ],
+      [
+        "Q-004",
+        "Which documents belong to\nBLR-ACME-2026?",
+        "Relationship table",
+        "Five related documents",
+        "Only one document\nreturned"
+      ],
+      [
+        "Q-005",
+        "Who owns access review?",
+        "Policy Rules table",
+        "Security",
+        "Owner missing"
+      ]
+    ],
+    "markdown": "| Test ID   | Question                        | Expected source    | Expected answer element    | Failure signal      |\n|:----------|:--------------------------------|:-------------------|:---------------------------|:--------------------|\n| Q-001     | What is the refund window?      | Policy Rules table | 7 days                     | Answer says 30 days |\n| Q-002     | Which clause covers data        | Clause 9.1         | Approved processing region | No clause citation  |\n|           | residency?                      |                    |                            |                     |\n| Q-003     | What is P1 API response target? | SLA table          | 15 minutes                 | Wrong severity row  |\n| Q-004     | Which documents belong to       | Relationship table | Five related documents     | Only one document   |\n|           | BLR-ACME-2026?                  |                    |                            | returned            |\n| Q-005     | Who owns access review?         | Policy Rules table | Security                   | Owner missing       |",
+    "csv": "Test ID,Question,Expected source,Expected answer element,Failure signal\r\nQ-001,What is the refund window?,Policy Rules table,7 days,Answer says 30 days\r\nQ-002,\"Which clause covers data\nresidency?\",Clause 9.1,Approved processing region,No clause citation\r\nQ-003,What is P1 API response target?,SLA table,15 minutes,Wrong severity row\r\nQ-004,\"Which documents belong to\nBLR-ACME-2026?\",Relationship table,Five related documents,\"Only one document\nreturned\"\r\nQ-005,Who owns access review?,Policy Rules table,Security,Owner missing\r\n"
+  },
+  {
+    "page_number": 14,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Edge case",
+        "Example",
+        "Recommended handling"
+      ],
+      [
+        "Repeated headers and\nfooters",
+        "Page number, confidentiality banner",
+        "Remove or store separately as metadata"
+      ],
+      [
+        "Hyphenated line breaks",
+        "termi- nation assistance",
+        "Normalize during cleaning"
+      ],
+      [
+        "Rotated tables",
+        "Landscape appendix in PDF",
+        "Use layout-aware parser or OCR"
+      ],
+      [
+        "Merged cells",
+        "Pricing table with grouped plans",
+        "Preserve hierarchy in row text"
+      ],
+      [
+        "Scanned signatures",
+        "Signature block as image",
+        "OCR if text is needed; store image reference"
+      ],
+      [
+        "Boilerplate navigation",
+        "Website header and footer",
+        "Use boilerplate removal"
+      ],
+      [
+        "Duplicate chunks",
+        "Same policy in FAQ and PDF",
+        "Deduplicate using source and hash"
+      ]
+    ],
+    "markdown": "| Edge case              | Example                             | Recommended handling                         |\n|:-----------------------|:------------------------------------|:---------------------------------------------|\n| Repeated headers and   | Page number, confidentiality banner | Remove or store separately as metadata       |\n| footers                |                                     |                                              |\n| Hyphenated line breaks | termi- nation assistance            | Normalize during cleaning                    |\n| Rotated tables         | Landscape appendix in PDF           | Use layout-aware parser or OCR               |\n| Merged cells           | Pricing table with grouped plans    | Preserve hierarchy in row text               |\n| Scanned signatures     | Signature block as image            | OCR if text is needed; store image reference |\n| Boilerplate navigation | Website header and footer           | Use boilerplate removal                      |\n| Duplicate chunks       | Same policy in FAQ and PDF          | Deduplicate using source and hash            |",
+    "csv": "Edge case,Example,Recommended handling\r\n\"Repeated headers and\nfooters\",\"Page number, confidentiality banner\",Remove or store separately as metadata\r\nHyphenated line breaks,termi- nation assistance,Normalize during cleaning\r\nRotated tables,Landscape appendix in PDF,Use layout-aware parser or OCR\r\nMerged cells,Pricing table with grouped plans,Preserve hierarchy in row text\r\nScanned signatures,Signature block as image,OCR if text is needed; store image reference\r\nBoilerplate navigation,Website header and footer,Use boilerplate removal\r\nDuplicate chunks,Same policy in FAQ and PDF,Deduplicate using source and hash\r\n"
+  },
+  {
+    "page_number": 15,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Checklist item",
+        "Status to verify",
+        "Why it matters"
+      ],
+      [
+        "Text extraction",
+        "Paragraphs are readable and ordered",
+        "Prevents noisy chunks"
+      ],
+      [
+        "Table extraction",
+        "Rows, columns, headers, and footnotes\npreserved",
+        "Protects factual answers"
+      ],
+      [
+        "Image handling",
+        "Captions indexed and OCR done if required",
+        "Avoids missing visual information"
+      ],
+      [
+        "Metadata",
+        "source, page, client_id, document_id\ncaptured",
+        "Enables citations and access control"
+      ],
+      [
+        "Chunking",
+        "Chunks preserve meaning and section\nboundaries",
+        "Improves retrieval relevance"
+      ],
+      [
+        "Access control",
+        "Retrieval filters use authenticated client_id",
+        "Prevents data leakage"
+      ],
+      [
+        "Evaluation",
+        "Golden questions tested with citations",
+        "Measures real answer quality"
+      ]
+    ],
+    "markdown": "| Checklist item   | Status to verify                              | Why it matters                       |\n|:-----------------|:----------------------------------------------|:-------------------------------------|\n| Text extraction  | Paragraphs are readable and ordered           | Prevents noisy chunks                |\n| Table extraction | Rows, columns, headers, and footnotes         | Protects factual answers             |\n|                  | preserved                                     |                                      |\n| Image handling   | Captions indexed and OCR done if required     | Avoids missing visual information    |\n| Metadata         | source, page, client_id, document_id          | Enables citations and access control |\n|                  | captured                                      |                                      |\n| Chunking         | Chunks preserve meaning and section           | Improves retrieval relevance         |\n|                  | boundaries                                    |                                      |\n| Access control   | Retrieval filters use authenticated client_id | Prevents data leakage                |\n| Evaluation       | Golden questions tested with citations        | Measures real answer quality         |",
+    "csv": "Checklist item,Status to verify,Why it matters\r\nText extraction,Paragraphs are readable and ordered,Prevents noisy chunks\r\nTable extraction,\"Rows, columns, headers, and footnotes\npreserved\",Protects factual answers\r\nImage handling,Captions indexed and OCR done if required,Avoids missing visual information\r\nMetadata,\"source, page, client_id, document_id\ncaptured\",Enables citations and access control\r\nChunking,\"Chunks preserve meaning and section\nboundaries\",Improves retrieval relevance\r\nAccess control,Retrieval filters use authenticated client_id,Prevents data leakage\r\nEvaluation,Golden questions tested with citations,Measures real answer quality\r\n"
+  },
+  {
+    "page_number": 24,
+    "table_index": 1,
+    "raw_table": [
+      [
+        "Element",
+        "Parsing Challenge",
+        "Expected Handling"
+      ],
+      [
+        "Portrait image",
+        "Pixels are not selectable PDF text.",
+        "Extract image object or create visual summary with a\nmultimodal model."
+      ],
+      [
+        "Caption text",
+        "Caption should stay attached to image\ncontext.",
+        "Preserve caption near the image in reading order."
+      ],
+      [
+        "Image metadata",
+        "File name, page, and bounding box may be\nneeded.",
+        "Store metadata for citation and retrieval."
+      ],
+      [
+        "RAG usage",
+        "Text-only chunks may miss visual details.",
+        "Use OCR or vision captioning before chunking if\nvisual content matters."
+      ]
+    ],
+    "markdown": "| Element        | Parsing Challenge                         | Expected Handling                                    |\n|:---------------|:------------------------------------------|:-----------------------------------------------------|\n| Portrait image | Pixels are not selectable PDF text.       | Extract image object or create visual summary with a |\n|                |                                           | multimodal model.                                    |\n| Caption text   | Caption should stay attached to image     | Preserve caption near the image in reading order.    |\n|                | context.                                  |                                                      |\n| Image metadata | File name, page, and bounding box may be  | Store metadata for citation and retrieval.           |\n|                | needed.                                   |                                                      |\n| RAG usage      | Text-only chunks may miss visual details. | Use OCR or vision captioning before chunking if      |\n|                |                                           | visual content matters.                              |",
+    "csv": "Element,Parsing Challenge,Expected Handling\r\nPortrait image,Pixels are not selectable PDF text.,\"Extract image object or create visual summary with a\nmultimodal model.\"\r\nCaption text,\"Caption should stay attached to image\ncontext.\",Preserve caption near the image in reading order.\r\nImage metadata,\"File name, page, and bounding box may be\nneeded.\",Store metadata for citation and retrieval.\r\nRAG usage,Text-only chunks may miss visual details.,\"Use OCR or vision captioning before chunking if\nvisual content matters.\"\r\n"
+  }
+]

@@ -1,0 +1,10 @@
+| 0                            | 1                                   | 2                                            |
+|:-----------------------------|:------------------------------------|:---------------------------------------------|
+| Edge case                    | Example                             | Recommended handling                         |
+| Repeated headers and footers | Page number, confidentiality banner | Remove or store separately as metadata       |
+| Hyphenated line breaks       | termi- nation assistance            | Normalize during cleaning                    |
+| Rotated tables               | Landscape appendix in PDF           | Use layout-aware parser or OCR               |
+| Merged cells                 | Pricing table with grouped plans    | Preserve hierarchy in row text               |
+| Scanned signatures           | Signature block as image            | OCR if text is needed; store image reference |
+| Boilerplate navigation       | Website header and footer           | Use boilerplate removal                      |
+| Duplicate chunks             | Same policy in FAQ and PDF          | Deduplicate using source and hash            |

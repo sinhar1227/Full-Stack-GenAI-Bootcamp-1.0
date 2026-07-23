@@ -1,0 +1,6 @@
+| Plan       | Student Volume          | Annual Platform Charges<br/>India Region  | Annual Platform Charges<br/>International | Usage Add-ons<br/>SMS            | Usage Add-ons<br/>WhatsApp | Billing Rule                |
+| ---------- | ----------------------- | ----------------------------------------- | ----------------------------------------- | -------------------------------- | -------------------------- | --------------------------- |
+| Starter    | 0 - 2,000 students      | **Base** INR 4.5L<br/>**Support** INR 60K | USD 7,200                                 | INR 0.18/message                 | INR 0.42/message           | Quarterly advance           |
+| Growth     | 2,001 - 10,000 students | **Base** INR 11L<br/>**Support** INR 1.4L | USD 18,000                                | INR 0.15/message                 | INR 0.38/message           | 50% advance + monthly usage |
+| Enterprise | 10,001+ students        | **Base** Custom<br/>**Support** Included  | Custom                                    | Negotiated                       | Negotiated                 | Signed order form required  |
+| Exception  | Government schools      | Discount may apply after approval         |                                           | No discount on pass-through cost |                            | Requires CFO approval       |

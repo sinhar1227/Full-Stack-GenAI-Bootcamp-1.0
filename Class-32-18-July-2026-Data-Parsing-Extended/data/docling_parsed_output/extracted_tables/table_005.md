@@ -1,0 +1,8 @@
+| 0                 | 1                                                             | 2                | 3                   |
+|:------------------|:--------------------------------------------------------------|:-----------------|:--------------------|
+| Policy Area       | Rule                                                          | Owner            | Review Cycle        |
+| Refunds           | Refund requests must be raised within 7 days of purchase.     | Customer Support | Quarterly           |
+| Data Export       | Client admins can request export in CSV or JSON format.       | Platform Ops     | Monthly             |
+| Access Review     | Privileged access must be reviewed every 30 days.             | Security         | Monthly             |
+| Incident Response | Critical incidents require acknowledgement within 30 minutes. | SRE              | After each incident |
+| Vendor Review     | High-risk vendors require annual risk assessment.             | Procurement      | Annual              |

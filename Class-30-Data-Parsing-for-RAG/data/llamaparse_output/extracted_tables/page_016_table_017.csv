@@ -1,0 +1,7 @@
+"Clause Group","Obligation","Responsible Team","Trigger","Evidence Required","Risk"
+"Data Protection","Delete client data after contract termination unless retention is legally required.","Owner Compliance<br/>Backup Legal","Termination notice received","Deletion certificate + audit log export","High"
+,"Notify client about any confirmed data incident within 72 hours.","Owner Security<br/>Backup DPO","Incident classified as confirmed breach","Incident report, timeline, notification proof","Critical"
+"Billing","Apply annual platform fee adjustment only after renewal confirmation.","Owner Finance<br/>Backup CSM","Renewal order approved","Approved renewal sheet + invoice draft","Medium"
+,"Do not bill inactive campuses during suspension period.","Owner Revenue Ops<br/>Backup Finance","Campus status = suspended","ERP campus status export","High"
+"Support","Provide P1 response within 30 minutes during school operating hours.","Owner Support L2<br/>Backup Ops Manager","Ticket priority = P1","Ticket timestamps + agent assignment log","High"
+,"Escalate unresolved P2 tickets after 4 business hours.","Owner Support L1<br/>Backup Support L2","Ticket age > 4 business hours","Escalation log","Medium"

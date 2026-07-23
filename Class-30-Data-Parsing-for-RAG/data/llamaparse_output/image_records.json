@@ -1,0 +1,1010 @@
+[
+  {
+    "index": 0,
+    "filename": "page_1.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_1.jpg",
+    "download_success": true
+  },
+  {
+    "index": 1,
+    "filename": "page_1_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 120,
+      "w": 462,
+      "x": 66,
+      "y": 267
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_1_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 2,
+    "filename": "img_p2_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 278,
+      "w": 448,
+      "x": 74,
+      "y": 256
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p2_1.png",
+    "download_success": true
+  },
+  {
+    "index": 3,
+    "filename": "page_2.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 4,
+    "filename": "page_2_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 85,
+      "w": 476,
+      "x": 60,
+      "y": 166
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_2_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 5,
+    "filename": "page_2_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 274,
+      "w": 449,
+      "x": 73,
+      "y": 256
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_2_chart_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 6,
+    "filename": "page_3.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_3.jpg",
+    "download_success": true
+  },
+  {
+    "index": 7,
+    "filename": "page_3_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 204,
+      "w": 487,
+      "x": 54,
+      "y": 112
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_3_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 8,
+    "filename": "page_4.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_4.jpg",
+    "download_success": true
+  },
+  {
+    "index": 9,
+    "filename": "page_4_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 94,
+      "w": 487,
+      "x": 53,
+      "y": 251
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_4_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 10,
+    "filename": "page_5.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_5.jpg",
+    "download_success": true
+  },
+  {
+    "index": 11,
+    "filename": "page_5_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 127,
+      "w": 464,
+      "x": 66,
+      "y": 100
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_5_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 12,
+    "filename": "page_6.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_6.jpg",
+    "download_success": true
+  },
+  {
+    "index": 13,
+    "filename": "page_6_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 146,
+      "w": 505,
+      "x": 45,
+      "y": 100
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_6_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 14,
+    "filename": "img_p7_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 281,
+      "w": 468,
+      "x": 64,
+      "y": 113
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p7_1.png",
+    "download_success": true
+  },
+  {
+    "index": 15,
+    "filename": "page_7.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_7.jpg",
+    "download_success": true
+  },
+  {
+    "index": 16,
+    "filename": "page_7_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 66,
+      "w": 441,
+      "x": 77,
+      "y": 420
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_7_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 17,
+    "filename": "page_7_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 281,
+      "w": 470,
+      "x": 62,
+      "y": 113
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_7_chart_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 18,
+    "filename": "page_8.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_8.jpg",
+    "download_success": true
+  },
+  {
+    "index": 19,
+    "filename": "page_8_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 66,
+      "w": 441,
+      "x": 77,
+      "y": 253
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_8_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 20,
+    "filename": "img_p9_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 309,
+      "w": 454,
+      "x": 71,
+      "y": 101
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p9_1.png",
+    "download_success": true
+  },
+  {
+    "index": 21,
+    "filename": "page_9.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_9.jpg",
+    "download_success": true
+  },
+  {
+    "index": 22,
+    "filename": "page_9_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 101,
+      "w": 441,
+      "x": 77,
+      "y": 437
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_9_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 23,
+    "filename": "page_9_image_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 304,
+      "w": 453,
+      "x": 71,
+      "y": 101
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_9_image_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 24,
+    "filename": "page_10.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_10.jpg",
+    "download_success": true
+  },
+  {
+    "index": 25,
+    "filename": "page_10_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 108,
+      "w": 473,
+      "x": 61,
+      "y": 112
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_10_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 26,
+    "filename": "page_11.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_11.jpg",
+    "download_success": true
+  },
+  {
+    "index": 27,
+    "filename": "page_11_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 98,
+      "w": 453,
+      "x": 71,
+      "y": 100
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_11_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 28,
+    "filename": "img_p12_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 247,
+      "w": 439,
+      "x": 78,
+      "y": 101
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p12_1.png",
+    "download_success": true
+  },
+  {
+    "index": 29,
+    "filename": "page_12.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_12.jpg",
+    "download_success": true
+  },
+  {
+    "index": 30,
+    "filename": "page_12_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 230,
+      "w": 246,
+      "x": 157,
+      "y": 109
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_12_chart_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 31,
+    "filename": "page_12_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 75,
+      "w": 445,
+      "x": 75,
+      "y": 346
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_12_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 32,
+    "filename": "page_13.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_13.jpg",
+    "download_success": true
+  },
+  {
+    "index": 33,
+    "filename": "page_13_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 117,
+      "w": 505,
+      "x": 45,
+      "y": 100
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_13_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 34,
+    "filename": "page_14.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_14.jpg",
+    "download_success": true
+  },
+  {
+    "index": 35,
+    "filename": "page_14_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 140,
+      "w": 450,
+      "x": 73,
+      "y": 100
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_14_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 36,
+    "filename": "page_15.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_15.jpg",
+    "download_success": true
+  },
+  {
+    "index": 37,
+    "filename": "page_15_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 160,
+      "w": 473,
+      "x": 61,
+      "y": 99
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_15_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 38,
+    "filename": "img_p16_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 257,
+      "w": 533,
+      "x": 40,
+      "y": 150
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p16_1.png",
+    "download_success": true
+  },
+  {
+    "index": 39,
+    "filename": "page_16.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 792,
+      "w": 612,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_16.jpg",
+    "download_success": true
+  },
+  {
+    "index": 40,
+    "filename": "page_16_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 172,
+      "w": 481,
+      "x": 54,
+      "y": 161
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_16_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 41,
+    "filename": "img_p17_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 132,
+      "w": 533,
+      "x": 40,
+      "y": 150
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p17_1.png",
+    "download_success": true
+  },
+  {
+    "index": 42,
+    "filename": "page_17.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 792,
+      "w": 612,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_17.jpg",
+    "download_success": true
+  },
+  {
+    "index": 43,
+    "filename": "page_17_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 126,
+      "w": 507,
+      "x": 50,
+      "y": 151
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_17_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 44,
+    "filename": "img_p18_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 103,
+      "w": 533,
+      "x": 40,
+      "y": 150
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p18_1.png",
+    "download_success": true
+  },
+  {
+    "index": 45,
+    "filename": "page_18.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 792,
+      "w": 612,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_18.jpg",
+    "download_success": true
+  },
+  {
+    "index": 46,
+    "filename": "page_18_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 94,
+      "w": 520,
+      "x": 43,
+      "y": 156
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_18_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 47,
+    "filename": "img_p19_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 307,
+      "w": 511,
+      "x": 42,
+      "y": 138
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p19_1.png",
+    "download_success": true
+  },
+  {
+    "index": 48,
+    "filename": "page_19.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_19.jpg",
+    "download_success": true
+  },
+  {
+    "index": 49,
+    "filename": "page_19_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 302,
+      "w": 513,
+      "x": 40,
+      "y": 142
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_19_chart_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 50,
+    "filename": "img_p20_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 307,
+      "w": 511,
+      "x": 42,
+      "y": 127
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p20_1.png",
+    "download_success": true
+  },
+  {
+    "index": 51,
+    "filename": "page_20.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_20.jpg",
+    "download_success": true
+  },
+  {
+    "index": 52,
+    "filename": "page_20_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 74,
+      "w": 189,
+      "x": 331,
+      "y": 292
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_20_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 53,
+    "filename": "page_20_image_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 11,
+      "w": 13,
+      "x": 356,
+      "y": 235
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_20_image_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 54,
+    "filename": "page_20_image_2_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 11,
+      "w": 13,
+      "x": 356,
+      "y": 212
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_20_image_2_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 55,
+    "filename": "page_20_image_3_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 11,
+      "w": 13,
+      "x": 356,
+      "y": 259
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_20_image_3_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 56,
+    "filename": "page_20_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 191,
+      "w": 221,
+      "x": 78,
+      "y": 187
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_20_chart_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 57,
+    "filename": "img_p21_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 307,
+      "w": 511,
+      "x": 42,
+      "y": 162
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p21_1.png",
+    "download_success": true
+  },
+  {
+    "index": 58,
+    "filename": "page_21.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_21.jpg",
+    "download_success": true
+  },
+  {
+    "index": 59,
+    "filename": "page_21_chart_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 308,
+      "w": 513,
+      "x": 41,
+      "y": 161
+    },
+    "local_path": null,
+    "download_success": false
+  },
+  {
+    "index": 60,
+    "filename": "img_p22_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 610,
+      "w": 478,
+      "x": 59,
+      "y": 162
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p22_1.png",
+    "download_success": true
+  },
+  {
+    "index": 61,
+    "filename": "page_22.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_22.jpg",
+    "download_success": true
+  },
+  {
+    "index": 62,
+    "filename": "page_22_image_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 67,
+      "w": 114,
+      "x": 371,
+      "y": 643
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_22_image_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 63,
+    "filename": "page_22_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 92,
+      "w": 396,
+      "x": 103,
+      "y": 379
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_22_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 64,
+    "filename": "img_p23_1.png",
+    "category": "embedded",
+    "content_type": "image/png",
+    "bbox": {
+      "h": 610,
+      "w": 476,
+      "x": 60,
+      "y": 162
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p23_1.png",
+    "download_success": true
+  },
+  {
+    "index": 65,
+    "filename": "page_23.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_23.jpg",
+    "download_success": true
+  },
+  {
+    "index": 66,
+    "filename": "page_23_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 110,
+      "w": 399,
+      "x": 100,
+      "y": 380
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_23_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 67,
+    "filename": "page_23_image_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 67,
+      "w": 115,
+      "x": 376,
+      "y": 642
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_23_image_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 68,
+    "filename": "img_p24_1.jpg",
+    "category": "embedded",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 331,
+      "w": 331,
+      "x": 132,
+      "y": 123
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\embedded\\img_p24_1.jpg",
+    "download_success": true
+  },
+  {
+    "index": 69,
+    "filename": "page_24.jpg",
+    "category": "screenshot",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 842,
+      "w": 595,
+      "x": 0,
+      "y": 0
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\screenshots\\page_24.jpg",
+    "download_success": true
+  },
+  {
+    "index": 70,
+    "filename": "page_24_table_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 126,
+      "w": 437,
+      "x": 79,
+      "y": 500
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_24_table_1_v2.jpg",
+    "download_success": true
+  },
+  {
+    "index": 71,
+    "filename": "page_24_image_1_v2.jpg",
+    "category": "layout",
+    "content_type": "image/jpeg",
+    "bbox": {
+      "h": 334,
+      "w": 334,
+      "x": 130,
+      "y": 121
+    },
+    "local_path": "D:\\complete_content_new\\Full-Stack-GenAI-Bootcamp-1.0\\Class-30-Data-Parsing-for-RAG\\data\\llamaparse_output\\extracted_images\\layout\\page_24_image_1_v2.jpg",
+    "download_success": true
+  }
+]
