@@ -1,0 +1,6 @@
+| Element        | Parsing Challenge                                | Expected Handling                                                       |
+|:---------------|:-------------------------------------------------|:------------------------------------------------------------------------|
+| Portrait image | Pixels are not selectable PDF text.              | Extract image object or create visual summary with a multimodal model.  |
+| Caption text   | Caption should stay attached to image context.   | Preserve caption near the image in reading order.                       |
+| Image metadata | File name, page, and bounding box may be needed. | Store metadata for citation and retrieval.                              |
+| RAG usage      | Text-only chunks may miss visual details.        | Use OCR or vision captioning before chunking if visual content matters. |

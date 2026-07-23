@@ -1,0 +1,36 @@
+<table>
+  <thead>
+    <tr>
+        <th>Layer</th>
+        <th>Control</th>
+        <th>Failure mode if missing</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>Authentication</td>
+        <td>Identify user and organization</td>
+        <td>Unknown user may access application</td>
+    </tr>
+    <tr>
+        <td>Authorization</td>
+        <td>Map user to client_id and role</td>
+        <td>User may retrieve another clients documents</td>
+    </tr>
+    <tr>
+        <td>Vector retrieval</td>
+        <td>Filter by client_id or namespace</td>
+        <td>Retriever may return unauthorized chunks</td>
+    </tr>
+    <tr>
+        <td>Prompt construction</td>
+        <td>Send only allowed context</td>
+        <td>LLM may see sensitive data</td>
+    </tr>
+    <tr>
+        <td>Audit logging</td>
+        <td>Record query, source chunks, user_id</td>
+        <td>No traceability during incident review</td>
+    </tr>
+  </tbody>
+</table>

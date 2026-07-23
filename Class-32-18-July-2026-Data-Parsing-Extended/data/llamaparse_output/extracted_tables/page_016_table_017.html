@@ -1,0 +1,59 @@
+<table>
+  <thead>
+    <tr>
+        <th>Clause Group</th>
+        <th>Obligation</th>
+        <th>Responsible Team</th>
+        <th>Trigger</th>
+        <th>Evidence Required</th>
+        <th>Risk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td rowspan="2">Data Protection</td>
+        <td>Delete client data after contract termination unless retention is legally required.</td>
+        <td><strong>Owner</strong> Compliance<br /><strong>Backup</strong> Legal</td>
+        <td>Termination notice received</td>
+        <td>Deletion certificate + audit log export</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td>Notify client about any confirmed data incident within 72 hours.</td>
+        <td><strong>Owner</strong> Security<br /><strong>Backup</strong> DPO</td>
+        <td>Incident classified as confirmed breach</td>
+        <td>Incident report, timeline, notification proof</td>
+        <td>Critical</td>
+    </tr>
+    <tr>
+        <td rowspan="2">Billing</td>
+        <td>Apply annual platform fee adjustment only after renewal confirmation.</td>
+        <td><strong>Owner</strong> Finance<br /><strong>Backup</strong> CSM</td>
+        <td>Renewal order approved</td>
+        <td>Approved renewal sheet + invoice draft</td>
+        <td>Medium</td>
+    </tr>
+    <tr>
+        <td>Do not bill inactive campuses during suspension period.</td>
+        <td><strong>Owner</strong> Revenue Ops<br /><strong>Backup</strong> Finance</td>
+        <td>Campus status = suspended</td>
+        <td>ERP campus status export</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td rowspan="2">Support</td>
+        <td>Provide P1 response within 30 minutes during school operating hours.</td>
+        <td><strong>Owner</strong> Support L2<br /><strong>Backup</strong> Ops Manager</td>
+        <td>Ticket priority = P1</td>
+        <td>Ticket timestamps + agent assignment log</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td>Escalate unresolved P2 tickets after 4 business hours.</td>
+        <td><strong>Owner</strong> Support L1<br /><strong>Backup</strong> Support L2</td>
+        <td>Ticket age > 4 business hours</td>
+        <td>Escalation log</td>
+        <td>Medium</td>
+    </tr>
+  </tbody>
+</table>

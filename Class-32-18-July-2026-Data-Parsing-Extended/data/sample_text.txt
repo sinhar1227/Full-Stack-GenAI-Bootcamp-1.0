@@ -1,0 +1,8 @@
+LangChain Starter Parser Sample
+
+This text file is used to demonstrate TextLoader.
+
+RAG stands for Retrieval-Augmented Generation. In a RAG pipeline, documents are parsed, split into chunks, converted into embeddings, stored in a vector database, and retrieved at query time.
+
+Refund Policy Example:
+Refunds are allowed within 7 days of purchase if the product is unused and the invoice is available.

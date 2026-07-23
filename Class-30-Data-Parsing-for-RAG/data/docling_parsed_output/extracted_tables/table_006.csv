@@ -1,0 +1,7 @@
+0,1,2,3,4,5
+Service Category,Severity,Response Target,Resolution Target,Service Credit,Evidence Required
+API Availability,P1 - complete outage,15 minutes,4 hours,10 percent monthly fee credit,Monitoring logs and incident ticket
+API Availability,P2 - degraded performance,30 minutes,8 hours,5 percent monthly fee credit,Latency dashboard and affected endpoint list
+Data Pipeline,P1 - ingestion stopped,20 minutes,6 hours,8 percent pipeline fee credit,"Queue depth, failed job IDs, replay report"
+Data Pipeline,P3 - delayed batch,4 hours,Next business day,No automatic credit,Batch ID and SLA exception note
+Support,P2 - urgent support,1 hour,1 business day,2 percent support fee credit,Support ticket with timestamps

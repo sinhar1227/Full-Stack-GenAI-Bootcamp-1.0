@@ -1,0 +1,31 @@
+<table>
+  <thead>
+    <tr>
+        <th>Element</th>
+        <th>Parsing Challenge</th>
+        <th>Expected Handling</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>Portrait image</td>
+        <td>Pixels are not selectable PDF text.</td>
+        <td>Extract image object or create visual summary with a multimodal model.</td>
+    </tr>
+    <tr>
+        <td>Caption text</td>
+        <td>Caption should stay attached to image context.</td>
+        <td>Preserve caption near the image in reading order.</td>
+    </tr>
+    <tr>
+        <td>Image metadata</td>
+        <td>File name, page, and bounding box may be needed.</td>
+        <td>Store metadata for citation and retrieval.</td>
+    </tr>
+    <tr>
+        <td>RAG usage</td>
+        <td>Text-only chunks may miss visual details.</td>
+        <td>Use OCR or vision captioning before chunking if visual content matters.</td>
+    </tr>
+  </tbody>
+</table>

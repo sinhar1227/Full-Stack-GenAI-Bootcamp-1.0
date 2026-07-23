@@ -1,0 +1,4 @@
+"Image element","Potential extraction method","Expected output"
+"Box labels","OCR or vision model","Raw Files, Parser, Chunks, Vector DB"
+"Arrows","Layout or vision understanding","Processing order"
+"Caption","Normal PDF text extraction","Description of the diagram"

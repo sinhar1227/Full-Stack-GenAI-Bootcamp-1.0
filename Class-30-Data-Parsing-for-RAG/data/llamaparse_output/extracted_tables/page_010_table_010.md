@@ -1,0 +1,7 @@
+| document\_id  | document\_type           | contract\_group\_id | effective\_date | relationship                       |
+| ------------- | ------------------------ | ------------------- | --------------- | ---------------------------------- |
+| BLR-MSA-001   | Master Service Agreement | BLR-ACME-2026       | 2026-04-01      | Base commercial agreement          |
+| BLR-NDA-002   | NDA                      | BLR-ACME-2026       | 2026-04-01      | Confidentiality terms              |
+| BLR-SOW-003   | Statement of Work        | BLR-ACME-2026       | 2026-04-15      | Project scope and deliverables     |
+| BLR-PRICE-004 | Pricing Amendment        | BLR-ACME-2026       | 2026-05-01      | Updated pricing and discount tiers |
+| BLR-SLA-005   | Support SLA              | BLR-ACME-2026       | 2026-05-10      | Support response and credits       |

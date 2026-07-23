@@ -1,0 +1,7 @@
+| Service Category | Severity                      | Response Target | Resolution Target | Service Credit                    | Evidence Required                                |
+| ---------------- | ----------------------------- | --------------- | ----------------- | --------------------------------- | ------------------------------------------------ |
+| API Availability | P1 - complete<br/>outage      | 15 minutes      | 4 hours           | 10 percent monthly<br/>fee credit | Monitoring logs and incident<br/>ticket          |
+| API Availability | P2 - degraded<br/>performance | 30 minutes      | 8 hours           | 5 percent monthly fee<br/>credit  | Latency dashboard and<br/>affected endpoint list |
+| Data Pipeline    | P1 - ingestion<br/>stopped    | 20 minutes      | 6 hours           | 8 percent pipeline fee<br/>credit | Queue depth, failed job IDs,<br/>replay report   |
+| Data Pipeline    | P3 - delayed<br/>batch        | 4 hours         | Next business day | No automatic credit               | Batch ID and SLA exception<br/>note              |
+| Support          | P2 - urgent<br/>support       | 1 hour          | 1 business day    | 2 percent support fee<br/>credit  | Support ticket with timestamps                   |

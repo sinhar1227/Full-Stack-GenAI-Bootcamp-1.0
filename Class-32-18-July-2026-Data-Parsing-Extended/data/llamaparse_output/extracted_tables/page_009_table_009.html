@@ -1,0 +1,31 @@
+<table>
+  <thead>
+    <tr>
+        <th>Field</th>
+        <th>Expected OCR value</th>
+        <th>Validation rule</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>Client Name</td>
+        <td>BlueLeaf Retail Pvt Ltd</td>
+        <td>Must match known client list</td>
+    </tr>
+    <tr>
+        <td>Contract ID</td>
+        <td>BLR-MSA-2026-019</td>
+        <td>Pattern: client-code + type + year + sequence</td>
+    </tr>
+    <tr>
+        <td>Effective Date</td>
+        <td>01 Apr 2026</td>
+        <td>Date parser should normalize to ISO format</td>
+    </tr>
+    <tr>
+        <td>Approval checkbox</td>
+        <td>Checked</td>
+        <td>Boolean extraction required</td>
+    </tr>
+  </tbody>
+</table>

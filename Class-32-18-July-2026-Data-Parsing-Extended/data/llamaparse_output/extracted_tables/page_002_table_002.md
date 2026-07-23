@@ -1,0 +1,5 @@
+| Client            | Main document family             | Risk   | Primary users        | Typical question                            |
+| ----------------- | -------------------------------- | ------ | -------------------- | ------------------------------------------- |
+| Arka Finance      | MSA, audit addendum, DPA         | High   | Legal and compliance | What audit rights exist in the DPA?         |
+| BlueLeaf Retail   | MSA, pricing, support SLA        | Medium | Procurement          | Which clause controls renewal pricing?      |
+| CityRide Mobility | Ops reports, incident logs, SOPs | Medium | Operations           | Which depot had repeated battery incidents? |

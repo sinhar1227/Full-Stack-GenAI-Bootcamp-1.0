@@ -1,0 +1,5 @@
+"#","Description","Qty","Rate","Amount"
+"1","Electricity fixed charges","1","INR 1,250","1,250"
+"2","Energy usage - peak units","842","INR 8.20","6,904"
+"3","Energy usage - off-peak units","313","INR 5.70","1,784"
+"4","Meter service adjustment","1","INR 340","340"

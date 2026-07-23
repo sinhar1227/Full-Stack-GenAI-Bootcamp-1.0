@@ -1,0 +1,46 @@
+<table>
+  <thead>
+    <tr>
+        <th>Edge case</th>
+        <th>Example</th>
+        <th>Recommended handling</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>Repeated headers and footers</td>
+        <td>Page number, confidentiality banner</td>
+        <td>Remove or store separately as metadata</td>
+    </tr>
+    <tr>
+        <td>Hyphenated line breaks</td>
+        <td>termi- nation assistance</td>
+        <td>Normalize during cleaning</td>
+    </tr>
+    <tr>
+        <td>Rotated tables</td>
+        <td>Landscape appendix in PDF</td>
+        <td>Use layout-aware parser or OCR</td>
+    </tr>
+    <tr>
+        <td>Merged cells</td>
+        <td>Pricing table with grouped plans</td>
+        <td>Preserve hierarchy in row text</td>
+    </tr>
+    <tr>
+        <td>Scanned signatures</td>
+        <td>Signature block as image</td>
+        <td>OCR if text is needed; store image reference</td>
+    </tr>
+    <tr>
+        <td>Boilerplate navigation</td>
+        <td>Website header and footer</td>
+        <td>Use boilerplate removal</td>
+    </tr>
+    <tr>
+        <td>Duplicate chunks</td>
+        <td>Same policy in FAQ and PDF</td>
+        <td>Deduplicate using source and hash</td>
+    </tr>
+  </tbody>
+</table>
