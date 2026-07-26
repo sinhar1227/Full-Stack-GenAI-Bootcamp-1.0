@@ -1,0 +1,5 @@
+the loss on tokens from the user prompt, so as a result, we backpropagate only on answer tokens. Finally, we
+fine-tune the model for 2 epochs.
+3.2 Reinforcement Learning with Human Feedback (RLHF)
+RLHF is a model training procedure that is applied to a fine-tuned language model to furtheralignmodel
+behavior with human preferences and instruction following. We collect data that represents empirical
