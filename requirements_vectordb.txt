@@ -1,0 +1,34 @@
+# Core numerical packages
+numpy==1.26.4
+scipy==1.11.4
+scikit-learn==1.4.2
+
+# Traditional retrieval
+rank-bm25==0.2.2
+
+# LangChain core
+langchain
+langchain-community
+langchain-huggingface
+
+# ChromaDB
+langchain_chroma
+
+# Pinecone
+pinecone
+langchain_pinecone
+
+# Qdrant
+langchain_qdrant
+qdrant-client
+
+# Document loading for RAG practical
+pypdf
+python-docx
+docx2txt
+
+# Notebook support
+ipykernel
+
+# Environment variables
+python-dotenv
