@@ -32,3 +32,11 @@ ipykernel
 
 # Environment variables
 python-dotenv
+
+langchain-text-splitters>=1.1.2,<2.0
+tiktoken>=0.7
+pandas>=2.0
+pillow>=10.0
+nltk>=3.8
+ipython>=8.0
+jupyter>=1.0
