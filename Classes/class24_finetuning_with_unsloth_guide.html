@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 24 — Fine-Tuning with Unsloth | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #fb923c;   /* orange — Unsloth brand energy */
+  --accent2:     #38bdf8;   /* sky blue — deployment/export */
+  --accent3:     #4ade80;   /* green — success/save */
+  --accent4:     #f43f5e;   /* rose — warning */
+  --accent5:     #a78bfa;   /* violet — inference */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; width: 0%; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2)); z-index: 1000; transition: width 0.1s;
+}
+
+/* ── SIDEBAR NAV ── */
+nav {
+  position: fixed; top: 0; right: 0; width: 224px; height: 100vh;
+  background: var(--surface); border-left: 1px solid var(--border);
+  padding: 32px 20px; overflow-y: auto; z-index: 100;
+}
+nav h2 {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
+}
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a {
+  font-size: 0.78rem; color: var(--muted); text-decoration: none;
+  display: block; padding: 4px 8px; border-radius: 4px;
+  border-left: 2px solid transparent; transition: all 0.15s;
+}
+nav ul li a:hover, nav ul li a.active {
+  color: var(--accent); border-left-color: var(--accent);
+  background: rgba(251,146,60,0.07);
+}
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+/* ── MAIN ── */
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+/* ── HERO ── */
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 700; line-height: 1.15; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+/* ── SECTIONS ── */
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+/* ── CALLOUTS ── */
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info  { background: rgba(56,189,248,0.08);  border: 1px solid rgba(56,189,248,0.25); }
+.callout.tip   { background: rgba(74,222,128,0.08);  border: 1px solid rgba(74,222,128,0.25); }
+.callout.warn  { background: rgba(244,63,94,0.08);   border: 1px solid rgba(244,63,94,0.25); }
+.callout.orange{ background: rgba(251,146,60,0.08);  border: 1px solid rgba(251,146,60,0.25); }
+.callout.info p   { color: #7dd3fc; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fda4af; }
+.callout.orange p { color: #fdba74; }
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; position: relative; }
+.steps::before { content: ''; position: absolute; left: 22px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent), var(--accent2)); }
+.step { display: flex; gap: 20px; padding: 0 0 32px 0; position: relative; }
+.step-num { width: 46px; height: 46px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 600; color: var(--accent); flex-shrink: 0; z-index: 1; }
+.step-body { flex: 1; padding-top: 10px; }
+.step-body h4 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.step-body p { font-size: 0.85rem; color: #94a3b8; margin: 0 0 10px; }
+
+/* ── CODE BLOCKS ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+.hl  { color: var(--accent); font-weight: 600; }
+
+/* ── FEATURE CARDS ── */
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; margin: 20px 0; }
+.feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: transform 0.15s, box-shadow 0.15s; }
+.feature-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.feature-card .icon { font-size: 1.4rem; margin-bottom: 10px; }
+.feature-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.feature-card p  { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.55; }
+.feature-card .stat { font-family: 'IBM Plex Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+
+/* ── COMPARISON TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.85rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 12px 16px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.05em; }
+.compare-table td { padding: 10px 16px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .yes { color: var(--accent3); font-weight: 500; }
+.compare-table .no  { color: #f87171; }
+.compare-table .mid { color: var(--accent4); }
+.compare-table .best{ color: var(--accent); font-weight: 600; }
+
+/* ── SAVE OPTIONS ── */
+.save-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+.save-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.save-card .save-type { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; font-weight: 700; }
+.save-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.save-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; line-height: 1.55; }
+.save-card .use-for { font-size: 0.72rem; color: var(--accent3); }
+
+/* ── GGUF QUANT TABLE ── */
+.quant-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
+.quant-table th { background: var(--card); color: var(--text); padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.quant-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; }
+.quant-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.quant-table .rec { color: var(--accent); font-weight: 600; }
+.quant-table .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; }
+
+/* ── MEMORY TABLE ── */
+.mem-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
+.mem-table th { background: var(--card); color: var(--text); padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.05em; }
+.mem-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; }
+.mem-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.mem-table .best { color: var(--accent); font-weight: 600; }
+.mem-table .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(251,146,60,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.checklist li .chk.bad { background: rgba(248,113,113,0.1); border-color: #f87171; color: #f87171; }
+
+/* ── KEY TERMS ── */
+.key-terms { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 8px; padding: 20px; margin: 24px 0; }
+.key-terms h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.term { margin-bottom: 12px; }
+.term dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+.term dd { font-size: 0.8rem; color: var(--muted); margin-left: 0; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(251,146,60,0.05); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── DEPLOYMENT ICONS ── */
+.deploy-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.deploy-badge { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; text-align: center; }
+.deploy-badge .d-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.deploy-badge .d-name { font-weight: 600; font-size: 0.85rem; color: #fff; margin-bottom: 4px; }
+.deploy-badge .d-desc { font-size: 0.72rem; color: var(--muted); }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- SIDEBAR NAV -->
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#why-unsloth">Why Unsloth?</a></li>
+    <li class="sub"><a href="#how-it-works">How It Works</a></li>
+    <li class="sub"><a href="#memory-comparison">Memory Comparison</a></li>
+    <li><a href="#concepts">Core Concepts</a></li>
+    <li class="sub"><a href="#lora-vs-qlora">LoRA vs QLoRA</a></li>
+    <li class="sub"><a href="#nf4">NF4 Quantisation</a></li>
+    <li><a href="#pipeline">Full Pipeline</a></li>
+    <li class="sub"><a href="#install">Installation</a></li>
+    <li class="sub"><a href="#load-model">Load Model</a></li>
+    <li class="sub"><a href="#peft">Apply LoRA/QLoRA</a></li>
+    <li class="sub"><a href="#dataset">Dataset & Template</a></li>
+    <li class="sub"><a href="#train">Training</a></li>
+    <li class="sub"><a href="#inference">Inference</a></li>
+    <li><a href="#saving">Saving & Export</a></li>
+    <li class="sub"><a href="#save-adapter">Save Adapter</a></li>
+    <li class="sub"><a href="#save-merged">Save Merged</a></li>
+    <li class="sub"><a href="#gguf">Export to GGUF</a></li>
+    <li class="sub"><a href="#ollama">Deploy to Ollama</a></li>
+    <li class="sub"><a href="#hub">Push to Hub</a></li>
+    <li><a href="#full-code">Full Code</a></li>
+    <li><a href="#tips">Tips & Pitfalls</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+    <li><a href="#resources">Resources</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 24</span></div>
+    <div class="hero-class-num">Class 24 · 14 June 2026</div>
+    <h1>Fine-Tuning with<br><em>Unsloth</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> QLoRA End-to-End</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> GGUF / Ollama Export</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> HuggingFace Hub</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Google Colab T4</div>
+    </div>
+    <p class="hero-summary">
+      Class 24 is the hands-on masterclass — bringing together everything from Classes 21–23 into one complete Unsloth pipeline. You'll load a model, configure QLoRA adapters, fine-tune on a dataset, run chat inference, and export the model in multiple formats: LoRA adapter, merged weights, GGUF for Ollama, and HuggingFace Hub. By the end you'll have a deployed, working custom LLM.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <p>This is the most practical class in the bootcamp. The theory is behind you — now you execute a complete, production-grade fine-tuning workflow on a free GPU using Unsloth.</p>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Understand exactly what Unsloth is, how it achieves 2× speed, and 70% memory savings</li>
+      <li><span class="chk">✓</span> Know the difference between LoRA, QLoRA, and full fine-tuning and when to pick each</li>
+      <li><span class="chk">✓</span> Load a quantised model from HuggingFace and apply LoRA adapters with Unsloth</li>
+      <li><span class="chk">✓</span> Prepare a dataset and apply a chat template for SFT</li>
+      <li><span class="chk">✓</span> Configure and run a complete SFTTrainer training loop on Google Colab (T4 GPU)</li>
+      <li><span class="chk">✓</span> Run streaming chat inference on the fine-tuned model</li>
+      <li><span class="chk">✓</span> Save LoRA adapters, merge them into the base model, and export to GGUF</li>
+      <li><span class="chk">✓</span> Deploy the fine-tuned model locally with Ollama</li>
+      <li><span class="chk">✓</span> Push the model to HuggingFace Hub for sharing and cloud inference</li>
+    </ul>
+  </section>
+
+  <!-- WHY UNSLOTH -->
+  <section id="why-unsloth">
+    <div class="section-eyebrow">02 — Unsloth Deep Dive</div>
+    <h2>Why Unsloth?</h2>
+
+    <p>Standard HuggingFace + PEFT fine-tuning works — but it's memory-hungry and slow. Fine-tuning a 7B model in 16-bit requires ~30GB VRAM. Most people don't have that. Unsloth solves this by combining QLoRA with hand-written Triton GPU kernels and a custom backpropagation engine.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="stat">2×</div>
+        <h4>Faster Training</h4>
+        <p>Hand-tuned Triton GPU kernels replace PyTorch's generic operations. Same math, radically faster execution — no accuracy tradeoff.</p>
+      </div>
+      <div class="feature-card">
+        <div class="stat">70%</div>
+        <h4>Less VRAM</h4>
+        <p>QLoRA + gradient checkpointing + 8-bit optimisers reduce peak memory from 20–30GB to 6–8GB for a 7B model.</p>
+      </div>
+      <div class="feature-card">
+        <div class="stat">0%</div>
+        <h4>Accuracy Loss</h4>
+        <p>Unlike many fast-training libraries, Unsloth uses mathematically identical computations — it's an optimisation, not an approximation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="stat">Free</div>
+        <h4>Runs on Colab T4</h4>
+        <p>A Google Colab T4 GPU (15GB VRAM, free tier) is enough to fine-tune 7–8B models with QLoRA. No expensive cloud GPU needed.</p>
+      </div>
+    </div>
+
+    <h3 id="how-it-works">How Unsloth Achieves Speed</h3>
+    <p>The performance gains come from three main sources:</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="font-size:0.65rem;">01</div>
+        <div class="step-body">
+          <h4>Custom Triton Kernels</h4>
+          <p>The Unsloth team manually derived backpropagation equations for transformer layers and rewrote them as highly optimised Triton GPU kernels. These are purpose-built for LoRA training patterns, unlike PyTorch's generic CUDA operations.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="font-size:0.65rem;">02</div>
+        <div class="step-body">
+          <h4>Gradient Checkpointing ("unsloth" mode)</h4>
+          <p>Standard gradient checkpointing recomputes activations to save memory, but recomputation costs time. Unsloth's custom mode is smarter — it selectively checkpoints only the most memory-intensive layers, reducing recomputation overhead by up to 30%.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="font-size:0.65rem;">03</div>
+        <div class="step-body">
+          <h4>4-bit NF4 Quantisation (QLoRA)</h4>
+          <p>The base model is loaded in 4-bit NF4 format, reducing weight storage from 16-bit to 4-bit (4× compression). Only the small LoRA adapter matrices remain in full precision (bfloat16/float16) during training.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 id="memory-comparison">Memory Usage Comparison</h3>
+    <table class="mem-table">
+      <thead>
+        <tr><th>Method</th><th>7B Model VRAM</th><th>Trainable Params</th><th>Speed vs HF</th><th>Accuracy</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Full Fine-Tuning</td>
+          <td class="no">~28–40 GB</td>
+          <td class="no">7 Billion (100%)</td>
+          <td>1× (baseline)</td>
+          <td class="yes">Best</td>
+        </tr>
+        <tr>
+          <td>HF + LoRA (16-bit)</td>
+          <td class="mid">~14 GB</td>
+          <td class="yes">~70M (1%)</td>
+          <td>1×</td>
+          <td class="yes">Very good</td>
+        </tr>
+        <tr>
+          <td>HF + QLoRA (4-bit)</td>
+          <td class="mid">~8–10 GB</td>
+          <td class="yes">~70M (1%)</td>
+          <td>1×</td>
+          <td class="yes">Good</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent); font-weight:600;">Unsloth + QLoRA</td>
+          <td class="best">~5–7 GB ✓</td>
+          <td class="yes">~70M (1%)</td>
+          <td class="best">2× faster ✓</td>
+          <td class="yes">Good (0% loss)</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CONCEPTS -->
+  <section id="concepts">
+    <div class="section-eyebrow">03 — Core Concepts</div>
+    <h2>Key Concepts</h2>
+
+    <div class="key-terms">
+      <h4>📖 Key Terminology</h4>
+      <div class="term">
+        <dt>FastLanguageModel</dt>
+        <dd>Unsloth's main class. Drop-in replacement for HuggingFace's AutoModelForCausalLM — used to load pre-trained models with Unsloth's speed optimisations.</dd>
+      </div>
+      <div class="term">
+        <dt>get_peft_model()</dt>
+        <dd>Unsloth wrapper that attaches LoRA adapter matrices to the loaded model and marks them as trainable. Configures rank, alpha, target modules, dropout, and other LoRA hyperparameters.</dd>
+      </div>
+      <div class="term">
+        <dt>LoRA Adapter</dt>
+        <dd>A small (~100MB) file containing only the trained A and B matrices from LoRA training. The base model weights are NOT included — the adapter is applied on top of the base model at inference time.</dd>
+      </div>
+      <div class="term">
+        <dt>Merged Model</dt>
+        <dd>The result of mathematically combining the LoRA adapter into the base model weights, creating a single standalone model. Larger file (~15GB for 7B in 16-bit) but simpler to serve.</dd>
+      </div>
+      <div class="term">
+        <dt>GGUF Format</dt>
+        <dd>A binary format for quantised models used by llama.cpp. Enables running large models on CPU/Mac or modest GPUs. Required for Ollama and LM Studio deployment.</dd>
+      </div>
+      <div class="term">
+        <dt>Ollama</dt>
+        <dd>A tool for running LLMs locally with a simple CLI and REST API. Accepts GGUF models and makes local deployment as easy as <code>ollama run my-model</code>.</dd>
+      </div>
+      <div class="term">
+        <dt>Modelfile</dt>
+        <dd>An Ollama configuration file that specifies the base GGUF model path, chat template, system prompt, and generation parameters. Unsloth generates this automatically.</dd>
+      </div>
+      <div class="term">
+        <dt>save_method</dt>
+        <dd>Unsloth's export option: <code>"lora"</code> saves only the adapter; <code>"merged_16bit"</code> saves the full model in bfloat16; <code>"merged_4bit"</code> saves the merged model in 4-bit precision.</dd>
+      </div>
+    </div>
+
+    <h3 id="lora-vs-qlora">LoRA vs QLoRA — Choosing the Right Method</h3>
+    <table class="compare-table">
+      <thead>
+        <tr><th>Attribute</th><th>Full Fine-Tuning</th><th>LoRA</th><th>QLoRA (recommended)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Base model precision</td><td>16-bit (full)</td><td>16-bit (full)</td><td class="best">4-bit NF4 (quantised)</td></tr>
+        <tr><td>Adapter precision</td><td>N/A</td><td class="yes">16-bit</td><td class="yes">16-bit (bfloat16)</td></tr>
+        <tr><td>VRAM for 7B model</td><td class="no">28–40 GB</td><td class="mid">14 GB</td><td class="best">5–7 GB</td></tr>
+        <tr><td>Trainable parameters</td><td class="no">7B (100%)</td><td class="best">~70M (1%)</td><td class="best">~70M (1%)</td></tr>
+        <tr><td>Training speed</td><td>Slowest</td><td>Fast</td><td class="best">Fastest (with Unsloth)</td></tr>
+        <tr><td>Best for</td><td>Academic research</td><td>Large GPU clusters</td><td class="best">Consumer GPUs / Colab</td></tr>
+        <tr><td>Accuracy vs full FT</td><td class="yes">Best</td><td class="yes">Very close</td><td class="yes">Very close (0% Unsloth)</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="nf4">NF4 Quantisation — Why 4-bit Works So Well</h3>
+    <p>Standard 4-bit quantisation cuts model size by 4× but loses accuracy because it doesn't account for how neural network weights are distributed. QLoRA introduced NF4 (NormalFloat4) — a 4-bit data type designed specifically for the normal (Gaussian) distribution that neural network weights follow.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">📐</span>
+      <p><strong>NF4 intuition:</strong> If you know weights follow a bell curve, you can place your 4-bit "buckets" more densely near zero (where most weights cluster) and more sparsely in the tails. This is information-theoretically optimal for normally distributed data — you get much better accuracy per bit than standard integer quantisation. This is why QLoRA nearly matches full 16-bit fine-tuning accuracy despite storing the base model in 4 bits.</p>
+    </div>
+  </section>
+
+  <!-- FULL PIPELINE -->
+  <section id="pipeline">
+    <div class="section-eyebrow">04 — End-to-End Pipeline</div>
+    <h2>Complete Fine-Tuning Pipeline</h2>
+
+    <h3 id="install">Step 0 — Installation</h3>
+    <div class="code-block">
+      <span class="lang-label">bash · colab cell</span>
+      <pre><span class="cm"># Install Unsloth + dependencies</span>
+<span class="cm"># Run this as a Colab cell (note the ! prefix)</span>
+<span class="hl">!pip install unsloth</span>
+
+<span class="cm"># Unsloth auto-installs: transformers, peft, trl, bitsandbytes,</span>
+<span class="cm"># triton, accelerate, datasets, xformers</span>
+
+<span class="cm"># Verify GPU is available</span>
+<span class="kw">import</span> torch
+<span class="fn">print</span>(torch.cuda.<span class="fn">is_available</span>())   <span class="cm"># True</span>
+<span class="fn">print</span>(torch.cuda.<span class="fn">get_device_name</span>(<span class="num">0</span>)) <span class="cm"># Tesla T4 (Colab free tier)</span>
+<span class="fn">print</span>(torch.cuda.<span class="fn">get_device_properties</span>(<span class="num">0</span>).total_memory / <span class="num">1e9</span>, <span class="str">"GB"</span>) <span class="cm"># ~15 GB</span></pre>
+    </div>
+
+    <h3 id="load-model">Step 1 — Load the Model</h3>
+    <p>Unsloth provides pre-quantised models on HuggingFace Hub (suffixed <code>-bnb-4bit</code> or <code>-unsloth-bnb-4bit</code>). These download much faster than the raw 16-bit model since they're already 4-bit compressed.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · model loading</span>
+      <pre><span class="kw">from</span> unsloth <span class="kw">import</span> <span class="cls">FastLanguageModel</span>
+<span class="kw">import</span> torch
+
+<span class="cm"># ── Configuration ─────────────────────────────────────────────────</span>
+max_seq_length = <span class="num">2048</span>   <span class="cm"># set to 4096 for longer contexts (needs more VRAM)</span>
+dtype = <span class="kw">None</span>             <span class="cm"># auto-detects bfloat16 on Ampere+ or float16 on T4</span>
+load_in_4bit = <span class="kw">True</span>     <span class="cm"># QLoRA: loads base model in 4-bit NF4 format</span>
+
+<span class="cm"># ── Supported models (choose one) ─────────────────────────────────</span>
+<span class="cm"># "unsloth/llama-3-8b-bnb-4bit"            ← Llama 3 8B base</span>
+<span class="cm"># "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"  ← Llama 3.1 8B Instruct</span>
+<span class="cm"># "unsloth/mistral-7b-v0.3-bnb-4bit"       ← Mistral 7B</span>
+<span class="cm"># "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"   ← Qwen 2.5 7B</span>
+<span class="cm"># "unsloth/gemma-2-9b-bnb-4bit"            ← Gemma 2 9B</span>
+
+model, tokenizer = <span class="cls">FastLanguageModel</span>.<span class="fn">from_pretrained</span>(
+    model_name = <span class="str">"unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"</span>,
+    max_seq_length = max_seq_length,
+    dtype = dtype,
+    load_in_4bit = load_in_4bit,
+    <span class="cm"># token = "hf_..."  # needed for gated models like Llama</span>
+)
+
+<span class="fn">print</span>(<span class="str">f"Model loaded! Parameters: {model.num_parameters()/1e9:.1f}B"</span>)
+<span class="fn">print</span>(<span class="str">f"VRAM used: {torch.cuda.memory_allocated()/1e9:.2f} GB"</span>)</pre>
+    </div>
+
+    <div class="callout orange">
+      <span class="callout-icon">🔥</span>
+      <p><strong>Instruct vs Base model for SFT:</strong> For most practical fine-tuning (specialising on a domain or style), start from an <strong>instruct model</strong> — it already knows how to follow instructions, so your SFT needs fewer examples to achieve good results. Use a <strong>base model</strong> only if you're doing CPT first or need to avoid any prior instruction-following biases.</p>
+    </div>
+
+    <h3 id="peft">Step 2 — Attach LoRA Adapters</h3>
+    <div class="code-block">
+      <span class="lang-label">python · LoRA configuration</span>
+      <pre>model = <span class="cls">FastLanguageModel</span>.<span class="fn">get_peft_model</span>(
+    model,
+    <span class="cm"># ── LoRA Hyperparameters ──────────────────────────────────────</span>
+    r = <span class="num">16</span>,                <span class="cm"># LoRA rank. 8–64 for SFT. Higher → more capacity, more VRAM</span>
+    lora_alpha = <span class="num">16</span>,       <span class="cm"># scaling factor. Usually = r. Effective scale = alpha/r = 1</span>
+    lora_dropout = <span class="num">0</span>,      <span class="cm"># 0 is optimal per Unsloth benchmarks</span>
+    bias = <span class="str">"none"</span>,         <span class="cm"># "none" is optimal</span>
+
+    <span class="cm"># ── Target Modules ───────────────────────────────────────────</span>
+    target_modules = [
+        <span class="str">"q_proj"</span>,   <span class="cm"># Query projection</span>
+        <span class="str">"k_proj"</span>,   <span class="cm"># Key projection</span>
+        <span class="str">"v_proj"</span>,   <span class="cm"># Value projection</span>
+        <span class="str">"o_proj"</span>,   <span class="cm"># Output projection</span>
+        <span class="str">"gate_proj"</span>,<span class="cm"># MLP gate</span>
+        <span class="str">"up_proj"</span>,  <span class="cm"># MLP up</span>
+        <span class="str">"down_proj"</span>,<span class="cm"># MLP down</span>
+        <span class="cm"># Add "embed_tokens", "lm_head" only for CPT (new vocabulary)</span>
+    ],
+
+    <span class="cm"># ── Memory & Stability ───────────────────────────────────────</span>
+    use_gradient_checkpointing = <span class="str">"unsloth"</span>,  <span class="cm"># Unsloth's custom mode (30% less memory)</span>
+    random_state = <span class="num">42</span>,
+    use_rslora = <span class="kw">False</span>,     <span class="cm"># True only at rank ≥ 64 for stability</span>
+    loftq_config = <span class="kw">None</span>,   <span class="cm"># LoftQ for better QLoRA initialisation (optional)</span>
+)
+
+<span class="cm"># ── Inspect trainable parameters ─────────────────────────────────</span>
+model.<span class="fn">print_trainable_parameters</span>()
+<span class="cm"># Expected output:</span>
+<span class="cm"># trainable params: 41,943,040 || all params: 8,072,204,288 || trainable%: 0.5196</span></pre>
+    </div>
+
+    <h3 id="dataset">Step 3 — Dataset & Chat Template</h3>
+    <div class="code-block">
+      <span class="lang-label">python · dataset preparation</span>
+      <pre><span class="kw">from</span> datasets <span class="kw">import</span> <span class="fn">load_dataset</span>
+<span class="kw">from</span> unsloth.chat_templates <span class="kw">import</span> <span class="fn">get_chat_template</span>, <span class="fn">standardize_sharegpt</span>
+
+<span class="cm"># ── Apply chat template to tokenizer ─────────────────────────────</span>
+tokenizer = <span class="fn">get_chat_template</span>(
+    tokenizer,
+    chat_template = <span class="str">"llama-3"</span>,   <span class="cm"># must match the model family!</span>
+    <span class="cm"># Other options: "chatml", "mistral", "qwen-2.5", "phi-3", "gemma"</span>
+)
+
+<span class="cm"># ── Load dataset ─────────────────────────────────────────────────</span>
+<span class="cm"># Option A: Alpaca-style single-turn dataset</span>
+dataset = <span class="fn">load_dataset</span>(<span class="str">"yahma/alpaca-cleaned"</span>, split=<span class="str">"train[:10000]"</span>)
+
+alpaca_prompt = <span class="str">"""Below is an instruction. Write a response.
+
+### Instruction:
+{}
+
+### Response:
+{}"""</span>
+
+<span class="kw">def</span> <span class="fn">format_alpaca</span>(batch):
+    texts = []
+    <span class="kw">for</span> inst, inp, out <span class="kw">in</span> <span class="fn">zip</span>(batch[<span class="str">"instruction"</span>], batch[<span class="str">"input"</span>], batch[<span class="str">"output"</span>]):
+        context = f<span class="str">"\n\nContext:\n{inp}"</span> <span class="kw">if</span> inp <span class="kw">else</span> <span class="str">""</span>
+        texts.<span class="fn">append</span>(alpaca_prompt.<span class="fn">format</span>(inst + context, out) + tokenizer.eos_token)
+    <span class="kw">return</span> {<span class="str">"text"</span>: texts}
+
+dataset = dataset.<span class="fn">map</span>(format_alpaca, batched=<span class="kw">True</span>, remove_columns=dataset.column_names)
+
+<span class="cm"># ── Option B: ShareGPT multi-turn dataset ────────────────────────</span>
+<span class="cm"># dataset = load_dataset("mlabonne/FineTome-100k", split="train[:5000]")</span>
+<span class="cm"># dataset = standardize_sharegpt(dataset)</span>
+<span class="cm"># def format_sharegpt(batch):</span>
+<span class="cm">#     texts = [tokenizer.apply_chat_template(convo, tokenize=False,</span>
+<span class="cm">#              add_generation_prompt=False) for convo in batch["conversations"]]</span>
+<span class="cm">#     return {"text": texts}</span>
+<span class="cm"># dataset = dataset.map(format_sharegpt, batched=True)</span>
+
+<span class="fn">print</span>(dataset[<span class="num">0</span>][<span class="str">"text"</span>][:200], <span class="str">"..."</span>)
+<span class="fn">print</span>(<span class="str">f"Dataset size: {len(dataset)} rows"</span>)</pre>
+    </div>
+
+    <h3 id="train">Step 4 — Configure & Run Training</h3>
+    <div class="code-block">
+      <span class="lang-label">python · SFTTrainer + training</span>
+      <pre><span class="kw">from</span> trl <span class="kw">import</span> <span class="cls">SFTTrainer</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> <span class="cls">TrainingArguments</span>
+<span class="kw">from</span> unsloth.chat_templates <span class="kw">import</span> <span class="fn">train_on_responses_only</span>
+<span class="kw">from</span> unsloth <span class="kw">import</span> <span class="fn">is_bfloat16_supported</span>
+
+<span class="cm"># ── Training Arguments ────────────────────────────────────────────</span>
+training_args = <span class="cls">TrainingArguments</span>(
+    output_dir              = <span class="str">"./outputs"</span>,
+    num_train_epochs        = <span class="num">3</span>,
+    per_device_train_batch_size = <span class="num">2</span>,
+    gradient_accumulation_steps = <span class="num">4</span>,        <span class="cm"># effective batch = 8</span>
+    warmup_ratio            = <span class="num">0.05</span>,
+    learning_rate           = <span class="num">2e-4</span>,
+    fp16                    = <span class="kw">not</span> <span class="fn">is_bfloat16_supported</span>(),
+    bf16                    = <span class="fn">is_bfloat16_supported</span>(),
+    logging_steps           = <span class="num">20</span>,
+    optim                   = <span class="str">"adamw_8bit"</span>,  <span class="cm"># 8-bit Adam → 4× less memory than fp32</span>
+    weight_decay            = <span class="num">0.01</span>,
+    lr_scheduler_type       = <span class="str">"cosine"</span>,     <span class="cm"># smoothly decays LR</span>
+    seed                    = <span class="num">42</span>,
+    save_strategy           = <span class="str">"steps"</span>,
+    save_steps              = <span class="num">200</span>,
+    evaluation_strategy     = <span class="str">"steps"</span>,
+    eval_steps              = <span class="num">100</span>,
+    load_best_model_at_end  = <span class="kw">True</span>,
+    report_to               = <span class="str">"none"</span>,       <span class="cm"># change to "wandb" for experiment tracking</span>
+)
+
+<span class="cm"># ── Train/val split ───────────────────────────────────────────────</span>
+split = dataset.<span class="fn">train_test_split</span>(test_size=<span class="num">0.05</span>, seed=<span class="num">42</span>)
+
+<span class="cm"># ── Build SFTTrainer ──────────────────────────────────────────────</span>
+trainer = <span class="cls">SFTTrainer</span>(
+    model              = model,
+    tokenizer          = tokenizer,
+    train_dataset      = split[<span class="str">"train"</span>],
+    eval_dataset       = split[<span class="str">"test"</span>],
+    dataset_text_field = <span class="str">"text"</span>,
+    max_seq_length     = max_seq_length,
+    dataset_num_proc   = <span class="num">2</span>,
+    packing            = <span class="kw">False</span>,       <span class="cm"># False to preserve loss mask boundaries</span>
+    args               = training_args,
+)
+
+<span class="cm"># ── Apply prompt masking — CRITICAL for SFT ─────────────────────</span>
+trainer = <span class="fn">train_on_responses_only</span>(
+    trainer,
+    instruction_part = <span class="str">"### Instruction:\n"</span>,
+    response_part    = <span class="str">"### Response:\n"</span>,
+)
+
+<span class="cm"># ── Check memory before training ─────────────────────────────────</span>
+gpu_stats = torch.cuda.<span class="fn">get_device_properties</span>(<span class="num">0</span>)
+start_gpu_memory = round(torch.cuda.<span class="fn">max_memory_reserved</span>() / <span class="num">1024</span>**<span class="num">3</span>, <span class="num">3</span>)
+max_memory = round(gpu_stats.total_memory / <span class="num">1024</span>**<span class="num">3</span>, <span class="num">3</span>)
+<span class="fn">print</span>(f<span class="str">f"GPU = {gpu_stats.name}. Max VRAM = {max_memory} GB."</span>)
+<span class="fn">print</span>(f<span class="str">f"Reserved before training = {start_gpu_memory} GB."</span>)
+
+<span class="cm"># ── TRAIN ────────────────────────────────────────────────────────</span>
+trainer_stats = trainer.<span class="fn">train</span>()
+
+<span class="cm"># ── Memory & time stats after training ───────────────────────────</span>
+end_memory = round(torch.cuda.<span class="fn">max_memory_reserved</span>() / <span class="num">1024</span>**<span class="num">3</span>, <span class="num">3</span>)
+<span class="fn">print</span>(f<span class="str">f"Peak VRAM used: {end_memory} GB / {max_memory} GB"</span>)
+<span class="fn">print</span>(f<span class="str">f"Training time: {trainer_stats.metrics['train_runtime']:.0f}s ({trainer_stats.metrics['train_runtime']/60:.1f} min)"</span>)
+<span class="fn">print</span>(f<span class="str">f"Final training loss: {trainer_stats.metrics['train_loss']:.4f}"</span>)</pre>
+    </div>
+
+    <h3 id="inference">Step 5 — Chat Inference</h3>
+    <div class="code-block">
+      <span class="lang-label">python · streaming inference</span>
+      <pre><span class="kw">from</span> transformers <span class="kw">import</span> <span class="cls">TextStreamer</span>
+
+<span class="cm"># ── Switch to inference mode (2× faster generation) ──────────────</span>
+<span class="cls">FastLanguageModel</span>.<span class="fn">for_inference</span>(model)
+
+<span class="cm"># ── Method 1: Using apply_chat_template (recommended) ────────────</span>
+messages = [
+    {<span class="str">"role"</span>: <span class="str">"system"</span>,    <span class="str">"content"</span>: <span class="str">"You are a concise, expert AI assistant."</span>},
+    {<span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: <span class="str">"What are the top 3 benefits of fine-tuning an LLM?"</span>},
+]
+inputs = tokenizer.<span class="fn">apply_chat_template</span>(
+    messages,
+    tokenize=<span class="kw">True</span>, add_generation_prompt=<span class="kw">True</span>, <span class="kw">return_tensors</span>=<span class="str">"pt"</span>
+).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+
+text_streamer = <span class="cls">TextStreamer</span>(tokenizer, skip_prompt=<span class="kw">True</span>)  <span class="cm"># streams tokens as generated</span>
+
+output = model.<span class="fn">generate</span>(
+    input_ids       = inputs,
+    streamer        = text_streamer,
+    max_new_tokens  = <span class="num">512</span>,
+    use_cache       = <span class="kw">True</span>,
+    temperature     = <span class="num">1.5</span>,  <span class="cm"># slightly higher = more creative</span>
+    min_p           = <span class="num">0.1</span>,  <span class="cm"># min-p sampling (modern alternative to top-p)</span>
+)
+
+<span class="cm"># ── Method 2: Plain Alpaca prompt (without chat template) ────────</span>
+<span class="cm"># prompt = alpaca_prompt.format("Explain gradient descent.", "") + "</span>
+<span class="cm"># inputs = tokenizer([prompt], return_tensors="pt").to("cuda")</span>
+<span class="cm"># output = model.generate(**inputs, max_new_tokens=200)</span>
+<span class="cm"># print(tokenizer.decode(output[0], skip_special_tokens=True))</span></pre>
+    </div>
+  </section>
+
+  <!-- SAVING & EXPORT -->
+  <section id="saving">
+    <div class="section-eyebrow">05 — Saving & Deployment</div>
+    <h2>Saving & Exporting Your Model</h2>
+    <p>After training, you have three export strategies. The right choice depends on how you plan to serve the model.</p>
+
+    <div class="save-grid">
+      <div class="save-card">
+        <div class="save-type" style="color:var(--accent);">Option 1</div>
+        <h4>LoRA Adapter Only</h4>
+        <p>Saves just the ~100MB adapter file. Must be loaded alongside the base model at inference time.</p>
+        <div class="use-for">✓ HuggingFace deployment<br>✓ Unsloth inference<br>✓ Smallest file size</div>
+      </div>
+      <div class="save-card">
+        <div class="save-type" style="color:var(--accent2);">Option 2</div>
+        <h4>Merged Model (16-bit)</h4>
+        <p>Adapter merged into base model. Standalone ~15GB file. No dependency on the base model.</p>
+        <div class="use-for">✓ vLLM serving<br>✓ HuggingFace Inference API<br>✓ Best accuracy</div>
+      </div>
+      <div class="save-card">
+        <div class="save-type" style="color:var(--accent3);">Option 3</div>
+        <h4>GGUF Format</h4>
+        <p>Quantised binary for llama.cpp / Ollama / LM Studio. Runs on CPU or modest GPU. Various quantisation levels available.</p>
+        <div class="use-for">✓ Local inference (Ollama)<br>✓ Mac / CPU deployment<br>✓ Smallest for inference</div>
+      </div>
+    </div>
+
+    <h3 id="save-adapter">Option 1 — Save LoRA Adapter</h3>
+    <div class="code-block">
+      <span class="lang-label">python · save adapter</span>
+      <pre><span class="cm"># ── Save locally ─────────────────────────────────────────────────</span>
+model.<span class="fn">save_pretrained</span>(<span class="str">"my_finetuned_adapter"</span>)
+tokenizer.<span class="fn">save_pretrained</span>(<span class="str">"my_finetuned_adapter"</span>)
+<span class="cm"># Creates: adapter_config.json, adapter_model.safetensors (~100MB)</span>
+<span class="cm"># tokenizer_config.json, special_tokens_map.json, tokenizer.json</span>
+
+<span class="cm"># ── Load later for inference ──────────────────────────────────────</span>
+<span class="cm"># model, tokenizer = FastLanguageModel.from_pretrained(</span>
+<span class="cm">#     model_name = "my_finetuned_adapter",</span>
+<span class="cm">#     max_seq_length = max_seq_length,</span>
+<span class="cm">#     load_in_4bit = True,</span>
+<span class="cm"># )</span>
+<span class="cm"># FastLanguageModel.for_inference(model)</span></pre>
+    </div>
+
+    <h3 id="save-merged">Option 2 — Save Merged Model</h3>
+    <div class="code-block">
+      <span class="lang-label">python · save merged</span>
+      <pre><span class="cm"># ── Merge and save in 16-bit (bfloat16) — highest quality ───────</span>
+model.<span class="fn">save_pretrained_merged</span>(
+    <span class="str">"my_merged_model"</span>,
+    tokenizer,
+    save_method = <span class="str">"merged_16bit"</span>  <span class="cm"># ~15GB for 7B model</span>
+)
+
+<span class="cm"># ── Merge and save in 4-bit — smaller, slight accuracy drop ─────</span>
+<span class="cm"># model.save_pretrained_merged("my_merged_model_4bit", tokenizer,</span>
+<span class="cm">#     save_method="merged_4bit_forced")</span>
+
+<span class="cm"># ── Push merged model to HuggingFace Hub ────────────────────────</span>
+<span class="cm"># model.push_to_hub_merged(</span>
+<span class="cm">#     "your-username/my-custom-llama3",   # HF repo name</span>
+<span class="cm">#     tokenizer,</span>
+<span class="cm">#     save_method = "merged_16bit",</span>
+<span class="cm">#     token = "hf_your_write_token_here"  # get from hf.co/settings/tokens</span>
+<span class="cm"># )</span></pre>
+    </div>
+
+    <h3 id="gguf">Option 3 — Export to GGUF</h3>
+    <p>GGUF is the format used by llama.cpp, Ollama, LM Studio, and Jan AI. Different quantisation levels trade file size for accuracy.</p>
+
+    <table class="quant-table">
+      <thead><tr><th>Quantisation</th><th>Bits/Weight</th><th>7B File Size</th><th>Quality</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">f16</td><td>16-bit</td><td>~14 GB</td><td class="yes">Best</td><td>Large GPU servers</td></tr>
+        <tr><td class="mono">q8_0</td><td>8-bit</td><td>~7 GB</td><td class="yes">Excellent</td><td>GPU with 8GB+ VRAM</td></tr>
+        <tr><td class="mono rec">q4_k_m ★</td><td>4-bit (mixed)</td><td>~4 GB</td><td class="yes">Very good</td><td>Recommended default</td></tr>
+        <tr><td class="mono">q4_0</td><td>4-bit</td><td>~3.8 GB</td><td class="mid">Good</td><td>Balanced use</td></tr>
+        <tr><td class="mono">q3_k_m</td><td>3-bit (mixed)</td><td>~3 GB</td><td class="mid">Acceptable</td><td>Very limited VRAM</td></tr>
+        <tr><td class="mono">q2_k</td><td>2-bit</td><td>~2.7 GB</td><td class="no">Degraded</td><td>Last resort</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <span class="lang-label">python · GGUF export</span>
+      <pre><span class="cm"># ── Save as GGUF locally ──────────────────────────────────────────</span>
+<span class="cm"># Unsloth uses llama.cpp internally for conversion (installs auto)</span>
+
+model.<span class="fn">save_pretrained_gguf</span>(
+    <span class="str">"my_model_gguf"</span>,              <span class="cm"># output directory</span>
+    tokenizer,
+    quantization_method = <span class="str">"q4_k_m"</span> <span class="cm"># recommended: good balance of size vs quality</span>
+)
+<span class="cm"># Output: my_model_gguf/unsloth.Q4_K_M.gguf  (~4 GB)</span>
+<span class="cm"># Takes 5–10 minutes on Colab T4</span>
+
+<span class="cm"># ── Push GGUF to HuggingFace Hub ─────────────────────────────────</span>
+<span class="cm"># model.push_to_hub_gguf(</span>
+<span class="cm">#     "your-username/my-llama3-gguf",</span>
+<span class="cm">#     tokenizer,</span>
+<span class="cm">#     quantization_method = ["q4_k_m", "q8_0"],  # push multiple quants</span>
+<span class="cm">#     token = "hf_..."</span>
+<span class="cm"># )</span>
+
+<span class="cm"># ── Push adapter only to Hub ──────────────────────────────────────</span>
+<span class="cm"># model.push_to_hub("your-username/my-llama3-lora-adapter", token="hf_...")</span>
+<span class="cm"># tokenizer.push_to_hub("your-username/my-llama3-lora-adapter", token="hf_...")</span></pre>
+    </div>
+
+    <h3 id="ollama">Deploy to Ollama</h3>
+    <p>Ollama lets you run your fine-tuned model locally with a simple CLI. Unsloth automatically generates the Modelfile (which embeds your chat template) so you don't need to configure anything manually.</p>
+
+    <div class="deploy-row">
+      <div class="deploy-badge"><div class="d-icon">🦙</div><div class="d-name">Ollama</div><div class="d-desc">Local CLI + REST API</div></div>
+      <div class="deploy-badge"><div class="d-icon">🖥️</div><div class="d-name">LM Studio</div><div class="d-desc">Desktop GUI</div></div>
+      <div class="deploy-badge"><div class="d-icon">📦</div><div class="d-name">llama.cpp</div><div class="d-desc">C++ inference engine</div></div>
+      <div class="deploy-badge"><div class="d-icon">🌐</div><div class="d-name">Jan AI</div><div class="d-desc">Open-source ChatGPT UI</div></div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python + bash · ollama deployment</span>
+      <pre><span class="cm">## ── In Colab: install Ollama ─────────────────────────────────────</span>
+<span class="cm"># !curl -fsSL https://ollama.com/install.sh | sh</span>
+
+<span class="cm">## ── Export to GGUF (if not already done) ────────────────────────</span>
+model.<span class="fn">save_pretrained_gguf</span>(<span class="str">"model"</span>, tokenizer,
+    quantization_method = <span class="str">"q4_k_m"</span>)
+<span class="cm"># Unsloth auto-creates model/Modelfile with the correct chat template!</span>
+
+<span class="cm">## ── Start Ollama server (in background on Colab) ─────────────────</span>
+<span class="kw">import</span> subprocess, time
+subprocess.<span class="fn">Popen</span>([<span class="str">"ollama"</span>, <span class="str">"serve"</span>])
+time.<span class="fn">sleep</span>(<span class="num">3</span>)   <span class="cm"># wait for server to start</span>
+
+<span class="cm">## ── Create Ollama model from Modelfile ───────────────────────────</span>
+<span class="cm"># !ollama create my-llama3 -f model/Modelfile</span>
+
+<span class="cm">## ── Run inference via Ollama CLI ─────────────────────────────────</span>
+<span class="cm"># !ollama run my-llama3 "Explain quantum entanglement in simple terms"</span>
+
+<span class="cm">## ── Run inference via Ollama REST API ────────────────────────────</span>
+<span class="kw">import</span> requests, json
+
+response = requests.<span class="fn">post</span>(<span class="str">"http://localhost:11434/api/generate"</span>, json={
+    <span class="str">"model"</span>: <span class="str">"my-llama3"</span>,
+    <span class="str">"prompt"</span>: <span class="str">"What is the capital of Australia?"</span>,
+    <span class="str">"stream"</span>: <span class="kw">False</span>,
+})
+<span class="fn">print</span>(response.<span class="fn">json</span>()[<span class="str">"response"</span>])
+
+<span class="cm">## ── Local usage (after training): on your own machine ───────────</span>
+<span class="cm"># 1. Download the GGUF from HF Hub (or copy from Colab)</span>
+<span class="cm"># 2. ollama create my-model -f Modelfile</span>
+<span class="cm"># 3. ollama run my-model</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>Chat template in Modelfile:</strong> The most common Ollama deployment issue is wrong chat template. Unsloth's auto-generated Modelfile embeds the exact template used during training — this is why you should always use <code>save_pretrained_gguf()</code> and let Unsloth generate the Modelfile rather than writing it manually.</p>
+    </div>
+
+    <h3 id="hub">Push to HuggingFace Hub</h3>
+    <div class="code-block">
+      <span class="lang-label">python · hub upload</span>
+      <pre><span class="kw">from</span> huggingface_hub <span class="kw">import</span> <span class="fn">login</span>
+<span class="fn">login</span>(token=<span class="str">"hf_your_write_token"</span>)  <span class="cm"># from hf.co/settings/tokens</span>
+
+<span class="cm"># ── Push LoRA adapter only (smallest, ~100MB) ─────────────────────</span>
+model.<span class="fn">push_to_hub</span>(<span class="str">"your-username/llama3-finetune-adapter"</span>)
+tokenizer.<span class="fn">push_to_hub</span>(<span class="str">"your-username/llama3-finetune-adapter"</span>)
+
+<span class="cm"># ── Push merged 16-bit model (full, ~15GB) ────────────────────────</span>
+model.<span class="fn">push_to_hub_merged</span>(
+    <span class="str">"your-username/llama3-finetune-merged"</span>,
+    tokenizer,
+    save_method = <span class="str">"merged_16bit"</span>,
+)
+
+<span class="cm"># ── Push GGUF to hub (for Ollama/llama.cpp users) ─────────────────</span>
+model.<span class="fn">push_to_hub_gguf</span>(
+    <span class="str">"your-username/llama3-finetune-gguf"</span>,
+    tokenizer,
+    quantization_method = <span class="str">"q4_k_m"</span>,
+)</pre>
+    </div>
+  </section>
+
+  <!-- FULL CODE -->
+  <section id="full-code">
+    <div class="section-eyebrow">06 — Complete Script</div>
+    <h2>Complete End-to-End Notebook</h2>
+    <p>A single copy-pasteable script covering the entire Class 24 workflow: load → LoRA → dataset → train → infer → save → export → deploy.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · complete class 24 pipeline</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 24 — Fine-Tuning with Unsloth
+## Complete QLoRA Pipeline: Train → Infer → Save → Deploy
+## Platform: Google Colab T4 (free tier, 15GB VRAM)
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># ─── CELL 1: Install ────────────────────────────────────────────</span>
+<span class="cm"># !pip install unsloth -q</span>
+
+<span class="cm"># ─── CELL 2: Imports ────────────────────────────────────────────</span>
+<span class="kw">from</span> unsloth <span class="kw">import</span> <span class="cls">FastLanguageModel</span>, <span class="fn">is_bfloat16_supported</span>
+<span class="kw">from</span> unsloth.chat_templates <span class="kw">import</span> <span class="fn">get_chat_template</span>, <span class="fn">train_on_responses_only</span>
+<span class="kw">from</span> datasets <span class="kw">import</span> <span class="fn">load_dataset</span>
+<span class="kw">from</span> trl <span class="kw">import</span> <span class="cls">SFTTrainer</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> <span class="cls">TrainingArguments</span>, <span class="cls">TextStreamer</span>
+<span class="kw">import</span> torch
+
+<span class="cm"># ─── CELL 3: Config ─────────────────────────────────────────────</span>
+MODEL_ID      = <span class="str">"unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"</span>
+HF_USERNAME   = <span class="str">"your-username"</span>        <span class="cm"># change this</span>
+REPO_NAME     = <span class="str">"my-llama3-finetune"</span>   <span class="cm"># change this</span>
+MAX_SEQ_LEN   = <span class="num">2048</span>
+LORA_RANK     = <span class="num">16</span>
+EPOCHS        = <span class="num">3</span>
+LR            = <span class="num">2e-4</span>
+BATCH_SIZE    = <span class="num">2</span>
+GRAD_ACC      = <span class="num">4</span>
+
+<span class="cm"># ─── CELL 4: Load model + LoRA ──────────────────────────────────</span>
+model, tokenizer = <span class="cls">FastLanguageModel</span>.<span class="fn">from_pretrained</span>(
+    model_name=MODEL_ID, max_seq_length=MAX_SEQ_LEN, load_in_4bit=<span class="kw">True</span>)
+
+model = <span class="cls">FastLanguageModel</span>.<span class="fn">get_peft_model</span>(
+    model, r=LORA_RANK, lora_alpha=LORA_RANK,
+    target_modules=[<span class="str">"q_proj"</span>,<span class="str">"k_proj"</span>,<span class="str">"v_proj"</span>,<span class="str">"o_proj"</span>,
+                    <span class="str">"gate_proj"</span>,<span class="str">"up_proj"</span>,<span class="str">"down_proj"</span>],
+    lora_dropout=<span class="num">0</span>, bias=<span class="str">"none"</span>,
+    use_gradient_checkpointing=<span class="str">"unsloth"</span>, random_state=<span class="num">42</span>)
+
+tokenizer = <span class="fn">get_chat_template</span>(tokenizer, chat_template=<span class="str">"llama-3"</span>)
+model.<span class="fn">print_trainable_parameters</span>()
+
+<span class="cm"># ─── CELL 5: Dataset ────────────────────────────────────────────</span>
+ALPACA_PROMPT = <span class="str">"""Below is an instruction. Write a response.
+
+### Instruction:
+{}
+
+### Response:
+{}"""</span>
+
+dataset = <span class="fn">load_dataset</span>(<span class="str">"yahma/alpaca-cleaned"</span>, split=<span class="str">"train[:8000]"</span>)
+
+<span class="kw">def</span> <span class="fn">format_alpaca</span>(batch):
+    texts = []
+    <span class="kw">for</span> inst, inp, out <span class="kw">in</span> <span class="fn">zip</span>(batch[<span class="str">"instruction"</span>], batch[<span class="str">"input"</span>], batch[<span class="str">"output"</span>]):
+        ctx = f<span class="str">"\n\nContext:\n{inp}"</span> <span class="kw">if</span> inp <span class="kw">else</span> <span class="str">""</span>
+        texts.<span class="fn">append</span>(ALPACA_PROMPT.<span class="fn">format</span>(inst+ctx, out) + tokenizer.eos_token)
+    <span class="kw">return</span> {<span class="str">"text"</span>: texts}
+
+dataset = dataset.<span class="fn">map</span>(format_alpaca, batched=<span class="kw">True</span>, remove_columns=dataset.column_names)
+split   = dataset.<span class="fn">train_test_split</span>(test_size=<span class="num">0.05</span>, seed=<span class="num">42</span>)
+
+<span class="cm"># ─── CELL 6: Train ──────────────────────────────────────────────</span>
+trainer = <span class="cls">SFTTrainer</span>(
+    model=model, tokenizer=tokenizer,
+    train_dataset=split[<span class="str">"train"</span>], eval_dataset=split[<span class="str">"test"</span>],
+    dataset_text_field=<span class="str">"text"</span>, max_seq_length=MAX_SEQ_LEN,
+    packing=<span class="kw">False</span>, dataset_num_proc=<span class="num">2</span>,
+    args=<span class="cls">TrainingArguments</span>(
+        output_dir=<span class="str">"./outputs"</span>, num_train_epochs=EPOCHS,
+        per_device_train_batch_size=BATCH_SIZE,
+        gradient_accumulation_steps=GRAD_ACC,
+        learning_rate=LR, warmup_ratio=<span class="num">0.05</span>,
+        lr_scheduler_type=<span class="str">"cosine"</span>, optim=<span class="str">"adamw_8bit"</span>,
+        bf16=<span class="fn">is_bfloat16_supported</span>(), fp16=<span class="kw">not</span> <span class="fn">is_bfloat16_supported</span>(),
+        evaluation_strategy=<span class="str">"steps"</span>, eval_steps=<span class="num">100</span>,
+        logging_steps=<span class="num">20</span>, load_best_model_at_end=<span class="kw">True</span>,
+        seed=<span class="num">42</span>, report_to=<span class="str">"none"</span>,
+    ),
+)
+trainer = <span class="fn">train_on_responses_only</span>(
+    trainer, instruction_part=<span class="str">"### Instruction:\n"</span>, response_part=<span class="str">"### Response:\n"</span>)
+
+stats = trainer.<span class="fn">train</span>()
+<span class="fn">print</span>(f<span class="str">f"Training done! Loss: {stats.metrics['train_loss']:.4f}"</span>)
+
+<span class="cm"># ─── CELL 7: Inference ──────────────────────────────────────────</span>
+<span class="cls">FastLanguageModel</span>.<span class="fn">for_inference</span>(model)
+messages = [{<span class="str">"role"</span>:<span class="str">"user"</span>, <span class="str">"content"</span>:<span class="str">"List 5 benefits of meditation."</span>}]
+inputs = tokenizer.<span class="fn">apply_chat_template</span>(
+    messages, tokenize=<span class="kw">True</span>, add_generation_prompt=<span class="kw">True</span>, <span class="kw">return_tensors</span>=<span class="str">"pt"</span>).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+model.<span class="fn">generate</span>(input_ids=inputs, max_new_tokens=<span class="num">200</span>,
+               streamer=<span class="cls">TextStreamer</span>(tokenizer, skip_prompt=<span class="kw">True</span>))
+
+<span class="cm"># ─── CELL 8: Save adapter ───────────────────────────────────────</span>
+model.<span class="fn">save_pretrained</span>(<span class="str">"my_adapter"</span>)
+tokenizer.<span class="fn">save_pretrained</span>(<span class="str">"my_adapter"</span>)
+
+<span class="cm"># ─── CELL 9: Export GGUF ────────────────────────────────────────</span>
+model.<span class="fn">save_pretrained_gguf</span>(<span class="str">"model_gguf"</span>, tokenizer, quantization_method=<span class="str">"q4_k_m"</span>)
+<span class="cm"># model_gguf/unsloth.Q4_K_M.gguf (~4 GB)</span>
+<span class="cm"># model_gguf/Modelfile (auto-generated with correct chat template)</span>
+
+<span class="cm"># ─── CELL 10: Push to Hub ───────────────────────────────────────</span>
+<span class="cm"># from huggingface_hub import login</span>
+<span class="cm"># login(token="hf_...")</span>
+<span class="cm"># model.push_to_hub(f"{HF_USERNAME}/{REPO_NAME}-adapter")</span>
+<span class="cm"># tokenizer.push_to_hub(f"{HF_USERNAME}/{REPO_NAME}-adapter")</span>
+<span class="cm"># model.push_to_hub_merged(f"{HF_USERNAME}/{REPO_NAME}", tokenizer, save_method="merged_16bit")</span>
+<span class="cm"># model.push_to_hub_gguf(f"{HF_USERNAME}/{REPO_NAME}-gguf", tokenizer, quantization_method="q4_k_m")</span>
+
+<span class="cm"># ─── CELL 11: Ollama deploy (optional) ──────────────────────────</span>
+<span class="cm"># !curl -fsSL https://ollama.com/install.sh | sh</span>
+<span class="cm"># import subprocess, time</span>
+<span class="cm"># subprocess.Popen(["ollama", "serve"]); time.sleep(3)</span>
+<span class="cm"># !ollama create my-model -f model_gguf/Modelfile</span>
+<span class="cm"># !ollama run my-model "Hello, who are you?"</span></pre>
+    </div>
+  </section>
+
+  <!-- TIPS -->
+  <section id="tips">
+    <div class="section-eyebrow">07 — Practitioner Notes</div>
+    <h2>Tips, Pitfalls & Best Practices</h2>
+
+    <h3>✅ Best practices</h3>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Always call <code>FastLanguageModel.for_inference(model)</code> before generating — it enables 2× faster inference through kernel optimisations.</li>
+      <li><span class="chk">✓</span> Use <code>is_bfloat16_supported()</code> to automatically detect whether to use bf16 (Ampere+ GPUs like A100) or fp16 (T4, older GPUs).</li>
+      <li><span class="chk">✓</span> Check VRAM before and after training with <code>torch.cuda.max_memory_reserved()</code> — it's the best indicator of whether your config fits the GPU.</li>
+      <li><span class="chk">✓</span> Use <code>adamw_8bit</code> optimiser — it reduces optimiser state memory from ~24GB (fp32 Adam) to ~6GB with negligible accuracy cost.</li>
+      <li><span class="chk">✓</span> For GGUF export, <code>q4_k_m</code> is the community-standard recommendation — a good balance of size and quality for most use-cases.</li>
+      <li><span class="chk">✓</span> Let Unsloth generate the Modelfile automatically. Manually writing it risks using the wrong chat template, causing poor Ollama outputs.</li>
+      <li><span class="chk">✓</span> Push both the adapter AND a GGUF to HuggingFace Hub — adapter for HF/vLLM users, GGUF for local users. They're complementary audiences.</li>
+    </ul>
+
+    <h3>❌ Common mistakes</h3>
+    <ul class="checklist">
+      <li><span class="chk bad">✗</span> Forgetting <code>train_on_responses_only()</code> — causes CPT-style training instead of SFT prompt masking.</li>
+      <li><span class="chk bad">✗</span> Running GGUF export before saving the adapter — if the Colab session crashes during GGUF conversion, you lose your training. Always save the adapter first.</li>
+      <li><span class="chk bad">✗</span> Using the wrong chat template in Ollama — if inference output is gibberish, this is almost always the cause. Check your Modelfile.</li>
+      <li><span class="chk bad">✗</span> Not setting <code>load_best_model_at_end=True</code> — without it, training uses the final checkpoint, not necessarily the best val-loss checkpoint.</li>
+      <li><span class="chk bad">✗</span> Using <code>packing=True</code> for SFT without careful masking — breaks prompt masking boundaries across packed samples.</li>
+      <li><span class="chk bad">✗</span> Expecting GGUF conversion to be fast — it takes 5–15 minutes on Colab T4. Don't restart the runtime thinking it's frozen.</li>
+    </ul>
+
+    <h3>📐 Memory-Saving Configuration Reference</h3>
+    <table class="compare-table">
+      <thead><tr><th>Setting</th><th>Effect</th><th>Recommended</th></tr></thead>
+      <tbody>
+        <tr><td><code>load_in_4bit=True</code></td><td>Loads base model in 4-bit NF4 → 4× smaller</td><td class="yes">Always on</td></tr>
+        <tr><td><code>use_gradient_checkpointing="unsloth"</code></td><td>30% less VRAM for activations</td><td class="yes">Always on</td></tr>
+        <tr><td><code>optim="adamw_8bit"</code></td><td>4× smaller optimiser states</td><td class="yes">Always on</td></tr>
+        <tr><td><code>lora_dropout=0</code></td><td>Faster, simpler, Unsloth-optimised</td><td class="yes">Use 0</td></tr>
+        <tr><td><code>packing=False</code></td><td>Consistent loss masking (SFT)</td><td class="yes">False for SFT</td></tr>
+        <tr><td><code>batch_size=2, grad_acc=4</code></td><td>Effective batch 8, low VRAM peak</td><td class="yes">Good default</td></tr>
+        <tr><td><code>max_seq_length=2048</code></td><td>Shorter = less VRAM per sample</td><td class="mid">2048 to start</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">08 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Concept Check Questions</h3>
+
+      <div class="quiz-q">
+        <p>1. How does Unsloth achieve 2× faster training compared to standard HuggingFace + PEFT without any accuracy loss?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Unsloth manually derived the backpropagation equations for transformer LoRA layers and rewrote them as hand-tuned Triton GPU kernels. These kernels are purpose-built for LoRA training patterns, unlike PyTorch's generic CUDA operations. Because the math is identical (not approximated), accuracy is preserved. Combined with a custom gradient checkpointing mode, this yields 2× speed and 70% less VRAM with 0% accuracy degradation.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is the difference between saving as a LoRA adapter vs. a merged model? When would you choose each?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A LoRA adapter (~100MB) contains only the trained A and B matrices — it requires the original base model to be loaded alongside it at inference time. A merged model (~15GB) mathematically combines the adapter into the base model, creating a standalone file that doesn't need the base model separately. Use the adapter when you want a small file and will always have the base model available (e.g. HuggingFace/Unsloth inference). Use the merged model when you need a standalone artifact for vLLM, cloud APIs, or sharing without requiring users to also download the base model.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. Why is NF4 quantisation better than standard INT4 for neural network weights?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Neural network weights follow an approximately normal (Gaussian) distribution — most weights are near zero, with fewer large values. Standard INT4 distributes its 16 values uniformly across the weight range, wasting precision on values that rarely occur. NF4 (NormalFloat4) places its 16 values according to the normal distribution — densely near zero and sparsely in the tails. This is information-theoretically optimal for normally distributed data, giving significantly better accuracy per bit than INT4.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is a Modelfile in Ollama, and why should you let Unsloth generate it rather than writing it yourself?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A Modelfile is a configuration file Ollama uses to create a model — it specifies the base GGUF path, the chat template (system, user, assistant delimiters), EOS tokens, and generation parameters. Unsloth generates it automatically using the exact same chat template that was used during training. If you write it manually, you risk specifying the wrong template or wrong EOS token, causing the model to generate gibberish, infinite output, or repeated text in Ollama — one of the most common deployment failures.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Why should you save the LoRA adapter before running GGUF export on Colab?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">GGUF conversion using llama.cpp can take 5–15 minutes on a Colab T4 GPU, and Colab sessions can disconnect or time out. If the session crashes during GGUF export, you lose your trained weights entirely. Saving the lightweight adapter first (~100MB, takes seconds) ensures your training is always safely preserved. You can then re-run GGUF export in a fresh session by loading the adapter.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What does <code>q4_k_m</code> mean in GGUF quantisation and why is it typically recommended?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">In llama.cpp's GGUF naming: "q4" = 4-bit quantisation, "k" = k-quant method (uses super-blocks for better quality), "m" = medium size variant. K-quants are generally better than plain q4_0 because they quantise different layers at different bit widths — keeping sensitive layers (like attention projections) at slightly higher precision. q4_k_m is community-recommended as the sweet spot: a 7B model fits in ~4GB VRAM/RAM, quality is very close to f16, and it's compatible with all llama.cpp-based tools including Ollama, LM Studio, and Jan AI.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. What is the purpose of <code>FastLanguageModel.for_inference(model)</code> and when must you call it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">It switches the model from training mode to inference mode, enabling Unsloth's inference-specific kernel optimisations (including xformers attention and other speed improvements). It must be called after training is complete and before generating any output — calling generate() without it still works but is about 2× slower. If you load a saved model for inference (not training), call it immediately after loading.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section id="resources">
+    <div class="section-eyebrow">09 — Further Reading</div>
+    <h2>Resources & References</h2>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">🌐</div>
+        <h4>Unsloth Official Docs</h4>
+        <p>unsloth.ai/docs — comprehensive guide covering all supported models, training methods, Colab notebooks, and deployment options.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📓</div>
+        <h4>Unsloth Colab Notebooks</h4>
+        <p>github.com/unslothai/notebooks — ready-to-run Colab notebooks for Llama 3, Mistral, Qwen, Gemma, and Phi with Ollama export.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📄</div>
+        <h4>QLoRA Paper (Dettmers 2023)</h4>
+        <p>arXiv:2305.14314 — the original QLoRA paper introducing NF4 quantisation, double quantisation, and paged optimisers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🤗</div>
+        <h4>TRL SFTTrainer Docs</h4>
+        <p>huggingface.co/docs/trl — reference for all SFTTrainer and TrainingArguments parameters used in Class 24.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🦙</div>
+        <h4>Ollama Documentation</h4>
+        <p>ollama.ai — setup guide, Modelfile format, CLI reference, and REST API documentation for local model deployment.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📊</div>
+        <h4>Open LLM Leaderboard</h4>
+        <p>huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard — compare fine-tuned and base models across benchmarks to evaluate your training results.</p>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:28px;">
+      <span class="callout-icon">🚀</span>
+      <p><strong>Next in the bootcamp:</strong> Class 25 covers Multimodal Fine-Tuning — extending everything you've learned to vision-language models (VLMs) like LLaVA and Phi-Vision, training models to understand and respond to images as well as text.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 24 · Fine-Tuning with Unsloth · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sinhar1227/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ View on GitHub</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

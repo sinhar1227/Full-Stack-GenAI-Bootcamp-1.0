@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 21 — Non-Instruction Fine-Tuning | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07090f;
+  --surface:  #0d1120;
+  --card:     #121829;
+  --border:   #1c2640;
+  --accent:   #6ee7b7;   /* mint green — domain knowledge "growing" */
+  --accent2:  #818cf8;   /* indigo — model / weights */
+  --accent3:  #f59e0b;   /* amber — warning / attention */
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --code-bg:  #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  z-index: 1000;
+  transition: width 0.1s;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; right: 0;
+  width: 220px;
+  height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 32px 20px;
+  overflow-y: auto;
+  z-index: 100;
+}
+nav h2 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+  display: block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+}
+nav ul li a:hover,
+nav ul li a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(110,231,183,0.06);
+}
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+/* ── MAIN LAYOUT ── */
+main {
+  margin-right: 220px;
+  max-width: 860px;
+  padding: 0 48px 100px 64px;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 80px 0 60px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 60px;
+}
+.breadcrumb {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+.breadcrumb span { color: var(--accent); }
+.hero-class-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 18px;
+}
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.hero-summary {
+  font-size: 1rem;
+  color: #94a3b8;
+  max-width: 640px;
+  line-height: 1.7;
+  border-left: 3px solid var(--accent);
+  padding-left: 18px;
+}
+
+/* ── SECTIONS ── */
+section {
+  margin-bottom: 64px;
+  scroll-margin-top: 32px;
+}
+.section-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+section h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 28px 0 10px;
+}
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+/* ── INFO BOXES ── */
+.callout {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(129,140,248,0.08); border: 1px solid rgba(129,140,248,0.2); }
+.callout.tip    { background: rgba(110,231,183,0.08); border: 1px solid rgba(110,231,183,0.2); }
+.callout.warn   { background: rgba(245,158,11,0.08);  border: 1px solid rgba(245,158,11,0.2); }
+.callout.info p  { color: #a5b4fc; }
+.callout.tip p   { color: var(--accent); }
+.callout.warn p  { color: var(--accent3); }
+
+/* ── COMPARISON TABLE ── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 0.85rem;
+}
+.compare-table th {
+  background: var(--card);
+  color: var(--text);
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+.compare-table td {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  color: #94a3b8;
+  vertical-align: top;
+}
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .yes { color: var(--accent); font-weight: 500; }
+.compare-table .no  { color: #f87171; }
+.compare-table .maybe { color: var(--accent3); }
+
+/* ── PIPELINE / STEP CARDS ── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.steps::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent), var(--accent2));
+}
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 0 0 32px 0;
+  position: relative;
+}
+.step-num {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+  z-index: 1;
+}
+.step-body { flex: 1; padding-top: 10px; }
+.step-body h4 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.step-body p { font-size: 0.85rem; color: #94a3b8; margin: 0; }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  overflow-x: auto;
+  position: relative;
+}
+.code-block .lang-label {
+  position: absolute;
+  top: 10px; right: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+pre {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+  white-space: pre;
+}
+.kw  { color: #c084fc; }  /* keyword */
+.fn  { color: #67e8f9; }  /* function */
+.str { color: #6ee7b7; }  /* string */
+.cm  { color: #475569; font-style: italic; } /* comment */
+.num { color: #f59e0b; }  /* number */
+.cls { color: #818cf8; }  /* class */
+
+/* ── CONCEPT CARDS ── */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.concept-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.concept-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.concept-card .icon { font-size: 1.4rem; margin-bottom: 10px; }
+.concept-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.concept-card p  { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.55; }
+
+/* ── DOMAIN EXAMPLES ── */
+.domain-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.domain-badge {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  flex: 1;
+  min-width: 140px;
+}
+.domain-badge strong { display: block; color: var(--text); margin-bottom: 3px; font-size: 0.85rem; }
+
+/* ── QUIZ ── */
+.quiz-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin: 28px 0;
+}
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary {
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  background: rgba(110,231,183,0.05);
+  border-left: 2px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  background: rgba(110,231,183,0.1);
+  border: 1px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── KEY TERM SIDEBAR ── */
+.key-terms {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent2);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 24px 0;
+}
+.key-terms h4 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 14px;
+}
+.term { margin-bottom: 12px; }
+.term dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+.term dd { font-size: 0.8rem; color: var(--muted); margin-left: 0; }
+
+/* ── LORA VISUAL ── */
+.lora-diagram {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: center;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 20px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  text-align: center;
+}
+.lora-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  color: var(--text);
+}
+.lora-box.frozen { border-color: var(--accent2); color: var(--accent2); }
+.lora-box.trainable { border-color: var(--accent); color: var(--accent); }
+.lora-arrow { color: var(--muted); padding: 0 12px; font-size: 1rem; }
+.lora-label { font-size: 0.58rem; color: var(--muted); margin-top: 4px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 64px;
+  margin-right: 220px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- SIDEBAR NAV -->
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#context">What & Why</a></li>
+    <li class="sub"><a href="#vs-sft">CPT vs SFT</a></li>
+    <li class="sub"><a href="#use-cases">Use Cases</a></li>
+    <li><a href="#concepts">Core Concepts</a></li>
+    <li class="sub"><a href="#lora">LoRA / QLoRA</a></li>
+    <li class="sub"><a href="#forgetting">Catastrophic Forgetting</a></li>
+    <li><a href="#pipeline">Training Pipeline</a></li>
+    <li class="sub"><a href="#data-prep">Data Preparation</a></li>
+    <li class="sub"><a href="#setup">Unsloth Setup</a></li>
+    <li class="sub"><a href="#training">Training Config</a></li>
+    <li class="sub"><a href="#inference">Inference</a></li>
+    <li><a href="#code">Full Code</a></li>
+    <li><a href="#tips">Tips & Pitfalls</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+    <li><a href="#resources">Resources</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 21</span></div>
+    <div class="hero-class-num">Class 21 · 06 June 2026</div>
+    <h1>Non-Instruction<br><em>Fine-Tuning</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot"></span> Continued Pre-Training (CPT)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> QLoRA / Unsloth</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Domain Adaptation</div>
+    </div>
+    <p class="hero-summary">
+      How do you teach an LLM new domain knowledge — like legal contracts, medical literature, or a new language — without providing any question–answer pairs? Continued Pre-Training (CPT) is the answer: fine-tune on raw text so the model internalises domain vocabulary, facts, and writing patterns before any instruction tuning happens.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <p>Class 21 is the first session dedicated entirely to fine-tuning. Previous classes covered <em>how</em> LLMs work internally; this class asks: <em>how do we adapt them?</em> The focus is on the simplest form of fine-tuning — exposing a model to raw, unlabelled text — and why this is often the right first step for domain adaptation.</p>
+
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Understand the difference between Continued Pre-Training, Instruction Fine-Tuning, and Alignment</li>
+      <li><span class="chk">✓</span> Know when to use CPT and what problems it solves</li>
+      <li><span class="chk">✓</span> Understand LoRA and QLoRA mechanics at an intuitive level</li>
+      <li><span class="chk">✓</span> Prepare raw text datasets for continued pre-training</li>
+      <li><span class="chk">✓</span> Run a CPT training loop using Unsloth on Google Colab</li>
+      <li><span class="chk">✓</span> Understand catastrophic forgetting and how to mitigate it</li>
+      <li><span class="chk">✓</span> Save LoRA adapters and run inference on the fine-tuned model</li>
+    </ul>
+  </section>
+
+  <!-- CONTEXT -->
+  <section id="context">
+    <div class="section-eyebrow">02 — Background</div>
+    <h2>What is Non-Instruction Fine-Tuning?</h2>
+
+    <p>Base models like Llama 3, Mistral, and Qwen are pre-trained on <strong>trillions of tokens</strong> scraped from the internet. They are extraordinarily general — but that generality has a cost. If your use-case lives in a specialised domain (legal, medical, finance, a low-resource language, a niche codebase), the base model may:</p>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="icon">📚</div>
+        <h4>Lack Domain Vocabulary</h4>
+        <p>Rare domain terms may not appear in pre-training data, causing hallucination or misuse of jargon.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🌐</div>
+        <h4>Underrepresent Languages</h4>
+        <p>English dominates training data. Low-resource languages (Swahili, Korean, Tamil) receive far less exposure.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🧬</div>
+        <h4>Miss Recent Knowledge</h4>
+        <p>Training data has a cutoff date. Events, papers, or regulations published after that date are unknown to the model.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">✍️</div>
+        <h4>Mismatch in Style</h4>
+        <p>Generating in a specific house style (legal boilerplate, medical notes, formal Japanese) requires exposure to many examples of that style.</p>
+      </div>
+    </div>
+
+    <p><strong>Continued Pre-Training (CPT)</strong> — also called <em>non-instruction fine-tuning</em> — solves all of the above by running the same next-token prediction objective on your domain corpus. No labels, no question–answer pairs, just raw text.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>Think of it this way:</strong> If pre-training made the model a well-read generalist, CPT sends that generalist to medical school for a semester. They read thousands of papers, learn the terminology, and absorb the reasoning patterns — before ever being asked to treat a patient (which is SFT).</p>
+    </div>
+
+    <h3 id="vs-sft">CPT vs Instruction Fine-Tuning vs RLHF</h3>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Axis</th>
+          <th>Continued Pre-Training (CPT)</th>
+          <th>Instruction Fine-Tuning (SFT)</th>
+          <th>Preference Alignment (RLHF/DPO)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Data format</td>
+          <td class="yes">Raw text (no labels)</td>
+          <td>Prompt → Response pairs</td>
+          <td>Chosen vs Rejected pairs</td>
+        </tr>
+        <tr>
+          <td>Training objective</td>
+          <td>Next-token prediction on all tokens</td>
+          <td>Next-token prediction (prompt masked)</td>
+          <td>Reward maximisation / DPO loss</td>
+        </tr>
+        <tr>
+          <td>What it teaches</td>
+          <td>Domain knowledge, vocabulary, style</td>
+          <td>How to follow instructions</td>
+          <td>Helpfulness, harmlessness</td>
+        </tr>
+        <tr>
+          <td>Data volume needed</td>
+          <td class="yes">Large (MBs to GBs of text)</td>
+          <td>Medium (thousands of pairs)</td>
+          <td>Smaller (hundreds of comparisons)</td>
+        </tr>
+        <tr>
+          <td>Makes model chat-ready?</td>
+          <td class="no">No — still a completion model</td>
+          <td class="yes">Yes</td>
+          <td class="yes">Improves chat quality</td>
+        </tr>
+        <tr>
+          <td>Typical order in pipeline</td>
+          <td class="yes">Step 1</td>
+          <td>Step 2</td>
+          <td>Step 3</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="use-cases">Real-World Use Cases</h3>
+    <p>CPT is the industry-standard first step when building domain-specific LLMs. Here are concrete examples:</p>
+
+    <div class="domain-row">
+      <div class="domain-badge">
+        <strong>⚖️ Legal</strong>
+        Train on court judgements, legislation, and legal commentary to build a contract-analysis model.
+      </div>
+      <div class="domain-badge">
+        <strong>🏥 Medical</strong>
+        Feed PubMed abstracts, clinical notes, and pharmaceutical documents before SFT for a medical Q&A assistant.
+      </div>
+      <div class="domain-badge">
+        <strong>💹 Finance</strong>
+        BloombergGPT is a famous example — GPT trained heavily on financial news, filings, and reports.
+      </div>
+      <div class="domain-badge">
+        <strong>🌐 Language</strong>
+        Teach a largely-English model Korean, Tamil, or Swahili by training on a large corpus of that language.
+      </div>
+      <div class="domain-badge">
+        <strong>💻 Code</strong>
+        Train on a private codebase so the model understands company-internal APIs and naming conventions.
+      </div>
+      <div class="domain-badge">
+        <strong>📖 Style</strong>
+        Train on a brand's editorial archive to adopt a specific writing voice or tone.
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE CONCEPTS -->
+  <section id="concepts">
+    <div class="section-eyebrow">03 — Core Concepts</div>
+    <h2>Key Concepts You Need to Know</h2>
+
+    <div class="key-terms">
+      <h4>📖 Key Terminology</h4>
+      <div class="term">
+        <dt>Base Model</dt>
+        <dd>A model trained only on next-token prediction with no instruction data. Examples: Llama-3-8B (base), Mistral-7B-v0.1.</dd>
+      </div>
+      <div class="term">
+        <dt>Continued Pre-Training (CPT)</dt>
+        <dd>Running the same pre-training objective on new domain text, starting from a pre-trained checkpoint rather than random weights.</dd>
+      </div>
+      <div class="term">
+        <dt>LoRA (Low-Rank Adaptation)</dt>
+        <dd>A parameter-efficient method that adds small trainable weight matrices alongside frozen base model weights, drastically reducing memory and compute.</dd>
+      </div>
+      <div class="term">
+        <dt>QLoRA</dt>
+        <dd>LoRA + 4-bit quantisation of the base model. Reduces VRAM by ~75% making large model fine-tuning feasible on consumer GPUs.</dd>
+      </div>
+      <div class="term">
+        <dt>Catastrophic Forgetting</dt>
+        <dd>When fine-tuning causes the model to lose previously learned knowledge. LoRA helps mitigate this because base weights remain frozen.</dd>
+      </div>
+      <div class="term">
+        <dt>Embed Tokens / LM Head</dt>
+        <dd>The input embedding table and output projection layer. For CPT with new tokens (e.g. new language), these must also be trained — not just LoRA layers.</dd>
+      </div>
+      <div class="term">
+        <dt>rsLoRA (Rank-Stabilised LoRA)</dt>
+        <dd>A LoRA variant that scales alpha by 1/√rank instead of 1/rank, stabilising training at high ranks (≥128) which CPT benefits from.</dd>
+      </div>
+    </div>
+
+    <h3 id="lora">LoRA Intuition — How It Works</h3>
+    <p>Full fine-tuning updates every parameter in the model (billions of weights). LoRA instead freezes all original weights and adds two tiny matrices <strong>A</strong> and <strong>B</strong> alongside each attention layer. Only A and B are trained.</p>
+
+    <div class="lora-diagram">
+      <div>
+        <div class="lora-box frozen">W (frozen)<br>Base Weight<br>d × d</div>
+        <div class="lora-label">Pre-trained, not updated</div>
+      </div>
+      <div>
+        <div style="color:var(--muted); font-size:1.4rem; text-align:center;">+</div>
+      </div>
+      <div>
+        <div class="lora-box trainable">B × A<br>(d×r) × (r×d)<br>rank r ≪ d</div>
+        <div class="lora-label" style="color:var(--accent);">Only these are trained!</div>
+      </div>
+    </div>
+
+    <p>If a weight matrix is 4096×4096 (≈16M params) and LoRA rank r=64, then A is 4096×64 and B is 64×4096 — only ~500K params. That's a <strong>32× reduction</strong> in trainable parameters for that layer.</p>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>For CPT specifically:</strong> Research (and Unsloth's own blog) shows you should train the <code>embed_tokens</code> and <code>lm_head</code> in addition to LoRA layers. New domain vocabulary (especially new languages or domain-specific tokens) needs the embedding table updated. Use a 2–10× smaller learning rate for these than for the LoRA layers to avoid destabilising training.</p>
+    </div>
+
+    <h3 id="forgetting">Catastrophic Forgetting</h3>
+    <p>One major risk in CPT is that aggressively training on domain data can cause the model to "forget" its general capabilities. Signs include:</p>
+    <ul style="color:#94a3b8; padding-left:20px; margin-bottom:14px;">
+      <li style="margin-bottom:6px;">Model starts generating only in the target language even when prompted in English</li>
+      <li style="margin-bottom:6px;">General reasoning capability degrades</li>
+      <li style="margin-bottom:6px;">Common sense knowledge disappears</li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Mitigation strategies:</strong> Use LoRA (base weights stay frozen). Mix a small amount (~5–10%) of general text (e.g. Wikipedia) into your domain corpus. Use a lower learning rate than typical SFT. Monitor eval loss on a held-out general benchmark alongside your domain eval set. Fewer epochs (1–2) is usually safer than 5+.</p>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="pipeline">
+    <div class="section-eyebrow">04 — End-to-End Pipeline</div>
+    <h2>Training Pipeline — Step by Step</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h4>Collect & Clean Domain Corpus</h4>
+          <p>Gather raw text files from your domain: PDFs converted to text, web-scraped articles, database exports. Clean aggressively — remove HTML tags, headers/footers, duplicate paragraphs, and encoding errors. Quality beats quantity here.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h4>Format as HuggingFace Dataset</h4>
+          <p>Structure data as a dataset with a single <code>text</code> column. Each row is a document or a chunk. For CPT there are no instruction/response fields — just raw text.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h4>Load Base Model with Unsloth + QLoRA</h4>
+          <p>Use <code>FastLanguageModel.from_pretrained()</code> with <code>load_in_4bit=True</code>. Then call <code>get_peft_model()</code> specifying LoRA rank, alpha, and which layers to target (all linear layers + <code>embed_tokens</code> + <code>lm_head</code> for CPT).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <h4>Define Training Arguments</h4>
+          <p>Key hyperparameters: <code>max_seq_length</code> (typically 2048), <code>per_device_train_batch_size</code>, <code>gradient_accumulation_steps</code>, <code>learning_rate</code> (2e-4 for LoRA, 2e-5 for embeddings), <code>num_train_epochs</code>, <code>warmup_ratio</code>, <code>lr_scheduler_type</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h4>Apply Text Completion Data Collator</h4>
+          <p>Unlike SFT, CPT does NOT mask the prompt tokens. Loss is computed over <em>all</em> tokens. Use <code>DataCollatorForLanguageModeling</code> with <code>mlm=False</code> or Unsloth's built-in text-completion formatting function.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">06</div>
+        <div class="step-body">
+          <h4>Train & Monitor Loss</h4>
+          <p>Launch training with the HuggingFace <code>Trainer</code> API (or TRL's <code>SFTTrainer</code> in CPT mode). Watch training loss — it should decrease steadily. An early spike followed by stagnation often means the learning rate is too high.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">07</div>
+        <div class="step-body">
+          <h4>Save LoRA Adapter & Run Inference</h4>
+          <p>Save the lightweight adapter with <code>model.save_pretrained("my-cpt-adapter")</code>. For inference, load the base model + adapter together. Optionally merge into the base model and push to HuggingFace Hub.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA PREP -->
+    <h3 id="data-prep">Step 1 in Detail — Data Preparation</h3>
+    <p>The dataset format for CPT is simple — a single <code>text</code> column. Below is how to build one from a list of plain text documents:</p>
+
+    <div class="code-block">
+      <span class="lang-label">python</span>
+      <pre><span class="kw">from</span> datasets <span class="kw">import</span> <span class="cls">Dataset</span>
+
+<span class="cm"># Example: loading raw text files from a folder</span>
+<span class="kw">import</span> os
+
+documents = []
+<span class="kw">for</span> fname <span class="kw">in</span> os.<span class="fn">listdir</span>(<span class="str">"domain_corpus/"</span>):
+    <span class="kw">with</span> <span class="fn">open</span>(f<span class="str">"domain_corpus/{fname}"</span>, <span class="str">"r"</span>) <span class="kw">as</span> f:
+        text = f.<span class="fn">read</span>().<span class="fn">strip</span>()
+        <span class="kw">if</span> <span class="fn">len</span>(text) > <span class="num">200</span>:   <span class="cm"># skip very short docs</span>
+            documents.<span class="fn">append</span>({<span class="str">"text"</span>: text})
+
+<span class="cm"># Create a HuggingFace Dataset</span>
+dataset = <span class="cls">Dataset</span>.<span class="fn">from_list</span>(documents)
+
+<span class="cm"># Optional: push to Hub</span>
+<span class="cm"># dataset.push_to_hub("your-username/domain-corpus")</span>
+
+<span class="fn">print</span>(dataset)
+<span class="cm"># Dataset({features: ['text'], num_rows: 15000})</span></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔍</span>
+      <p><strong>Data quality checklist:</strong> Remove boilerplate repeated across documents (headers, footers, disclaimers). Deduplicate at paragraph level. Filter documents shorter than 200 characters. For PDFs, prefer <code>pdfminer</code> or <code>pypdf2</code> over OCR if text layer is present. Aim for at least 50MB of cleaned text for meaningful CPT.</p>
+    </div>
+
+    <!-- SETUP -->
+    <h3 id="setup">Step 3 in Detail — Unsloth Model Setup</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python</span>
+      <pre><span class="cm"># Install Unsloth (run in Colab cell)</span>
+<span class="cm"># !pip install unsloth --break-system-packages</span>
+
+<span class="kw">from</span> unsloth <span class="kw">import</span> <span class="cls">FastLanguageModel</span>
+<span class="kw">import</span> torch
+
+<span class="cm"># ── Configuration ──────────────────────────────────</span>
+max_seq_length = <span class="num">2048</span>    <span class="cm"># max tokens per training sample</span>
+dtype = <span class="kw">None</span>              <span class="cm"># auto-detect (bfloat16 on Ampere+)</span>
+load_in_4bit = <span class="kw">True</span>      <span class="cm"># QLoRA: 4-bit quantised base model</span>
+
+<span class="cm"># ── Load Base Model ────────────────────────────────</span>
+model, tokenizer = <span class="cls">FastLanguageModel</span>.<span class="fn">from_pretrained</span>(
+    model_name = <span class="str">"unsloth/llama-3-8b-bnb-4bit"</span>,  <span class="cm"># base (not instruct!)</span>
+    max_seq_length = max_seq_length,
+    dtype = dtype,
+    load_in_4bit = load_in_4bit,
+)
+
+<span class="cm"># ── Apply LoRA ─────────────────────────────────────</span>
+model = <span class="cls">FastLanguageModel</span>.<span class="fn">get_peft_model</span>(
+    model,
+    r = <span class="num">128</span>,              <span class="cm"># higher rank for CPT (vs 8-64 for SFT)</span>
+    target_modules = [   <span class="cm"># all linear layers + embeddings</span>
+        <span class="str">"q_proj"</span>, <span class="str">"k_proj"</span>, <span class="str">"v_proj"</span>, <span class="str">"o_proj"</span>,
+        <span class="str">"gate_proj"</span>, <span class="str">"up_proj"</span>, <span class="str">"down_proj"</span>,
+        <span class="str">"embed_tokens"</span>, <span class="str">"lm_head"</span>,  <span class="cm"># ← crucial for CPT</span>
+    ],
+    lora_alpha = <span class="num">32</span>,
+    lora_dropout = <span class="num">0</span>,     <span class="cm"># 0 is optimal per Unsloth's testing</span>
+    bias = <span class="str">"none"</span>,
+    use_gradient_checkpointing = <span class="str">"unsloth"</span>,
+    random_state = <span class="num">42</span>,
+    use_rslora = <span class="kw">True</span>,    <span class="cm"># rank-stabilised LoRA (important at r=128)</span>
+)
+
+model.<span class="fn">print_trainable_parameters</span>()
+<span class="cm"># Trainable params: ~85M of 8B (≈1% of total)</span></pre>
+    </div>
+
+    <!-- TRAINING -->
+    <h3 id="training">Step 4–6 in Detail — Training Configuration</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python</span>
+      <pre><span class="kw">from</span> trl <span class="kw">import</span> <span class="cls">SFTTrainer</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> <span class="cls">TrainingArguments</span>
+<span class="kw">from</span> unsloth.chat_templates <span class="kw">import</span> <span class="fn">get_chat_template</span>
+
+<span class="cm"># ── Format dataset for text completion (CPT) ───────</span>
+<span class="cm"># No chat template! Just raw text with EOS token appended.</span>
+EOS_TOKEN = tokenizer.eos_token
+
+<span class="kw">def</span> <span class="fn">format_text</span>(batch):
+    <span class="kw">return</span> {<span class="str">"text"</span>: [doc + EOS_TOKEN <span class="kw">for</span> doc <span class="kw">in</span> batch[<span class="str">"text"</span>]]}
+
+dataset = dataset.<span class="fn">map</span>(format_text, batched=<span class="kw">True</span>)
+
+<span class="cm"># ── Training Arguments ─────────────────────────────</span>
+training_args = <span class="cls">TrainingArguments</span>(
+    output_dir = <span class="str">"./cpt-output"</span>,
+    num_train_epochs = <span class="num">1</span>,          <span class="cm"># 1-2 epochs for CPT to avoid overfitting</span>
+    per_device_train_batch_size = <span class="num">2</span>,
+    gradient_accumulation_steps = <span class="num">4</span>,  <span class="cm"># effective batch size = 8</span>
+    warmup_ratio = <span class="num">0.1</span>,
+    learning_rate = <span class="num">2e-4</span>,
+    fp16 = <span class="kw">not</span> torch.cuda.<span class="fn">is_bf16_supported</span>(),
+    bf16 = torch.cuda.<span class="fn">is_bf16_supported</span>(),
+    logging_steps = <span class="num">50</span>,
+    save_steps = <span class="num">200</span>,
+    save_total_limit = <span class="num">3</span>,
+    optim = <span class="str">"adamw_8bit"</span>,           <span class="cm"># memory-efficient optimiser</span>
+    lr_scheduler_type = <span class="str">"cosine"</span>,
+    seed = <span class="num">42</span>,
+    report_to = <span class="str">"none"</span>,            <span class="cm"># change to "wandb" for tracking</span>
+)
+
+<span class="cm"># ── Trainer (used in CPT/text-completion mode) ─────</span>
+trainer = <span class="cls">SFTTrainer</span>(
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = dataset,
+    dataset_text_field = <span class="str">"text"</span>,    <span class="cm"># point to the raw text column</span>
+    max_seq_length = max_seq_length,
+    dataset_num_proc = <span class="num">2</span>,
+    packing = <span class="kw">True</span>,                 <span class="cm"># pack multiple docs into one context window</span>
+    args = training_args,
+)
+
+<span class="cm"># ── Train! ─────────────────────────────────────────</span>
+trainer.<span class="fn">train</span>()</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>packing=True</strong> is important for efficiency. It concatenates multiple short documents into a single training sample up to <code>max_seq_length</code>, meaning you don't waste compute on padding. Always use it for CPT unless your documents are already very long.</p>
+    </div>
+
+    <!-- INFERENCE -->
+    <h3 id="inference">Step 7 in Detail — Saving & Inference</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python</span>
+      <pre><span class="cm"># ── Save LoRA Adapter ──────────────────────────────</span>
+model.<span class="fn">save_pretrained</span>(<span class="str">"lora_cpt_model"</span>)
+tokenizer.<span class="fn">save_pretrained</span>(<span class="str">"lora_cpt_model"</span>)
+
+<span class="cm"># ── Inference (text completion mode) ───────────────</span>
+<span class="cls">FastLanguageModel</span>.<span class="fn">for_inference</span>(model)  <span class="cm"># enables 2× faster inference</span>
+
+inputs = tokenizer(
+    [<span class="str">"The pathophysiology of acute myocardial infarction involves"</span>],
+    <span class="kw">return_tensors</span>=<span class="str">"pt"</span>
+).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+
+outputs = model.<span class="fn">generate</span>(
+    **inputs,
+    max_new_tokens = <span class="num">200</span>,
+    temperature = <span class="num">0.7</span>,
+    do_sample = <span class="kw">True</span>,
+    repetition_penalty = <span class="num">1.1</span>,
+)
+
+<span class="fn">print</span>(tokenizer.<span class="fn">decode</span>(outputs[<span class="num">0</span>], skip_special_tokens=<span class="kw">True</span>))
+
+<span class="cm"># ── Optional: push merged model to Hub ─────────────</span>
+<span class="cm"># model.push_to_hub_merged("your-name/domain-llm",</span>
+<span class="cm">#     tokenizer, save_method="merged_16bit")</span></pre>
+    </div>
+  </section>
+
+  <!-- FULL CODE -->
+  <section id="code">
+    <div class="section-eyebrow">05 — Complete Example</div>
+    <h2>Complete Minimal CPT Script</h2>
+    <p>A copy-pasteable notebook cell sequence for Google Colab (T4 GPU). This example performs CPT on a small medical text dataset.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · complete example</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════
+## CLASS 21 — Non-Instruction Fine-Tuning
+## Continued Pre-Training with Unsloth + QLoRA
+## Platform: Google Colab (T4, 16GB VRAM)
+## ═══════════════════════════════════════════════════</span>
+
+<span class="cm"># CELL 1: Install</span>
+<span class="cm"># !pip install unsloth datasets trl -q --break-system-packages</span>
+
+<span class="cm"># CELL 2: Imports</span>
+<span class="kw">from</span> unsloth <span class="kw">import</span> <span class="cls">FastLanguageModel</span>
+<span class="kw">from</span> datasets <span class="kw">import</span> <span class="fn">load_dataset</span>, <span class="cls">Dataset</span>
+<span class="kw">from</span> trl <span class="kw">import</span> <span class="cls">SFTTrainer</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> <span class="cls">TrainingArguments</span>
+<span class="kw">import</span> torch
+
+<span class="cm"># CELL 3: Config</span>
+MODEL_NAME = <span class="str">"unsloth/llama-3-8b-bnb-4bit"</span>
+MAX_SEQ_LEN = <span class="num">2048</span>
+LORA_RANK   = <span class="num">128</span>
+EPOCHS      = <span class="num">1</span>
+LR          = <span class="num">2e-4</span>
+BATCH_SIZE  = <span class="num">2</span>
+GRAD_ACC    = <span class="num">4</span>
+
+<span class="cm"># CELL 4: Load model</span>
+model, tokenizer = <span class="cls">FastLanguageModel</span>.<span class="fn">from_pretrained</span>(
+    model_name=MODEL_NAME, max_seq_length=MAX_SEQ_LEN,
+    load_in_4bit=<span class="kw">True</span>,
+)
+model = <span class="cls">FastLanguageModel</span>.<span class="fn">get_peft_model</span>(
+    model, r=LORA_RANK, use_rslora=<span class="kw">True</span>,
+    target_modules=[
+        <span class="str">"q_proj"</span>,<span class="str">"k_proj"</span>,<span class="str">"v_proj"</span>,<span class="str">"o_proj"</span>,
+        <span class="str">"gate_proj"</span>,<span class="str">"up_proj"</span>,<span class="str">"down_proj"</span>,
+        <span class="str">"embed_tokens"</span>,<span class="str">"lm_head"</span>,
+    ],
+    lora_alpha=<span class="num">32</span>, lora_dropout=<span class="num">0</span>, bias=<span class="str">"none"</span>,
+    use_gradient_checkpointing=<span class="str">"unsloth"</span>, random_state=<span class="num">42</span>,
+)
+
+<span class="cm"># CELL 5: Load dataset (replace with your domain corpus)</span>
+<span class="cm"># Using HuggingFace's medical_meadow_pubmed_causal as example</span>
+raw = <span class="fn">load_dataset</span>(<span class="str">"medalpaca/medical_meadow_pubmed_causal"</span>,
+                   split=<span class="str">"train[:5000]"</span>)
+<span class="cm"># Combine input+output into one raw text blob</span>
+<span class="kw">def</span> <span class="fn">merge_text</span>(batch):
+    texts = [i + <span class="str">" "</span> + o + tokenizer.eos_token
+             <span class="kw">for</span> i, o <span class="kw">in</span> <span class="fn">zip</span>(batch[<span class="str">"input"</span>], batch[<span class="str">"output"</span>])]
+    <span class="kw">return</span> {<span class="str">"text"</span>: texts}
+dataset = raw.<span class="fn">map</span>(merge_text, batched=<span class="kw">True</span>,
+                   remove_columns=raw.column_names)
+
+<span class="cm"># CELL 6: Train</span>
+trainer = <span class="cls">SFTTrainer</span>(
+    model=model, tokenizer=tokenizer,
+    train_dataset=dataset, dataset_text_field=<span class="str">"text"</span>,
+    max_seq_length=MAX_SEQ_LEN, packing=<span class="kw">True</span>,
+    args=<span class="cls">TrainingArguments</span>(
+        output_dir=<span class="str">"./cpt_out"</span>, num_train_epochs=EPOCHS,
+        per_device_train_batch_size=BATCH_SIZE,
+        gradient_accumulation_steps=GRAD_ACC,
+        learning_rate=LR, warmup_ratio=<span class="num">0.1</span>,
+        lr_scheduler_type=<span class="str">"cosine"</span>, optim=<span class="str">"adamw_8bit"</span>,
+        bf16=torch.cuda.<span class="fn">is_bf16_supported</span>(),
+        fp16=<span class="kw">not</span> torch.cuda.<span class="fn">is_bf16_supported</span>(),
+        logging_steps=<span class="num">25</span>, seed=<span class="num">42</span>, report_to=<span class="str">"none"</span>,
+    ),
+)
+trainer_stats = trainer.<span class="fn">train</span>()
+<span class="fn">print</span>(f<span class="str">"Training time: {trainer_stats.metrics['train_runtime']:.1f}s"</span>)
+
+<span class="cm"># CELL 7: Inference</span>
+<span class="cls">FastLanguageModel</span>.<span class="fn">for_inference</span>(model)
+prompt = <span class="str">"Acute myocardial infarction is caused by"</span>
+inputs = tokenizer([prompt], <span class="kw">return_tensors</span>=<span class="str">"pt"</span>).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+out = model.<span class="fn">generate</span>(**inputs, max_new_tokens=<span class="num">150</span>,
+                       temperature=<span class="num">0.7</span>, do_sample=<span class="kw">True</span>)
+<span class="fn">print</span>(tokenizer.<span class="fn">decode</span>(out[<span class="num">0</span>], skip_special_tokens=<span class="kw">True</span>))
+
+<span class="cm"># CELL 8: Save</span>
+model.<span class="fn">save_pretrained</span>(<span class="str">"my-medical-cpt-adapter"</span>)
+tokenizer.<span class="fn">save_pretrained</span>(<span class="str">"my-medical-cpt-adapter"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- TIPS -->
+  <section id="tips">
+    <div class="section-eyebrow">06 — Practitioner Notes</div>
+    <h2>Tips, Pitfalls & Best Practices</h2>
+
+    <h3>✅ Things that work well</h3>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Use a <strong>base model</strong> (not an instruct model) as your starting point for CPT — you'll apply instruction tuning in the next step anyway.</li>
+      <li><span class="chk">✓</span> Enable <strong>packing</strong> — it speeds up training significantly by eliminating wasted padding tokens.</li>
+      <li><span class="chk">✓</span> Include <strong>embed_tokens</strong> and <strong>lm_head</strong> in your LoRA targets, especially if your domain has unusual vocabulary.</li>
+      <li><span class="chk">✓</span> Use <strong>rsLoRA</strong> (use_rslora=True) when rank ≥ 128 — standard LoRA is unstable at high ranks.</li>
+      <li><span class="chk">✓</span> <strong>Mix general text</strong> (5–10%) into your domain corpus to reduce catastrophic forgetting.</li>
+      <li><span class="chk">✓</span> Start with <strong>1 epoch</strong>. Check if domain perplexity improved before deciding to run more.</li>
+    </ul>
+
+    <h3>❌ Common mistakes</h3>
+    <ul class="checklist">
+      <li><span class="chk" style="background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171;">✗</span> Fine-tuning on an <strong>instruction model</strong> when you want CPT — you risk overwriting the instruction-following behaviour.</li>
+      <li><span class="chk" style="background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171;">✗</span> Using a <strong>chat template</strong> for CPT — it adds special tokens that aren't appropriate for raw text completion training.</li>
+      <li><span class="chk" style="background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171;">✗</span> Setting a <strong>learning rate that's too high</strong> (e.g. 1e-3) — causes divergence, especially with embed_tokens/lm_head included.</li>
+      <li><span class="chk" style="background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171;">✗</span> Training for <strong>too many epochs</strong> on a small dataset — the model memorises training text and loses generalisation.</li>
+      <li><span class="chk" style="background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171;">✗</span> Skipping data cleaning — noisy data (OCR errors, HTML tags, duplicates) degrades model quality significantly.</li>
+    </ul>
+
+    <h3>📐 Hyperparameter Reference</h3>
+    <table class="compare-table">
+      <thead>
+        <tr><th>Hyperparameter</th><th>CPT Recommendation</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LoRA rank (r)</td><td class="yes">64–256</td><td>CPT needs higher capacity than SFT to absorb new knowledge</td></tr>
+        <tr><td>Learning rate</td><td class="yes">1e-4 to 2e-4</td><td>Lower than SFT to avoid catastrophic forgetting</td></tr>
+        <tr><td>Embed LR multiplier</td><td class="yes">0.1× to 0.5× of LoRA LR</td><td>Embedding tables are sensitive; smaller updates stabilise training</td></tr>
+        <tr><td>Epochs</td><td class="yes">1–2</td><td>More epochs risks overfitting and forgetting</td></tr>
+        <tr><td>Context length</td><td class="yes">2048–4096</td><td>Longer is better for coherent document-level learning</td></tr>
+        <tr><td>Batch size (effective)</td><td class="yes">8–32</td><td>Larger batches stabilise gradient updates on heterogeneous text</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">07 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Concept Check Questions</h3>
+
+      <div class="quiz-q">
+        <p>1. What is the key difference between Continued Pre-Training and Supervised Fine-Tuning in terms of data format?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">CPT uses raw, unlabelled text (no instruction/response pairs). The model simply predicts the next token on all text. SFT uses prompt–response pairs and typically masks the loss on the prompt so only the response tokens contribute to the gradient.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Why should you include <code>embed_tokens</code> and <code>lm_head</code> in your LoRA targets for CPT but not necessarily for SFT?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">CPT often introduces new domain vocabulary or a new language that the base model's embedding table has not seen. Without updating embed_tokens and lm_head, the model cannot properly represent or generate domain-specific tokens. For SFT (instruction following), the vocabulary is usually unchanged, so updating these is less critical.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is catastrophic forgetting and what is the primary mechanism LoRA uses to mitigate it?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">Catastrophic forgetting is when a neural network loses previously learned knowledge while being trained on new data. LoRA mitigates this by keeping all original (pre-trained) weight matrices completely frozen. Only the small A and B adapter matrices are updated, so the base model's general knowledge is preserved.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What does <code>packing=True</code> do in the SFTTrainer, and why is it especially useful for CPT?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">packing=True concatenates multiple training documents into a single sequence up to max_seq_length, filling the context window efficiently. It's valuable for CPT because domain text documents are often much shorter than the context window, so without packing most of each training batch would be padding — wasting compute and slowing training.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Should you start CPT from a base model or an instruction-tuned model? Why?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">Generally, start from a base model. The standard pipeline is: (1) base model → CPT → domain-adapted base model → (2) SFT → domain instruction model → (3) DPO → aligned model. If you CPT an already instruction-tuned model, you risk degrading the instruction-following capability you'd want to preserve, and you'd typically follow up with SFT anyway to re-instil it.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What is rsLoRA and when should you use it?</p>
+        <details>
+          <summary>▶ Show Answer</summary>
+          <div class="answer">rsLoRA (Rank-Stabilised LoRA) scales the LoRA output by 1/√rank instead of 1/rank. At higher ranks (≥64), standard LoRA can become numerically unstable because the effective scale of the adapter grows with rank. rsLoRA compensates for this, making high-rank LoRA training stable — which is recommended for CPT since CPT benefits from higher ranks than SFT.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section id="resources">
+    <div class="section-eyebrow">08 — Further Reading</div>
+    <h2>Resources & References</h2>
+
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="icon">📄</div>
+        <h4>LoRA Paper (Hu et al., 2021)</h4>
+        <p>The original "LoRA: Low-Rank Adaptation of Large Language Models" paper. Essential reading for understanding the math behind adapter training.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">📄</div>
+        <h4>"LoRA Learns Less and Forgets Less"</h4>
+        <p>Empirical study comparing LoRA vs full fine-tuning for CPT. Key finding: include embed_tokens + lm_head + gate_proj for best results.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🌐</div>
+        <h4>Unsloth CPT Blog Post</h4>
+        <p>docs.unsloth.ai/basics/continued-pretraining — practical guidance with Colab notebooks for Mistral Korean CPT and text completion.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">📄</div>
+        <h4>QLoRA Paper (Dettmers et al., 2023)</h4>
+        <p>"QLoRA: Efficient Finetuning of Quantized LLMs" — explains 4-bit NF4 quantisation and its combination with LoRA.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🤗</div>
+        <h4>HuggingFace PEFT Docs</h4>
+        <p>huggingface.co/docs/peft — comprehensive documentation on LoRA, LoHa, LoKr, and other PEFT methods.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">📄</div>
+        <h4>BloombergGPT (2023)</h4>
+        <p>A real-world example of CPT at scale: GPT trained on 363B financial tokens. Great case study for domain adaptation motivation.</p>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:28px;">
+      <span class="callout-icon">🚀</span>
+      <p><strong>Next in the bootcamp:</strong> Class 22 covers Instruction Fine-Tuning (SFT) — where you take the domain-adapted base model from CPT and teach it to follow instructions using prompt–response pairs. The CPT → SFT pipeline is the industry standard for building production domain LLMs.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 21 · Non-Instruction Fine-Tuning · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sinhar1227/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ View on GitHub</a>
+</footer>
+
+<script>
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+
+  // Active nav link
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const id = e.target.id || 'overview';
+        const link = document.querySelector(`nav a[href="#${id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

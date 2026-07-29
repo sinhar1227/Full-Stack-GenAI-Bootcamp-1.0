@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 31 — First End-to-End RAG Pipeline | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — pipeline */
+  --accent2:     #f472b6;   /* pink — retrieval */
+  --accent3:     #4ade80;   /* green — generation / success */
+  --accent4:     #fb923c;   /* orange — chunking */
+  --accent5:     #a78bfa;   /* violet — vector DB */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(34,211,238,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 31):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── PIPELINE FLOW ── */
+.pipeline-flow { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 28px; margin: 24px 0; }
+.pipeline-flow .pf-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+.pf-phase { margin-bottom: 20px; }
+.pf-phase-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; padding: 3px 10px; border-radius: 4px; display: inline-block; }
+.ph-setup    { color: var(--accent6); background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); }
+.ph-ingest   { color: var(--accent4); background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.3); }
+.ph-retrieve { color: var(--accent2); background: rgba(244,114,182,0.1); border: 1px solid rgba(244,114,182,0.3); }
+.ph-gen      { color: var(--accent3); background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); }
+.pf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.pf-node { padding: 8px 14px; border-radius: 6px; font-size: 0.74rem; font-weight: 500; border: 1px solid; white-space: nowrap; font-family: 'IBM Plex Mono', monospace; }
+.pf-arrow { color: var(--muted); font-size: 1rem; }
+
+/* ── CHUNKING EXPLAINER ── */
+.chunk-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; }
+.chunk-visual .cv-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+.chunk-row { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.chunk-cell { padding: 6px 10px; border-radius: 4px; font-size: 0.7rem; text-align: center; min-width: 40px; }
+.chunk-overlap { border: 1px dashed; }
+
+/* ── COMPARISON VISUAL ── */
+.compare-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.compare-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+.compare-box .cb-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.compare-box .cb-answer { font-size: 0.83rem; color: #94a3b8; font-style: italic; border-left: 3px solid; padding-left: 12px; margin-top: 8px; }
+
+/* ── PROMPT TEMPLATE VISUAL ── */
+.prompt-template { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.prompt-template .pt-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+.pt-system { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.2); border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; font-size: 0.8rem; color: var(--accent3); font-family: 'IBM Plex Mono', monospace; }
+.pt-context { background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2); border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; font-size: 0.8rem; color: var(--accent5); font-family: 'IBM Plex Mono', monospace; }
+.pt-question { background: rgba(244,114,182,0.06); border: 1px solid rgba(244,114,182,0.2); border-radius: 6px; padding: 12px 16px; font-size: 0.8rem; color: var(--accent2); font-family: 'IBM Plex Mono', monospace; }
+.pt-label-tag { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(34,211,238,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(34,211,238,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── RAG CHAPTER PROGRESS ── */
+.chapter-progress { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+.cp-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; border-top: 2px solid; }
+.cp-item .cp-status { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+.cp-item h4 { font-size: 0.82rem; font-weight: 600; }
+.cp-done   { border-top-color: var(--accent3); } .cp-done h4 { color: var(--accent3); }
+.cp-here   { border-top-color: var(--accent);  } .cp-here h4 { color: var(--accent);  }
+.cp-coming { border-top-color: var(--muted);   } .cp-coming h4 { color: var(--muted); }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .compare-boxes { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#session-context">Session Context</a></li>
+    <li><a href="#ocr-completion">OCR — Completing Class 30</a></li>
+    <li><a href="#rag-chapter-map">RAG Chapter Map</a></li>
+    <li><a href="#why-pipeline">Why Build a Pipeline First?</a></li>
+    <li><a href="#two-models">2 Models Required</a></li>
+    <li><a href="#pipeline-overview">The Pipeline (Visual)</a></li>
+    <li><a href="#step1-load">Step 1 — Load PDF</a></li>
+    <li><a href="#step2-chunk">Step 2 — Chunking</a></li>
+    <li class="sub"><a href="#chunking-why">Why Chunk?</a></li>
+    <li class="sub"><a href="#chunking-params">chunk_size & overlap</a></li>
+    <li><a href="#step3-embed-store">Step 3 — Embed & Store</a></li>
+    <li><a href="#step4-retriever">Step 4 — Retriever</a></li>
+    <li><a href="#step5-prompt">Step 5 — Prompt Template</a></li>
+    <li><a href="#step6-chain">Step 6 — LCEL RAG Chain</a></li>
+    <li><a href="#step7-compare">Step 7 — RAG vs Simple LLM</a></li>
+    <li><a href="#full-code">Full Pipeline Code</a></li>
+    <li><a href="#lessons">Key Lessons from Demo</a></li>
+    <li><a href="#rag-vs-mcp">RAG vs MCP (from Q&A)</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 31</span></div>
+    <div class="hero-class-num">Class 31 · 11 July 2026</div>
+    <h1>First<br><em>End-to-End RAG</em><br>Pipeline</h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Live RAG Build</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Chunking Intro</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> FAISS Vector Store</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> LCEL RAG Chain</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> DeepSeek B4 PDF</div>
+    </div>
+    <p class="hero-summary">
+      Class 31 is a pivot: instead of continuing the component-by-component approach, Sunny builds a complete working RAG pipeline from scratch — live, in VS Code, on a real PDF (DeepSeek B4 Preview research paper). Students see all components clicking together before the deep dives. This is the "glimpse" class that makes the entire theory tangible.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> OCR completion from Class 30 — PyTesseract working: text extracted from embedded images in PDFs</li>
+      <li><span class="chk">✓</span> Understand the RAG chapter map — what's done, what's coming</li>
+      <li><span class="chk">✓</span> Understand why 2 models are required for any RAG system: Embedding model + LLM</li>
+      <li><span class="chk">✓</span> Set up LangChain with Google Gemini (embedding + chat models)</li>
+      <li><span class="chk">✓</span> Demonstrate hallucination — plain Gemini gives wrong date for DeepSeek B4</li>
+      <li><span class="chk">✓</span> Load the DeepSeek B4 Preview research paper (58 pages → 588 chunks at 500 chars)</li>
+      <li><span class="chk">✓</span> Understand why chunking is needed — context length limitation of LLMs</li>
+      <li><span class="chk">✓</span> Build a FAISS in-memory vector store from the chunks</li>
+      <li><span class="chk">✓</span> Create a retriever and test retrieval (top-k chunks)</li>
+      <li><span class="chk">✓</span> Write a RAG prompt template (context + question + instructions)</li>
+      <li><span class="chk">✓</span> Build the full LCEL RAG chain: retriever → format_docs → prompt → LLM → StrOutputParser</li>
+      <li><span class="chk">✓</span> Compare RAG vs simple LLM — RAG answers correctly; plain LLM says "no such model"</li>
+      <li><span class="chk">✓</span> Understand the difference between RAG and MCP (from live Q&A)</li>
+    </ul>
+  </section>
+
+  <!-- SESSION CONTEXT -->
+  <section id="session-context">
+    <div class="section-eyebrow">02 — Context</div>
+    <h2>Why Sunny Changed the Plan</h2>
+
+    <p>Class 31 started as a continuation of data parsing (Docling, LlamaParse). Sunny noticed during the session that many students couldn't visualise how all the RAG components fit together — they understood each piece theoretically but couldn't picture the whole pipeline. He decided to build a working end-to-end pipeline first.</p>
+
+    <div class="sunny-says">
+      "Many of you, you are not able to visualize that way, which components are fitting. You understood that theoretically when I gave you the theoretical explanation of the RAG, but still, there is some practical gap. So what I'll do, guys — first I'll show you the complete RAG pipeline in terms of practical, and then only we'll explore each and every component of that. I'll show you one practical implementation so that you can visualize where all the components are going to fit."
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>The "glimpse" strategy:</strong> Sunny's approach — show the whole working system first, then deep-dive each component in dedicated sessions. This gives students a mental model to anchor everything else. Data parsing in depth (Docling, LlamaParse) was parked and picked up later.</p>
+    </div>
+  </section>
+
+  <!-- OCR COMPLETION -->
+  <section id="ocr-completion">
+    <div class="section-eyebrow">03 — Class 30 Completion</div>
+    <h2>OCR — PyTesseract Now Working</h2>
+
+    <p>Sunny first completed the one unfinished item from Class 30: PyTesseract OCR on extracted images. It had not run successfully in the previous session. By Class 31 he had installed Tesseract locally and showed the working result.</p>
+
+    <div class="sunny-says">
+      "In the previous class, when I was executing the OCR thing, so I was extracting the data from the images using PyTesseract OCR — it was not giving me the result. So I installed that OCR here inside the local system, and now that OCR is working fine in my system."
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · pytesseract OCR</span>
+      <pre><span class="cm">## PyTesseract — extract text from images embedded in PDFs
+## Completes the complex parsing pipeline from Class 30</span>
+
+<span class="kw">import</span> pytesseract
+<span class="kw">from</span> PIL <span class="kw">import</span> <span class="cls">Image</span>
+
+<span class="cm"># Windows: set the Tesseract install path manually</span>
+pytesseract.pytesseract.tesseract_cmd = <span class="str">r"C:\Program Files\Tesseract-OCR\tesseract.exe"</span>
+
+<span class="cm"># OCR on an extracted image (from page_images/ or images/ folder)</span>
+img_path = <span class="str">"parse_complex_pdf_output/images/page7_img1.png"</span>
+img      = <span class="cls">Image</span>.<span class="fn">open</span>(img_path)
+ocr_text = pytesseract.<span class="fn">image_to_string</span>(img)
+<span class="fn">print</span>(ocr_text)
+<span class="cm"># Output: extracted text from the image (charts, captions, scanned text)</span>
+<span class="cm"># Result stored in image_record.json alongside image_path and format</span>
+
+<span class="cm"># ── Install: Linux ────────────────────────────────────────────────</span>
+<span class="cm"># sudo apt-get install tesseract-ocr</span>
+<span class="cm"># pip install pytesseract Pillow</span>
+
+<span class="cm"># ── Install: Windows ─────────────────────────────────────────────</span>
+<span class="cm"># Download: https://github.com/UB-Mannheim/tesseract/wiki</span>
+<span class="cm"># Install Tesseract64 setup, then set the path above</span>
+
+<span class="cm"># ── Better alternatives for OCR ──────────────────────────────────</span>
+<span class="cm"># - unstructured.io → uses YOLO-based OCR (heavy, very accurate)</span>
+<span class="cm"># - LlamaParse     → LLM-based OCR (paid, very high quality)</span>
+<span class="cm"># - Docling        → IBM OCR (open-source, excellent quality)</span>
+<span class="cm"># PyTesseract is basic — good for simple text, may miss complex content</span></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📸</span>
+      <p><strong>Output check:</strong> Open <code>parse_complex_pdf_output/image_record.json</code> — each entry now has <code>ocr_text</code> filled in. For complex PDFs, PyTesseract may miss some text, but it successfully extracts diagrams, labels, and basic chart text. For production, use Docling or unstructured.io which use much heavier (and more accurate) OCR models.</p>
+    </div>
+  </section>
+
+  <!-- RAG CHAPTER MAP -->
+  <section id="rag-chapter-map">
+    <div class="section-eyebrow">04 — Chapter Status</div>
+    <h2>RAG Chapter Progress Map</h2>
+
+    <div class="chapter-progress">
+      <div class="cp-item cp-done">
+        <div class="cp-status" style="color:var(--accent3);">Done ✓</div>
+        <h4>RAG Introduction<br><small style="font-weight:400; font-size:0.72rem;">Class 29</small></h4>
+      </div>
+      <div class="cp-item cp-done">
+        <div class="cp-status" style="color:var(--accent3);">Done ✓</div>
+        <h4>Data Parsing (Basic)<br><small style="font-weight:400; font-size:0.72rem;">Class 30</small></h4>
+      </div>
+      <div class="cp-item cp-here">
+        <div class="cp-status" style="color:var(--accent);">← Class 31</div>
+        <h4>End-to-End Pipeline<br><small style="font-weight:400; font-size:0.72rem;">Today</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Data Parsing (Advanced)<br><small style="font-weight:400; font-size:0.72rem;">Docling, LlamaParse</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Vector Database<br><small style="font-weight:400; font-size:0.72rem;">FAISS, Chroma, Qdrant...</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Chunking Strategies<br><small style="font-weight:400; font-size:0.72rem;">Specific session</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Retrieval Techniques<br><small style="font-weight:400; font-size:0.72rem;">MMR, threshold, etc.</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Prompting for RAG<br><small style="font-weight:400; font-size:0.72rem;">Templates, Runnable</small></h4>
+      </div>
+      <div class="cp-item cp-coming">
+        <div class="cp-status" style="color:var(--muted);">Coming</div>
+        <h4>Generation (LCEL)<br><small style="font-weight:400; font-size:0.72rem;">Chaining, Runnable</small></h4>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY BUILD PIPELINE FIRST -->
+  <section id="why-pipeline">
+    <div class="section-eyebrow">05 — Motivation</div>
+    <h2>Why Show a Working RAG Before All Components Are Taught?</h2>
+
+    <p>Sunny demonstrated hallucination to motivate why RAG is needed — not just as a concept, but as a visible, provable problem with a visible solution.</p>
+
+    <div style="display:grid; grid-template-columns:1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">The Demo Setup</div>
+        <p style="font-size:0.875rem; color:#94a3b8; margin:0 0 10px;">Sunny searched for and downloaded the <strong>DeepSeek B4 Preview research paper (2026)</strong> live. He chose this specifically because it was so new that Gemini Flash — a Google LLM — didn't know about it.</p>
+      </div>
+    </div>
+
+    <div class="compare-boxes">
+      <div class="compare-box" style="border-top:3px solid #f87171;">
+        <div class="cb-label" style="color:#f87171;">❌ Simple AI Assistant (Plain Gemini)</div>
+        <p style="font-size:0.82rem; color:var(--muted);">Question: <em>"When was the DeepSeek B4 model released?"</em></p>
+        <div class="cb-answer" style="border-left-color:#f87171; color:#f87171;">
+          "As of right now, the DeepSeek B4 has not been released. The current series is the DeepSeek B3 family, which was released in 2024."
+          <div style="font-size:0.72rem; margin-top:6px; color:var(--muted);">← This is hallucination — it confidently gave wrong info</div>
+        </div>
+      </div>
+      <div class="compare-box" style="border-top:3px solid var(--accent3);">
+        <div class="cb-label" style="color:var(--accent3);">✅ RAG System (Gemini + Research Paper PDF)</div>
+        <p style="font-size:0.82rem; color:var(--muted);">Question: <em>"How many parameters are in DeepSeek B4 Pro?"</em></p>
+        <div class="cb-answer" style="border-left-color:var(--accent3); color:var(--accent3);">
+          "1.6 trillion total parameters, with 419 billion active per token."
+          <div style="font-size:0.72rem; margin-top:6px; color:var(--muted);">← Correct answer pulled from the actual PDF</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "See guys, this is the benefit of the RAG. This is the unpaid model, the free model which we are using from the Google. What this normal AI assistant is saying — there is no such model. Can you see the clear difference between this answer and this answer? This is why we build RAG."
+    </div>
+  </section>
+
+  <!-- TWO MODELS REQUIRED -->
+  <section id="two-models">
+    <div class="section-eyebrow">06 — Core Requirement</div>
+    <h2>2 Models Required for Any RAG System</h2>
+
+    <p>Sunny made this a key teaching point — before writing any code, you need to know which models to load.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent5);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent5); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">Model 1</div>
+        <h3 style="margin-top:0; font-size:1.1rem; color:#fff; margin-bottom:10px;">🧮 Embedding Model</h3>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0 0 10px;">Converts text (documents + queries) into dense numerical vectors. Used twice: during ingestion (embed all chunks) and at query time (embed user question).</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--accent5);">Used: GoogleGenerativeAIEmbeddings<br>Model: "models/embedding-002"</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent3);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">Model 2</div>
+        <h3 style="margin-top:0; font-size:1.1rem; color:#fff; margin-bottom:10px;">🤖 LLM (Chat Model)</h3>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0 0 10px;">Generates the final answer from the augmented prompt (retrieved context + user question + instructions). Can be any LLM: Gemini, GPT, Claude, Groq, Ollama.</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--accent3);">Used: ChatGoogleGenerativeAI<br>Model: "gemini-2.0-flash-lite"</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "To implement the RAG, we require two things. The first is the embedding model. The second is what? Second is the LLM model. We can use any model — Google API key for Gemini, Grok API key for Groq, OpenAI key for GPT, or local Ollama for a completely free setup. The framework stays the same."
+    </div>
+  </section>
+
+  <!-- PIPELINE VISUAL -->
+  <section id="pipeline-overview">
+    <div class="section-eyebrow">07 — The System</div>
+    <h2>The Complete Pipeline (as Built in Class)</h2>
+
+    <div class="pipeline-flow">
+      <div class="pf-label">End-to-End RAG Pipeline — Class 31 Live Demo</div>
+
+      <!-- Setup -->
+      <div class="pf-phase">
+        <span class="pf-phase-title ph-setup">⚙ Setup (once)</span>
+        <div class="pf-row">
+          <div class="pf-node" style="background:rgba(250,204,21,0.1); border-color:rgba(250,204,21,0.3); color:var(--accent6);">Load .env keys</div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">Embedding Model</div>
+          <span class="pf-arrow">+</span>
+          <div class="pf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">LLM Model</div>
+        </div>
+      </div>
+
+      <!-- Ingestion -->
+      <div class="pf-phase">
+        <span class="pf-phase-title ph-ingest">📄 Data Ingestion (offline)</span>
+        <div class="pf-row">
+          <div class="pf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">PDF File<br><small>DeepSeek_B4.pdf · 58pp</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">PyPDFLoader<br><small>58 pages loaded</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">RecursiveCharacterTextSplitter<br><small>chunk_size=500 · overlap=200 → 588 chunks</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">Embed each chunk<br><small>GoogleGenerativeAIEmbeddings</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">FAISS Vector Store<br><small>in-memory · IndexFlatL2</small></div>
+        </div>
+      </div>
+
+      <!-- Retrieval -->
+      <div class="pf-phase">
+        <span class="pf-phase-title ph-retrieve">🔍 Retrieval (per query)</span>
+        <div class="pf-row">
+          <div class="pf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent2);">User Question</div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">Embed question<br><small>same embedding model</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">Similarity Search<br><small>FAISS top-k retriever</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent2);">Top-k Chunks<br><small>k=3 (initial) → k=10 (later)</small></div>
+        </div>
+      </div>
+
+      <!-- Generation -->
+      <div class="pf-phase">
+        <span class="pf-phase-title ph-gen">✨ Augmentation + Generation</span>
+        <div class="pf-row">
+          <div class="pf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent2);">format_docs()<br><small>join chunk text</small></div>
+          <span class="pf-arrow">+</span>
+          <div class="pf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent2);">RunnablePassthrough<br><small>pass question</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">Prompt Template<br><small>context + question</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">LLM<br><small>Gemini Flash</small></div>
+          <span class="pf-arrow">→</span>
+          <div class="pf-node" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">StrOutputParser<br><small>→ Final Answer</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 1: LOAD PDF -->
+  <section id="step1-load">
+    <div class="section-eyebrow">08 — Step 1</div>
+    <h2>Load the PDF</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · load PDF</span>
+      <pre><span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyPDFLoader</span>
+
+<span class="fn">load_dotenv</span>()   <span class="cm"># load .env file → returns True if successful</span>
+
+<span class="cm"># Load API keys from environment</span>
+GOOGLE_API_KEY = os.<span class="fn">getenv</span>(<span class="str">"GOOGLE_API_KEY"</span>)
+GROQ_API_KEY   = os.<span class="fn">getenv</span>(<span class="str">"GROQ_API_KEY"</span>)
+
+<span class="cm"># Set as environment variables for LangChain to pick up</span>
+os.environ[<span class="str">"GOOGLE_API_KEY"</span>] = GOOGLE_API_KEY
+
+<span class="cm"># ── Load the PDF ─────────────────────────────────────────────────</span>
+file_path = <span class="str">"data/DeepSeek_B4_2026.pdf"</span>
+loader    = <span class="cls">PyPDFLoader</span>(file_path)
+pages     = loader.<span class="fn">load</span>()
+
+<span class="fn">print</span>(f<span class="str">f"Total pages: {len(pages)}"</span>)   <span class="cm"># 58 pages</span>
+<span class="fn">print</span>(f<span class="str">f"Type: {type(pages[0])}"</span>)         <span class="cm"># LangChain Document object</span>
+<span class="fn">print</span>(pages[<span class="num">0</span>].page_content[:<span class="num">200</span>])      <span class="cm"># first 200 chars of page 1</span>
+<span class="fn">print</span>(pages[<span class="num">0</span>].metadata)               <span class="cm"># source, page, creation_date, etc.</span>
+
+<span class="cm"># PyPDFLoader loads page-by-page: 58 pages → 58 Document objects</span>
+<span class="cm"># Data is available inside a list</span></pre>
+    </div>
+  </section>
+
+  <!-- STEP 2: CHUNKING -->
+  <section id="step2-chunk">
+    <div class="section-eyebrow">09 — Step 2</div>
+    <h2>Chunking — Splitting Documents</h2>
+
+    <h3 id="chunking-why">Why Chunk? — Sunny's Phone Number Analogy</h3>
+    <p>Sunny gave a brilliantly simple analogy for why chunking is needed:</p>
+
+    <div class="sunny-says">
+      "If someone is asking your number — so how you are telling your phone number? Are you giving all the 10 characters in one single go? No! You are saying: '877'… '020'… '3258'. Someone is saying in 2 digits, someone in 3 digits. So they are saying the number in the form of chunk. This is just a way of processing information. In the same way, let's say we have a PDF with 55 pages — we cannot provide all pages to the LLM in single go. LLM is having some context length — let's say 4096 tokens — it can only process that much of data."
+    </div>
+
+    <p>Three reasons chunking is needed:</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.85rem; color:var(--accent4); margin-bottom:6px;">Context Length Limit</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">LLMs have a maximum number of tokens they can process at once. A 58-page PDF far exceeds any LLM's context window.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent);">
+        <h4 style="font-size:0.85rem; color:var(--accent); margin-bottom:6px;">Better Retrieval</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Smaller, focused chunks retrieve more precisely. A 200-char chunk about a specific topic is retrieved better than an entire page with many topics.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent3);">
+        <h4 style="font-size:0.85rem; color:var(--accent3); margin-bottom:6px;">Cost Efficiency</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Only the top-k most relevant chunks are sent to the LLM — not the whole document. Reduces tokens → reduces API cost.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>Chunking is optional for small docs:</strong> Sunny noted explicitly that "chunking is not always required." For a 1-2 page document that fits entirely in the LLM's context window, you can skip chunking and just pass the whole document. Chunking becomes necessary when documents exceed the context limit.</p>
+    </div>
+
+    <h3 id="chunking-params">chunk_size and chunk_overlap Explained</h3>
+
+    <div class="chunk-visual">
+      <div class="cv-label">How RecursiveCharacterTextSplitter works — chunk_size=500, overlap=200</div>
+      <div style="color:var(--muted); font-size:0.72rem; margin-bottom:10px;">Document text split into overlapping chunks:</div>
+      <div class="chunk-row">
+        <div class="chunk-cell" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">Chunk 1<br><small>chars 0–500</small></div>
+        <div class="chunk-cell chunk-overlap" style="background:rgba(251,146,60,0.08); border:1px dashed rgba(251,146,60,0.4); color:var(--accent4);">← overlap<br>300–500</div>
+        <div class="chunk-cell" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); color:var(--accent);">Chunk 2<br><small>chars 300–800</small></div>
+        <div class="chunk-cell chunk-overlap" style="background:rgba(34,211,238,0.08); border:1px dashed rgba(34,211,238,0.4); color:var(--accent);">← overlap<br>600–800</div>
+        <div class="chunk-cell" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">Chunk 3<br><small>chars 600–1100</small></div>
+      </div>
+      <div style="font-size:0.7rem; color:var(--muted); margin-top:10px;">Overlap ensures information spanning a chunk boundary isn't lost. If a key sentence crosses the boundary, at least one chunk contains it fully.</div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · chunking</span>
+      <pre><span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+
+<span class="cm"># ── Experiment 1: chunk_size=500, overlap=200 ─────────────────────</span>
+splitter_v1 = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size    = <span class="num">500</span>,   <span class="cm"># max characters per chunk</span>
+    chunk_overlap = <span class="num">200</span>    <span class="cm"># characters shared between adjacent chunks</span>
+)
+chunks_v1 = splitter_v1.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"v1 chunks: {len(chunks_v1)}"</span>)   <span class="cm"># 588 chunks</span>
+
+<span class="cm"># ── Experiment 2: chunk_size=1000, overlap=300 ────────────────────</span>
+splitter_v2 = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size    = <span class="num">1000</span>,
+    chunk_overlap = <span class="num">300</span>
+)
+chunks_v2 = splitter_v2.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"v2 chunks: {len(chunks_v2)}"</span>)   <span class="cm"># ~283 chunks (fewer, larger)</span>
+
+<span class="cm"># ── Inspect a chunk ───────────────────────────────────────────────</span>
+first_chunk = chunks_v1[<span class="num">0</span>]
+<span class="fn">print</span>(first_chunk.page_content)       <span class="cm"># actual text content</span>
+<span class="fn">print</span>(first_chunk.metadata)           <span class="cm"># source, page, author, etc.</span>
+
+<span class="cm"># Separators used by RecursiveCharacterTextSplitter (priority order):</span>
+<span class="cm"># ["\n\n", "\n", ".", ""]</span>
+<span class="cm"># → tries to split on double newline first (paragraph break)</span>
+<span class="cm"># → then single newline (line break)</span>
+<span class="cm"># → then full stop (sentence boundary)</span>
+<span class="cm"># → finally, character by character (last resort)</span>
+<span class="cm"># This preserves semantic coherence within chunks.</span></pre>
+    </div>
+  </section>
+
+  <!-- STEP 3: EMBED & STORE -->
+  <section id="step3-embed-store">
+    <div class="section-eyebrow">10 — Step 3</div>
+    <h2>Embed Chunks & Store in FAISS</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · embed + vector store</span>
+      <pre><span class="kw">from</span> langchain_google_genai <span class="kw">import</span> <span class="cls">GoogleGenerativeAIEmbeddings</span>, <span class="cls">ChatGoogleGenerativeAI</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain_community.docstore.in_memory <span class="kw">import</span> <span class="cls">InMemoryDocstore</span>
+<span class="kw">import</span> faiss
+
+<span class="cm"># ── Model 1: Embedding Model ─────────────────────────────────────</span>
+embedding_model = <span class="cls">GoogleGenerativeAIEmbeddings</span>(
+    model = <span class="str">"models/embedding-002"</span>   <span class="cm"># check Gemini docs for latest name</span>
+)
+
+<span class="cm"># Test it works</span>
+test_embed = embedding_model.<span class="fn">embed_query</span>(<span class="str">"test sentence"</span>)
+<span class="fn">print</span>(f<span class="str">f"Embedding dimension: {len(test_embed)}"</span>)
+
+<span class="cm"># ── Model 2: LLM ──────────────────────────────────────────────────</span>
+llm = <span class="cls">ChatGoogleGenerativeAI</span>(model=<span class="str">"gemini-2.0-flash-lite"</span>)
+
+<span class="cm"># Test it works</span>
+resp = llm.<span class="fn">invoke</span>(<span class="str">"Hi, how are you?"</span>)
+<span class="fn">print</span>(resp.content[:<span class="num">50</span>])
+
+<span class="cm"># ── Create FAISS Vector Store ─────────────────────────────────────</span>
+<span class="cm"># Method 1: from_documents (easiest — handles embed + store in one call)</span>
+vector_store = <span class="cls">FAISS</span>.<span class="fn">from_documents</span>(
+    documents = chunks_v1,       <span class="cm"># our 588 chunks</span>
+    embedding = embedding_model  <span class="cm"># embeds all chunks automatically</span>
+)
+<span class="fn">print</span>(<span class="str">"✓ Chunks embedded and stored in FAISS in-memory vector store"</span>)
+<span class="cm"># This is the in-memory vector store — data lives in RAM</span>
+<span class="cm"># If you restart, you'll need to re-embed (save_local to persist)</span></pre>
+    </div>
+  </section>
+
+  <!-- STEP 4: RETRIEVER -->
+  <section id="step4-retriever">
+    <div class="section-eyebrow">11 — Step 4</div>
+    <h2>Create a Retriever</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · retriever</span>
+      <pre><span class="cm"># ── Create retriever from vector store ───────────────────────────</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">3</span>}   <span class="cm"># retrieve top 3 most similar chunks</span>
+)
+
+<span class="cm"># ── Test retrieval directly ───────────────────────────────────────</span>
+query   = <span class="str">"How many parameters does DeepSeek B4 Pro have?"</span>
+context = retriever.<span class="fn">invoke</span>(query)
+
+<span class="fn">print</span>(f<span class="str">f"Retrieved {len(context)} chunks:"</span>)
+<span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(context):
+    <span class="fn">print</span>(f<span class="str">f"\n[Chunk {i+1}] Page {doc.metadata.get('page','?')}:"</span>)
+    <span class="fn">print</span>(doc.page_content[:<span class="num">200</span>])
+
+<span class="cm"># ── Increase k for more context ───────────────────────────────────</span>
+<span class="cm"># Sunny tried k=10 to see if more chunks helped with difficult questions</span>
+retriever_k10 = vector_store.<span class="fn">as_retriever</span>(
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">10</span>}
+)
+<span class="cm"># More context helps if relevant info is spread across many pages</span>
+<span class="cm"># But too many chunks can add noise → always balance quality vs quantity</span></pre>
+    </div>
+  </section>
+
+  <!-- STEP 5: PROMPT TEMPLATE -->
+  <section id="step5-prompt">
+    <div class="section-eyebrow">12 — Step 5</div>
+    <h2>Prompt Template — The Augmentation Step</h2>
+
+    <p>The prompt template is where Augmentation happens. Sunny showed the 3-part structure of a good RAG prompt:</p>
+
+    <div class="prompt-template">
+      <div class="pt-label">RAG Prompt Structure (as built in class)</div>
+      <div class="pt-system">
+        <div class="pt-label-tag">System Instruction</div>
+        You are a helpful assistant. Answer the question based ONLY on the provided context. If the answer is not in the context, say "I don't have enough information to answer this from the provided documents."
+      </div>
+      <div class="pt-context">
+        <div class="pt-label-tag">Context (from retriever — injected at runtime)</div>
+        {context}
+      </div>
+      <div class="pt-question">
+        <div class="pt-label-tag">User Question (passed via RunnablePassthrough)</div>
+        {question}
+      </div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · prompt template</span>
+      <pre><span class="kw">from</span> langchain.prompts <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+
+template = <span class="str">"""
+You are a helpful assistant. Answer the question based ONLY
+on the provided context. If the answer is not in the context,
+say "I don't have enough information to answer this."
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:"""</span>
+
+prompt = <span class="cls">ChatPromptTemplate</span>.<span class="fn">from_template</span>(template)
+
+<span class="cm"># The prompt has 2 variables:</span>
+<span class="cm"># {context}  → filled by retrieved chunks (via format_docs function)</span>
+<span class="cm"># {question} → filled by user's question (via RunnablePassthrough)</span></pre>
+    </div>
+
+    <div class="sunny-says">
+      "In a real time, we write around 200-300 lines of prompt, and even more than that. The prompt is not a single line. We write a very huge, huge prompt in real time. So that kind of prompt also, you will see going forward. For now, this simple template is enough to demonstrate the pipeline."
+    </div>
+  </section>
+
+  <!-- STEP 6: LCEL CHAIN -->
+  <section id="step6-chain">
+    <div class="section-eyebrow">13 — Step 6</div>
+    <h2>LCEL RAG Chain — Putting It All Together</h2>
+
+    <p>LCEL = LangChain Expression Language. The pipe operator (<code>|</code>) chains components together. Sunny built the chain by identifying what inputs the prompt needs and where each comes from:</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">
+      <div style="color:var(--muted); font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:14px;">Chain Logic — How the pieces connect</div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; line-height:2.5; margin-bottom:8px;">
+        <span style="color:var(--accent2);">{context}</span> <span style="color:var(--muted);">← comes from</span> <span style="color:var(--accent);">retriever</span> <span style="color:var(--muted);">|</span> <span style="color:var(--accent4);">format_docs()</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; line-height:2.5;">
+        <span style="color:var(--accent2);">{question}</span> <span style="color:var(--muted);">← comes from</span> <span style="color:var(--accent3);">RunnablePassthrough()</span> <span style="color:var(--muted)">(passes input directly through)</span>
+      </div>
+      <div style="color:var(--muted); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;">Full chain:</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; line-height:2.5;">
+        <span style="color:var(--accent); background:rgba(34,211,238,0.1); padding:4px 10px; border-radius:4px; border:1px solid rgba(34,211,238,0.3);">{"context": retriever|format_docs, "question": passthrough}</span>
+        <span style="color:var(--muted);">|</span>
+        <span style="color:var(--accent2); background:rgba(244,114,182,0.1); padding:4px 10px; border-radius:4px; border:1px solid rgba(244,114,182,0.3);">prompt</span>
+        <span style="color:var(--muted);">|</span>
+        <span style="color:var(--accent3); background:rgba(74,222,128,0.1); padding:4px 10px; border-radius:4px; border:1px solid rgba(74,222,128,0.3);">llm</span>
+        <span style="color:var(--muted);">|</span>
+        <span style="color:var(--accent3); background:rgba(74,222,128,0.1); padding:4px 10px; border-radius:4px; border:1px solid rgba(74,222,128,0.3);">StrOutputParser()</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="color:var(--accent6);">Final answer</span>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · LCEL RAG chain</span>
+      <pre><span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">from</span> langchain_core.runnables   <span class="kw">import</span> <span class="cls">RunnablePassthrough</span>
+
+<span class="cm"># ── Helper: format retrieved documents into a single string ───────</span>
+<span class="kw">def</span> <span class="fn">format_docs</span>(docs):
+    <span class="str">"""Join page_content of retrieved chunks into one context string."""</span>
+    <span class="kw">return</span> <span class="str">"\n\n"</span>.<span class="fn">join</span>(doc.page_content <span class="kw">for</span> doc <span class="kw">in</span> docs)
+
+<span class="cm"># ── Build the RAG chain (LCEL syntax) ────────────────────────────</span>
+rag_chain = (
+    {
+        <span class="str">"context"</span>:  retriever | format_docs,   <span class="cm"># retrieve → format context</span>
+        <span class="str">"question"</span>: <span class="cls">RunnablePassthrough</span>()     <span class="cm"># pass question unchanged</span>
+    }
+    | prompt             <span class="cm"># insert context + question into prompt template</span>
+    | llm                <span class="cm"># send augmented prompt to the LLM</span>
+    | <span class="cls">StrOutputParser</span>() <span class="cm"># extract text from LLM response object</span>
+)
+
+<span class="cm"># ── Invoke the RAG chain ──────────────────────────────────────────</span>
+question = <span class="str">"How many parameters are there in DeepSeek B4 Pro model?"</span>
+answer   = rag_chain.<span class="fn">invoke</span>(question)
+<span class="fn">print</span>(f<span class="str">f"Answer: {answer}"</span>)
+<span class="cm"># → "1.6 trillion total parameters, with 419 billion active per token."</span>
+
+<span class="cm"># ── Try another question ─────────────────────────────────────────</span>
+answer2 = rag_chain.<span class="fn">invoke</span>(
+    <span class="str">"Which reinforcement learning method was used in DeepSeek B4?"</span>
+)
+<span class="fn">print</span>(f<span class="str">f"Answer 2: {answer2}"</span>)
+<span class="cm"># → Mentions GRPO (Group Relative Policy Optimization)</span>
+
+<span class="cm"># ── Compare with simple LLM (no RAG) ─────────────────────────────</span>
+simple_answer = llm.<span class="fn">invoke</span>(question).content
+<span class="fn">print</span>(f<span class="str">f"\nSimple LLM: {simple_answer}"</span>)
+<span class="cm"># → "There is no such model as DeepSeek B4 Pro."  ← hallucination!</span>
+
+<span class="fn">print</span>(<span class="str">f"\n--- Comparison ---"</span>)
+<span class="fn">print</span>(f<span class="str">f"RAG answer:    {answer}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Simple answer: {simple_answer}"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- STEP 7: COMPARE -->
+  <section id="step7-compare">
+    <div class="section-eyebrow">14 — The Proof</div>
+    <h2>RAG vs Simple LLM — Live Comparison</h2>
+
+    <p>Sunny ran both answers side by side, showing students the concrete difference:</p>
+
+    <div class="compare-boxes">
+      <div class="compare-box" style="border-top:2px solid #f87171;">
+        <div class="cb-label" style="color:#f87171;">❌ Simple Gemini Flash (no RAG)</div>
+        <p style="font-size:0.82rem; color:var(--muted); margin-bottom:8px;">Q: "How many parameters in DeepSeek B4 Pro?"</p>
+        <div class="cb-answer" style="border-left-color:#f87171; color:#f87171;">"There is no such model as DeepSeek B4 Pro. I don't have information about this model."</div>
+      </div>
+      <div class="compare-box" style="border-top:2px solid var(--accent3);">
+        <div class="cb-label" style="color:var(--accent3);">✅ RAG System (Gemini + PDF context)</div>
+        <p style="font-size:0.82rem; color:var(--muted); margin-bottom:8px;">Q: "How many parameters in DeepSeek B4 Pro?"</p>
+        <div class="cb-answer" style="border-left-color:var(--accent3); color:var(--accent3);">"Based on the provided context, DeepSeek B4 Pro has 1.6 trillion total parameters, with 419 billion active per token."</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "See, guys, this is the benefit of the RAG. This is what — this is the benefit of the RAG. Our RAG pipeline is working fine. In front of you only, I developed the entire RAG pipeline. I haven't pre-prepared this code. This is what guys. Our RAG is working. It is able to capture the information."
+    </div>
+  </section>
+
+  <!-- FULL CODE -->
+  <section id="full-code">
+    <div class="section-eyebrow">15 — Complete Reference</div>
+    <h2>Full Pipeline — Complete Notebook</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · class31_pipeline.ipynb</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 31 — End-to-End RAG Pipeline (Glimpse)
+## File: class31/pipeline.ipynb  ·  Date: 11 July 2026
+## Data: DeepSeek B4 Preview Research Paper (2026 PDF)
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># CELL 1: Imports</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="fn">load_dotenv</span>()
+
+<span class="kw">from</span> langchain_google_genai    <span class="kw">import</span> <span class="cls">GoogleGenerativeAIEmbeddings</span>, <span class="cls">ChatGoogleGenerativeAI</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyPDFLoader</span>
+<span class="kw">from</span> langchain.text_splitter   <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain.prompts         <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">from</span> langchain_core.runnables  <span class="kw">import</span> <span class="cls">RunnablePassthrough</span>
+
+<span class="cm"># CELL 2: 2 Models Required</span>
+embedding_model = <span class="cls">GoogleGenerativeAIEmbeddings</span>(model=<span class="str">"models/embedding-002"</span>)
+llm             = <span class="cls">ChatGoogleGenerativeAI</span>(model=<span class="str">"gemini-2.0-flash-lite"</span>)
+
+<span class="cm"># CELL 3: Demonstrate the Problem (hallucination without RAG)</span>
+question  = <span class="str">"How many parameters are in the DeepSeek B4 Pro model?"</span>
+hallucin  = llm.<span class="fn">invoke</span>(question).content
+<span class="fn">print</span>(<span class="str">"Without RAG:"</span>, hallucin)
+<span class="cm"># → "There is no such model..." — hallucination!</span>
+
+<span class="cm"># CELL 4: Step 1 — Load PDF</span>
+pages = <span class="cls">PyPDFLoader</span>(<span class="str">"data/DeepSeek_B4_2026.pdf"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"Pages: {len(pages)}"</span>)   <span class="cm"># 58</span>
+
+<span class="cm"># CELL 5: Step 2 — Chunk</span>
+splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(chunk_size=<span class="num">500</span>, chunk_overlap=<span class="num">200</span>)
+chunks   = splitter.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"Chunks: {len(chunks)}"</span>)   <span class="cm"># 588</span>
+<span class="fn">print</span>(chunks[<span class="num">0</span>].page_content[:<span class="num">100</span>])
+
+<span class="cm"># CELL 6: Step 3 — Embed + Store in FAISS</span>
+vector_store = <span class="cls">FAISS</span>.<span class="fn">from_documents</span>(chunks, embedding_model)
+<span class="fn">print</span>(<span class="str">"✓ Stored in FAISS (in-memory)"</span>)
+
+<span class="cm"># CELL 7: Step 4 — Retriever</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">3</span>})
+context   = retriever.<span class="fn">invoke</span>(question)
+<span class="fn">print</span>(f<span class="str">f"Retrieved {len(context)} chunks"</span>)
+
+<span class="cm"># CELL 8: Step 5 — Prompt Template</span>
+prompt = <span class="cls">ChatPromptTemplate</span>.<span class="fn">from_template</span>(<span class="str">"""
+You are a helpful assistant. Answer the question based ONLY
+on the provided context. If the answer is not in the context,
+say "I don't have enough information."
+
+Context: {context}
+Question: {question}
+Answer:"""</span>)
+
+<span class="cm"># CELL 9: Step 6 — LCEL RAG Chain</span>
+<span class="kw">def</span> <span class="fn">format_docs</span>(docs):
+    <span class="kw">return</span> <span class="str">"\n\n"</span>.<span class="fn">join</span>(d.page_content <span class="kw">for</span> d <span class="kw">in</span> docs)
+
+rag_chain = (
+    {<span class="str">"context"</span>: retriever | format_docs, <span class="str">"question"</span>: <span class="cls">RunnablePassthrough</span>()}
+    | prompt
+    | llm
+    | <span class="cls">StrOutputParser</span>()
+)
+
+<span class="cm"># CELL 10: Step 7 — Compare RAG vs Simple LLM</span>
+rag_answer    = rag_chain.<span class="fn">invoke</span>(question)
+simple_answer = llm.<span class="fn">invoke</span>(question).content
+
+<span class="fn">print</span>(<span class="str">"RAG answer:    "</span>, rag_answer)
+<span class="fn">print</span>(<span class="str">"Simple answer: "</span>, simple_answer)
+
+<span class="cm"># RAG answer:    "1.6 trillion total parameters, 419 billion active per token."</span>
+<span class="cm"># Simple answer: "There is no such model as DeepSeek B4 Pro."</span>
+<span class="cm"># ↑ This is the concrete proof of RAG's value!</span></pre>
+    </div>
+  </section>
+
+  <!-- LESSONS -->
+  <section id="lessons">
+    <div class="section-eyebrow">16 — Key Learnings</div>
+    <h2>Lessons from the Live Demo</h2>
+
+    <div style="display:flex; flex-direction:column; gap:14px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.9rem; color:var(--accent4); margin-bottom:6px;">⚠ Lesson 1: Query wording matters enormously</h4>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">When Sunny asked about "RLHF" in DeepSeek B4, the RAG returned no relevant result — because the paper uses "GRPO" and "Reinforcement Learning," not the acronym "RLHF." Changing the query to "reinforcement learning" immediately retrieved the correct chunks. The exact words in your query must match the vocabulary in the document.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.9rem; color:var(--accent); margin-bottom:6px;">💡 Lesson 2: k matters — more context vs more noise</h4>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Sunny increased k from 3 to 10 when certain questions didn't find the right answer. More chunks means more context, but also more noise. Finding the right k is a hyperparameter you tune per dataset and use case.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.9rem; color:var(--accent5); margin-bottom:6px;">📝 Lesson 3: Prompt instructions help fill semantic gaps</h4>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">When the query vocabulary doesn't match the document vocabulary, you can add custom instructions to the prompt: "If the user says RLHF, they mean reinforcement learning from human feedback — also look for GRPO and similar terms." Prompt engineering and RAG work together.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.9rem; color:var(--accent3); margin-bottom:6px;">✅ Lesson 4: The pipeline is consistent across LLMs</h4>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Sunny mentioned you can swap Gemini for Groq, OpenAI GPT, Claude, or local Ollama — the pipeline code stays identical. Only the model class changes. This is LangChain's superpower: a unified interface across all LLM providers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAG VS MCP -->
+  <section id="rag-vs-mcp">
+    <div class="section-eyebrow">17 — From the Q&A</div>
+    <h2>RAG vs MCP — Sunny's Explanation</h2>
+
+    <p>A student asked an excellent question during the live Q&A. Sunny's answer is worth preserving:</p>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">Q — Student</div>
+      <p style="font-size:0.875rem; color:var(--text); margin-bottom:14px;">"RAG and MCP — in the context of live data extraction, how are they the same or different? Can MCP replace RAG?"</p>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">A — Sunny</div>
+      <div style="font-size:0.84rem; color:#94a3b8; line-height:1.8;">
+        <p style="margin-bottom:10px;"><strong style="color:var(--text);">RAG</strong> = connecting an LLM to an external data source (knowledge base) to answer questions. The output is a knowledge-grounded answer.</p>
+        <p style="margin-bottom:10px;"><strong style="color:var(--text);">MCP</strong> = Model Context Protocol — standardises how LLMs call tools and external software (GitHub, Slack, Google Drive, file system, database, browser) via client-server architecture. The output is a tool execution or action.</p>
+        <p style="margin-bottom:10px;"><strong style="color:var(--accent6);">Key difference:</strong> "RAG is for knowledge-based retrieval. MCP is to make a standardised process to call a tool — which is called an action."</p>
+        <p><strong style="color:var(--accent5);">How they work together:</strong> You can wrap a RAG pipeline as a tool, expose it as an MCP server, and then an agentic system can invoke the RAG retrieval as one of many actions. "We can bind this particular retrieval process as a tool, and we can expose it as an MCP." → Covered in the Agentic AI chapter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">18 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 31 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What are the 2 models required for any RAG system, and what does each do?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Model 1: Embedding Model — converts text (both document chunks during ingestion and user questions at query time) into dense numerical vectors. Used in both the ingestion and retrieval phases. Model 2: LLM (Chat Model) — generates the final answer from the augmented prompt (retrieved context + user question + instructions). Used in the generation phase only. Without the embedding model, you can't do similarity search. Without the LLM, you can't generate a final answer.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Using Sunny's phone number analogy, explain why chunking is needed.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Just like when someone asks for your phone number, you say it in chunks ("877", "020", "3258") rather than 10 digits at once — because that's how humans process information — LLMs also process information in chunks. A 58-page PDF contains far more text than an LLM can handle in one go (e.g. 4096 token context limit). Chunking splits the PDF into manageable pieces that fit within the LLM's context window. At retrieval time, only the top-k most relevant chunks are sent to the LLM, not the entire document.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What does chunk_overlap do, and why is it useful?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Chunk overlap means adjacent chunks share some characters. For example with chunk_size=500 and overlap=200: Chunk 1 covers chars 0–500, Chunk 2 covers chars 300–800, sharing chars 300–500. This ensures that information spanning a chunk boundary isn't lost — if a key sentence crosses the split point, at least one chunk contains the complete sentence. Without overlap, you might miss crucial information that straddles a chunk boundary.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is the role of RunnablePassthrough() in the LCEL RAG chain?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">RunnablePassthrough() simply passes its input through unchanged — it's an identity function in the chain. In the RAG chain, the prompt template needs two inputs: "context" (from the retriever) and "question" (the user's question). The retriever processes the question and returns chunks, but the prompt also needs the original question text. RunnablePassthrough() takes whatever was passed to the chain's invoke() call (the user's question string) and passes it directly to the "question" key in the prompt, without modification.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Sunny demonstrated a case where RAG still failed to return the right answer. What was the root cause and how did he fix it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">The root cause was vocabulary mismatch: Sunny asked about "RLHF" (Reinforcement Learning from Human Feedback) but the research paper uses "GRPO" and "reinforcement learning" — not the acronym "RLHF." Since RAG retrieval works by semantic similarity between the query vector and document chunk vectors, if the exact term isn't present in the document, the relevant chunks won't be retrieved. The fix: Sunny changed the query from "RLHF" to "reinforcement learning" — and the correct chunks were immediately retrieved. Longer term solution: add instructions in the prompt template to define "RLHF = reinforcement learning, also check for GRPO."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What is the primary difference between RAG and MCP? Can they work together?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">RAG = connecting LLMs to knowledge bases (documents, PDFs) to answer questions with grounded, factual answers. It's about knowledge retrieval. MCP = Model Context Protocol — a standardised way for LLMs to call external tools and software (GitHub, Slack, databases, file systems) via client-server architecture. It's about tool execution and actions. They work together: you can wrap a RAG pipeline as a tool, expose it as an MCP server, and an agentic system can invoke RAG retrieval as one of many actions alongside other tools. This is covered in the Agentic AI chapter.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 31 · First End-to-End RAG Pipeline · 11 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
