@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 36 — Retriever Deep Dive | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — retrieval */
+  --accent2:     #f472b6;   /* pink — MMR */
+  --accent3:     #4ade80;   /* green — dense / success */
+  --accent4:     #fb923c;   /* orange — sparse / warning */
+  --accent5:     #a78bfa;   /* violet — reranking */
+  --accent6:     #facc15;   /* yellow — highlights */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(34,211,238,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 36):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── PARAM TABLE ── */
+.param-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.param-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 11px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.param-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.param-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.param-table .pname { font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-weight: 600; font-size: 0.78rem; }
+.param-table .ptype { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+
+/* ── SEARCH TYPE CARDS ── */
+.search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin: 20px 0; }
+.search-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; border-top: 3px solid; }
+.search-card .sc-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; }
+.search-card .sc-formula { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--muted); background: rgba(0,0,0,0.2); border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; }
+.search-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 6px; line-height: 1.5; }
+.search-card .sc-best { font-size: 0.7rem; }
+
+/* ── RETRIEVER TYPE CARDS ── */
+.retriever-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+.rt-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; border-top: 3px solid; }
+.rt-card .rt-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+.rt-card h4 { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.rt-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 6px; line-height: 1.5; }
+.rt-card ul { list-style: none; }
+.rt-card ul li { font-size: 0.74rem; color: #94a3b8; padding: 2px 0; }
+.rt-card ul li::before { content: '→ '; color: var(--muted); }
+
+/* ── FILTER FLOW ── */
+.filter-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.filter-box { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 20px; }
+.filter-box .fb-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 14px; }
+.filter-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.filter-step .fs-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.filter-step p { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+
+/* ── RERANKING FLOW ── */
+.rerank-flow { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; }
+.rerank-flow .rf-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.rf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.rf-node { padding: 8px 14px; border-radius: 6px; font-size: 0.74rem; font-weight: 500; border: 1px solid; white-space: nowrap; font-family: 'IBM Plex Mono', monospace; }
+.rf-arrow { color: var(--muted); font-size: 1rem; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(34,211,238,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(34,211,238,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── EXPLORE MORE ── */
+.explore-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+.explore-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.explore-item .ei-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+.explore-item p { font-size: 0.72rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .retriever-types, .filter-compare { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#where-we-are">Where We Are</a></li>
+    <li><a href="#what-is-retriever">What is a Retriever?</a></li>
+    <li><a href="#retriever-params">Retriever Parameters</a></li>
+    <li class="sub"><a href="#k-param">k — Number of Results</a></li>
+    <li class="sub"><a href="#filter-param">filter — Metadata</a></li>
+    <li class="sub"><a href="#score-threshold">score_threshold</a></li>
+    <li class="sub"><a href="#fetch-k">fetch_k & lambda_mult</a></li>
+    <li><a href="#search-types">Search Types</a></li>
+    <li class="sub"><a href="#cosine">Cosine Similarity</a></li>
+    <li class="sub"><a href="#dot-product">Dot Product</a></li>
+    <li class="sub"><a href="#euclidean">Euclidean Distance</a></li>
+    <li class="sub"><a href="#mmr">MMR (Advanced)</a></li>
+    <li><a href="#retriever-types">Retriever Types</a></li>
+    <li class="sub"><a href="#sparse">Sparse (BM25)</a></li>
+    <li class="sub"><a href="#dense">Dense (Embeddings)</a></li>
+    <li class="sub"><a href="#hybrid">Hybrid</a></li>
+    <li><a href="#filtering">Pre vs Post Filtering</a></li>
+    <li class="sub"><a href="#pre-filter">Pre-Filtering</a></li>
+    <li class="sub"><a href="#post-filter">Post-Filtering</a></li>
+    <li class="sub"><a href="#tenant-isolation">Tenant Isolation</a></li>
+    <li><a href="#reranking">Re-Ranking</a></li>
+    <li class="sub"><a href="#cross-encoder">Cross-Encoder</a></li>
+    <li><a href="#practical-code">Practical Code</a></li>
+    <li class="sub"><a href="#similarity-metrics">Similarity Metrics</a></li>
+    <li class="sub"><a href="#score-threshold-code">Score Threshold</a></li>
+    <li class="sub"><a href="#metadata-filtering-code">Metadata Filtering</a></li>
+    <li><a href="#explore-more">Explore Further</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 36</span></div>
+    <div class="hero-class-num">Class 36 · 29 July 2026</div>
+    <h1>Retriever<br><em>Deep Dive</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Search Types & MMR</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Sparse · Dense · Hybrid</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Pre vs Post Filtering</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Re-Ranking & Cross-Encoder</div>
+    </div>
+    <p class="hero-summary">
+      The RAG chapter's retrieval session. Sunny goes deep into everything about retrievers — what they are, every configurable parameter, the 3 similarity search methods, MMR, sparse vs dense vs hybrid retrieval, pre-filtering vs post-filtering with real-world production guidance, and re-ranking with cross-encoders. Comes with a reference PDF and full practical notebook.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Precise definition of a Retriever — what it does and what it does NOT do</li>
+      <li><span class="chk">✓</span> Every retriever parameter: k, filter, score_threshold, fetch_k, lambda_mult</li>
+      <li><span class="chk">✓</span> LangChain search types: similarity vs MMR</li>
+      <li><span class="chk">✓</span> The 3 similarity metrics: Cosine similarity, Dot Product, Euclidean Distance — formulas, ranges, and when to use each</li>
+      <li><span class="chk">✓</span> MMR (Maximum Marginal Relevance) — what it is, why it's different, fetch_k and lambda_mult</li>
+      <li><span class="chk">✓</span> 3 retriever types: Sparse (BM25/TF-IDF), Dense (embedding-based), Hybrid (both combined)</li>
+      <li><span class="chk">✓</span> History: RAG paper introduced in 2020, sparse retrieval predated dense LLM embeddings</li>
+      <li><span class="chk">✓</span> Pre-filtering vs Post-filtering — what each does, advantages, limitations, production guidance</li>
+      <li><span class="chk">✓</span> Tenant isolation — how pre-filtering enables multi-tenant RAG security</li>
+      <li><span class="chk">✓</span> Re-ranking — what it is, why it's needed, cross-encoder as the reranking model</li>
+      <li><span class="chk">✓</span> Practical: LangChain retriever with similarity_search_with_relevance_score, metadata filtering, pre/post filtering</li>
+      <li><span class="chk">✓</span> Additional terms to self-study: weighted fusion, RRF, multi-query retriever, HyDE, parent-document retriever, contextual compression</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">📄</span>
+      <p><strong>Sunny prepared a reference PDF for this class.</strong> Every concept, formula, and code example is in the notes document he shared with students. The PDF is available in the bootcamp group/portal. This guide captures the full class content and adds code you can run directly.</p>
+    </div>
+  </section>
+
+  <!-- WHERE WE ARE -->
+  <section id="where-we-are">
+    <div class="section-eyebrow">02 — Chapter Progress</div>
+    <h2>Where We Are in the RAG Pipeline</h2>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:24px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.4;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:14px;">RAG Pipeline — Current Position</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <span style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:var(--accent3); padding:6px 12px; border-radius:5px; font-size:0.72rem;">✓ Data (Parsing)</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:var(--accent3); padding:6px 12px; border-radius:5px; font-size:0.72rem;">✓ Chunking</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:var(--accent3); padding:6px 12px; border-radius:5px; font-size:0.72rem;">✓ Embedding</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:var(--accent3); padding:6px 12px; border-radius:5px; font-size:0.72rem;">✓ Vector Store</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(34,211,238,0.15); border:2px solid var(--accent); color:var(--accent); padding:6px 12px; border-radius:5px; font-size:0.72rem; font-weight:700;">← RETRIEVER (now)</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(100,116,139,0.1); border:1px solid rgba(100,116,139,0.25); color:var(--muted); padding:6px 12px; border-radius:5px; font-size:0.72rem;">Prompting</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(100,116,139,0.1); border:1px solid rgba(100,116,139,0.25); color:var(--muted); padding:6px 12px; border-radius:5px; font-size:0.72rem;">Generation</span>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "So, inside the RAG, what we have: data → parsing → chunking → embedding → vector store. Now we are into the Retriever. After the Retriever, we will understand about the prompting — how we can write the prompt and all, how we can give some additional instruction to the LLM — and then only we are going to generate the final answer."
+    </div>
+  </section>
+
+  <!-- WHAT IS RETRIEVER -->
+  <section id="what-is-retriever">
+    <div class="section-eyebrow">03 — Core Concept</div>
+    <h2>What is a Retriever?</h2>
+
+    <div style="background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.2); border-radius:8px; padding:20px 24px; margin:16px 0; text-align:center;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--muted); margin-bottom:10px; letter-spacing:0.12em; text-transform:uppercase;">Sunny's Class Definition</div>
+      <div style="font-size:1rem; font-weight:600; color:#fff; line-height:1.7;">A Retriever takes a <span style="color:var(--accent)">user query</span> and returns the most<br>relevant <span style="color:var(--accent2)">documents / chunks</span> from the <span style="color:var(--accent5)">knowledge source</span> (Vector DB)</div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔑</span>
+      <p><strong>Critical distinction:</strong> "A retriever normally does not generate the final answer itself. It collects the relevant context which is required to generate the answer. Retriever answer is not a final answer — it is going to collect the relevant context from the vector database, and then LLM is going to generate the final answer."</p>
+    </div>
+
+    <h3>The Retriever's 3-Step Job</h3>
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">1</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--text);">Takes a query.</strong> The user's natural language question arrives at the retriever.</div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">2</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--text);">Searches the knowledge source.</strong> Embeds the query and runs similarity search inside the vector store.</div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">3</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--text);">Returns the most relevant chunks.</strong> Top-k Document objects are returned for the LLM to use as context.</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>Framework independence:</strong> "Most of the time in the industry — 95–99% — we use LangChain. But if you're using LlamaIndex or Haystack, the concept is the same. Only the function or class name changes according to the framework."</p>
+    </div>
+  </section>
+
+  <!-- RETRIEVER PARAMETERS -->
+  <section id="retriever-params">
+    <div class="section-eyebrow">04 — Configuration</div>
+    <h2>Retriever Parameters — All of Them</h2>
+
+    <p>Sunny walked through every parameter you encounter when creating a LangChain retriever. Know these before any interview or production work.</p>
+
+    <table class="param-table">
+      <thead><tr><th>Parameter</th><th>Type</th><th>Description</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr id="k-param">
+          <td class="pname">k</td>
+          <td class="ptype">int</td>
+          <td>Number of documents to retrieve. If k=10, the retriever returns the top 10 most similar chunks. Directly passed in search_kwargs.</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">4</td>
+        </tr>
+        <tr id="filter-param">
+          <td class="pname">filter</td>
+          <td class="ptype">dict</td>
+          <td>Metadata pre-filter. Only documents matching these metadata key-value pairs are considered. e.g. {"section": "fine-tuning", "year": "2023"}. Use carefully — wrong filter = wrong results.</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">None</td>
+        </tr>
+        <tr id="score-threshold">
+          <td class="pname">score_threshold</td>
+          <td class="ptype">float</td>
+          <td>Minimum cosine similarity score (0.0–1.0) a document must meet to be returned. Documents below this threshold are discarded. Used with search_type="similarity_score_threshold".</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">None</td>
+        </tr>
+        <tr id="fetch-k">
+          <td class="pname">fetch_k</td>
+          <td class="ptype">int</td>
+          <td>MMR-specific. Fetch this many candidate documents first (wider pool), then MMR selects k most relevant+diverse from these candidates. fetch_k ≥ k always.</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">20</td>
+        </tr>
+        <tr>
+          <td class="pname">lambda_mult</td>
+          <td class="ptype">float (0–1)</td>
+          <td>MMR-specific. Controls the trade-off: 1.0 = pure similarity (ignore diversity), 0.0 = pure diversity (ignore relevance). Recommended: 0.5 (balanced). Covered in depth in next class.</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">0.5</td>
+        </tr>
+        <tr>
+          <td class="pname">search_type</td>
+          <td class="ptype">str</td>
+          <td>"similarity" (default) or "mmr" or "similarity_score_threshold". Controls which retrieval algorithm runs. Passed to as_retriever().</td>
+          <td style="font-family:'IBM Plex Mono',monospace;">"similarity"</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <span class="lang-label">python · retriever creation</span>
+      <pre><span class="cm"># Standard retriever — top 5 documents, cosine similarity</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">5</span>}
+)
+
+<span class="cm"># Score threshold retriever — only return docs with ≥ 60% cosine similarity</span>
+retriever_threshold = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity_score_threshold"</span>,
+    search_kwargs = {<span class="str">"score_threshold"</span>: <span class="num">0.60</span>}
+)
+
+<span class="cm"># Metadata pre-filter — only retrieve from "fine-tuning" section, year 2023</span>
+retriever_filtered = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {
+        <span class="str">"k"</span>:      <span class="num">4</span>,
+        <span class="str">"filter"</span>: {<span class="str">"section"</span>: <span class="str">"fine-tuning"</span>, <span class="str">"year"</span>: <span class="str">"2023"</span>}
+    }
+)
+
+<span class="cm"># MMR retriever — balance relevance and diversity</span>
+<span class="cm"># fetch_k=20: fetch 20 candidates first</span>
+<span class="cm"># k=5: return 5 most relevant+diverse from those 20</span>
+<span class="cm"># lambda_mult=0.5: equal balance (covered in depth next class)</span>
+retriever_mmr = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"mmr"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">5</span>, <span class="str">"fetch_k"</span>: <span class="num">20</span>, <span class="str">"lambda_mult"</span>: <span class="num">0.5</span>}
+)</pre>
+    </div>
+  </section>
+
+  <!-- SEARCH TYPES -->
+  <section id="search-types">
+    <div class="section-eyebrow">05 — Similarity Metrics</div>
+    <h2>The 3 Similarity Search Methods</h2>
+
+    <div class="search-grid">
+      <div class="search-card" style="border-top-color:var(--accent);" id="cosine">
+        <div class="sc-name" style="color:var(--accent);">Cosine Similarity</div>
+        <div class="sc-formula">cos(A,B) = (A·B) / (‖A‖ × ‖B‖)</div>
+        <p>Normalised dot product. Measures the angle between two vectors regardless of their magnitude. Range: −1 to +1. Higher = more similar.</p>
+        <div class="sc-best" style="color:var(--accent);">✓ Best for: text, RAG, all NLP tasks</div>
+        <div class="sc-best" style="color:var(--muted); margin-top:4px;">Standard choice — used 95% of the time in production</div>
+      </div>
+
+      <div class="search-card" style="border-top-color:var(--accent5);" id="dot-product">
+        <div class="sc-name" style="color:var(--accent5);">Dot Product</div>
+        <div class="sc-formula">A · B = Σ (Aᵢ × Bᵢ)</div>
+        <p>Multiply corresponding elements and sum them. No fixed range — depends on vector magnitudes. Cosine = normalised version of dot product.</p>
+        <div class="sc-best" style="color:var(--accent5);">✓ Best for: normalised vectors</div>
+        <div class="sc-best" style="color:var(--muted); margin-top:4px;">After normalising dot product values = cosine similarity values</div>
+      </div>
+
+      <div class="search-card" style="border-top-color:var(--accent4);" id="euclidean">
+        <div class="sc-name" style="color:var(--accent4);">Euclidean Distance (L2)</div>
+        <div class="sc-formula">d(A,B) = √Σ(Aᵢ − Bᵢ)²</div>
+        <p>Geometric straight-line distance between two points. Lower = more similar. Range: 0 to ∞. Sensitive to magnitude differences.</p>
+        <div class="sc-best" style="color:var(--accent4);">✓ Best for: image search, spatial data</div>
+        <div class="sc-best" style="color:var(--muted); margin-top:4px;">Used in FAISS IndexFlatL2 by default</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Cosine similarity is normalised distance — normalised similarity between A and B vector. What is this dot product between them divided by the distances — so it's a normalised value. Most of the time, you are going to use cosine similarity in real time. Generally, we use the cosine similarity, which is a more normalised one."
+    </div>
+
+    <h3 id="mmr">MMR — Maximum Marginal Relevance</h3>
+
+    <div style="background:rgba(244,114,182,0.06); border:1px solid rgba(244,114,182,0.2); border-radius:8px; padding:18px 22px; margin:16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent2); margin-bottom:10px; letter-spacing:0.1em; text-transform:uppercase;">MMR Definition</div>
+      <p style="font-size:0.9rem; color:#fff; margin:0 0 10px; font-weight:600;">An advanced type of similarity search that balances <span style="color:var(--accent2)">relevance</span> AND <span style="color:var(--accent3)">diversity</span></p>
+      <p style="font-size:0.84rem; color:#94a3b8; margin:0;">It is NOT a separate formula — it is an updated version of cosine similarity where the selection algorithm also penalises near-duplicate results.</p>
+    </div>
+
+    <div class="sunny-says">
+      "MMR is an advanced kind of similarity search. In MMR also, are we using any different concept? No. We are using cosine similarity only. But it is in a different way — we are going to check the similarity along with the diversification. MMR is really useful — even I have used it in one of my real-time projects and it was working good. It will give you quite good results compared to normal cosine, dot product, or Euclidean distance."
+    </div>
+
+    <p>MMR's two-stage selection:</p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin:14px 0 20px;">
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <span style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent2); flex-shrink:0; margin-top:2px;">1</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--text);">Stage 1 (fetch_k):</strong> Retrieve a larger candidate pool (e.g. 20 documents) using standard cosine similarity.</div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <span style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent2); flex-shrink:0; margin-top:2px;">2</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--text);">Stage 2 (k, lambda_mult):</strong> From those 20, iteratively select k documents that are both relevant to the query AND different from already-selected documents. lambda_mult controls the balance (1.0 = pure relevance, 0.0 = pure diversity).</div>
+      </div>
+    </div>
+
+    <div class="callout pink">
+      <span class="callout-icon">📌</span>
+      <p><strong>When to use MMR:</strong> Use when you notice your top-k results are near-duplicates (chunks from the same paragraph returning 4 times). MMR ensures the LLM gets diverse context from across the document, not the same information repeated. Particularly useful with large documents and high-overlap chunks. <em>fetch_k and lambda_mult formula will be covered in detail in the next class.</em></p>
+    </div>
+  </section>
+
+  <!-- RETRIEVER TYPES -->
+  <section id="retriever-types">
+    <div class="section-eyebrow">06 — Architecture Types</div>
+    <h2>3 Types of Retriever</h2>
+
+    <p>Sunny placed sparse retrieval in historical context: the original RAG paper (Facebook, 2020) used sparse retrieval — it predated modern dense embedding models. The RAG chapter started specifically because strong embedding models emerged, making dense retrieval the dominant approach.</p>
+
+    <div class="retriever-types">
+      <div class="rt-card" style="border-top-color:var(--accent4);" id="sparse">
+        <div class="rt-name" style="color:var(--accent4);">Type 1</div>
+        <h4>Sparse Retriever</h4>
+        <p>Old, reliable technique. Predates dense LLM embeddings. Uses sparse vectors (most elements = 0) built from vocabulary matching.</p>
+        <ul>
+          <li>TF-IDF (Term Frequency–Inverse Document Frequency)</li>
+          <li>BM25 (Best Match 25)</li>
+          <li>Keyword search, term matching</li>
+          <li>No neural embeddings needed</li>
+        </ul>
+        <p style="margin-top:8px; color:var(--muted);">∷ The original RAG paper used this · Still reliable · Used in "vectorless RAG"</p>
+      </div>
+
+      <div class="rt-card" style="border-top-color:var(--accent3);" id="dense">
+        <div class="rt-name" style="color:var(--accent3);">Type 2</div>
+        <h4>Dense Retriever</h4>
+        <p>Modern approach — uses state-of-the-art LLM embedding models to generate dense vectors (every element is a float). Performs semantic search.</p>
+        <ul>
+          <li>Bi-encoder architecture (query and doc encoded separately)</li>
+          <li>Semantic similarity, not keyword matching</li>
+          <li>Requires an embedding model + vector store</li>
+          <li>What we've been building in this bootcamp</li>
+        </ul>
+        <p style="margin-top:8px; color:var(--muted);">∷ Standard RAG approach · 95%+ of modern RAG systems</p>
+      </div>
+
+      <div class="rt-card" style="border-top-color:var(--accent);" id="hybrid">
+        <div class="rt-name" style="color:var(--accent);">Type 3</div>
+        <h4>Hybrid Retriever</h4>
+        <p>Combines both sparse (keyword) and dense (semantic) retrieval. Results from both are merged using fusion techniques.</p>
+        <ul>
+          <li>Sparse + Dense running in parallel</li>
+          <li>Results merged via Reciprocal Rank Fusion (RRF) or Weighted Fusion</li>
+          <li>Gets exact keyword matches AND semantic matches</li>
+          <li>Best coverage for production systems</li>
+        </ul>
+        <p style="margin-top:8px; color:var(--muted);">∷ Production best practice · Handles vocabulary mismatch · Code in next class</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Hybrid retriever means we are going to combine both — keyword and the vector search. Then we'll get the combined result. TF-IDF, BM25 keywords — it's a very old technique for retrieving information, but it is an old and reliable technique. When the strong embedding model came, RAG became popular. But before that, everyone was already retrieving — just differently."
+    </div>
+  </section>
+
+  <!-- FILTERING -->
+  <section id="filtering">
+    <div class="section-eyebrow">07 — Production Technique</div>
+    <h2>Pre-Filtering vs Post-Filtering</h2>
+
+    <p>Metadata filtering is how you restrict retrieval to specific subsets of your knowledge base. Two approaches — and Sunny shared which one he uses in production.</p>
+
+    <div class="filter-compare">
+      <div class="filter-box" id="pre-filter">
+        <span class="fb-title" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">✅ Pre-Filtering (Recommended)</span>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">1</span>
+          <p><strong style="color:var(--text);">Apply metadata filter first</strong> — restrict the vector database to only the documents matching your metadata criteria</p>
+        </div>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">2</span>
+          <p><strong style="color:var(--text);">Run similarity search</strong> — query embedding is compared ONLY against the filtered (smaller) document set</p>
+        </div>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">3</span>
+          <p><strong style="color:var(--text);">Return top-k results</strong> from the filtered space</p>
+        </div>
+        <div style="margin-top:12px; font-size:0.78rem; color:var(--accent3);">✓ Faster · ✓ More precise · ✓ Tenant isolation · ✓ Security</div>
+      </div>
+
+      <div class="filter-box" id="post-filter">
+        <span class="fb-title" style="background:rgba(251,146,60,0.1); color:var(--accent4); border:1px solid rgba(251,146,60,0.3);">⚠ Post-Filtering (Use carefully)</span>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">1</span>
+          <p><strong style="color:var(--text);">Run similarity search first</strong> — query embedding compared against ALL documents in the vector database</p>
+        </div>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">2</span>
+          <p><strong style="color:var(--text);">Apply metadata filter</strong> to the retrieved results — filter out documents that don't match criteria</p>
+        </div>
+        <div class="filter-step">
+          <span class="fs-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">3</span>
+          <p><strong style="color:var(--text);">Return remaining results</strong> (may be fewer than k)</p>
+        </div>
+        <div style="margin-top:12px; font-size:0.78rem; color:var(--accent4);">✗ Slower · ✗ May miss relevant docs · ✗ Unauthorized docs enter intermediate set</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "I have also applied pre-filtering in real-time projects where I was having so many documents. Based on the pre-filtering only, I was filtering out the data. Later on, when I was delivering my solution, I changed the post-filtering to pre-filtering, and with that I was able to speed up the retrieval significantly. Pre-filtering is recommended — it is the faster of the retrieval process."
+    </div>
+
+    <h3 id="tenant-isolation">Tenant Isolation via Pre-Filtering</h3>
+    <p>One of the most important production use cases for pre-filtering:</p>
+
+    <div class="sunny-says">
+      "Tenant isolation means multi-tenant RAG application. Tenant A can retrieve only Tenant A documents, and Tenant B can retrieve only Tenant B documents. Let's say Tenant A is Company A, or Department A. So, Department A can only retrieve Department A documents after putting the pre-filtering. Department B can only retrieve Department B documents after putting the pre-filtering. But this is NOT possible with post-filtering."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Multi-Tenant RAG Architecture</div>
+      <div style="color:var(--accent6);">Company Knowledge Base (one VDB)</div>
+      <div style="padding-left:20px; color:#94a3b8;">
+        ├── <span style="color:var(--accent);">tenant: "hr_dept"</span> → HR policies, leave docs, compensation data<br>
+        ├── <span style="color:var(--accent2);">tenant: "finance"</span> → P&amp;L reports, budgets, invoices<br>
+        └── <span style="color:var(--accent3);">tenant: "engineering"</span> → tech specs, architecture docs, runbooks
+      </div>
+      <div style="margin-top:14px; color:var(--muted); font-size:0.72rem;">
+        HR employee query → filter={"tenant":"hr_dept"} → only HR docs retrieved<br>
+        Finance employee query → filter={"tenant":"finance"} → only finance docs retrieved<br>
+        <span style="color:var(--accent4);">Cross-department leakage: impossible with pre-filtering</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RERANKING -->
+  <section id="reranking">
+    <div class="section-eyebrow">08 — Advanced Retrieval</div>
+    <h2>Re-Ranking</h2>
+
+    <p>Re-ranking is a second-stage process applied after initial retrieval. Sunny's classroom analogy made it clear:</p>
+
+    <div class="sunny-says">
+      "In the classroom, let's say we have 50 students. I filter based on IQ — I find 10 students. These are the excellent ones. Now, again, I put one more parameter: reasoning or logical thinking. In that case, I found the top 3 students. These 3 students are extraordinary. So — the 10 students are filtered data, but the 3 students are MORE filtered data. This is re-ranking."
+    </div>
+
+    <div class="rerank-flow">
+      <div class="rf-label">Re-Ranking Pipeline</div>
+      <div class="rf-row">
+        <div class="rf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent2);">User Query</div>
+        <span class="rf-arrow">→</span>
+        <div class="rf-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">Initial Retriever<br><small>(BM25 / Dense / Hybrid)</small></div>
+        <span class="rf-arrow">→</span>
+        <div class="rf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">Top Candidate Docs<br><small>k=20 (wider pool)</small></div>
+        <span class="rf-arrow">→</span>
+        <div class="rf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">Re-Ranker<br><small>(Cross-Encoder)</small></div>
+        <span class="rf-arrow">→</span>
+        <div class="rf-node" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">Top-k Reordered<br><small>k=5 most relevant</small></div>
+        <span class="rf-arrow">→</span>
+        <div class="rf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">LLM</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px; margin:16px 0;">
+      <h4 style="font-size:0.9rem; color:#fff; margin-bottom:10px;">Re-ranking — Key Facts</h4>
+      <ul style="list-style:none; font-size:0.84rem; color:#94a3b8; line-height:2.2;">
+        <li>→ <strong style="color:var(--text);">Definition:</strong> A second-stage retrieval process that takes initially retrieved documents, scores them more accurately against the user query, and reorders them so the most relevant go to the LLM</li>
+        <li>→ <strong style="color:var(--text);">Not the same as metadata filtering:</strong> Re-ranking uses a semantic model (not metadata values) to re-score and reorder</li>
+        <li>→ <strong style="color:var(--text);">Not mandatory:</strong> Use when you have a lot of data and want to filter more precisely before sending to LLM</li>
+        <li>→ <strong style="color:var(--text);">Benefits:</strong> Improved ordering of retrieved documents, removes weak candidates, reduces irrelevant context, reduces input tokens, improves evidence quality</li>
+        <li>→ <strong style="color:var(--text);">Limitations:</strong> Adds latency, additional inference cost, adds complexity</li>
+      </ul>
+    </div>
+
+    <h3 id="cross-encoder">Cross-Encoder — The Reranking Model</h3>
+
+    <div class="sunny-says">
+      "What algorithm can we use for reranking? In the industry, we are basically using the cross-encoder. Cross-encoder is nothing — it's just an LLM model which is primarily using the cross-attention mechanism between the user query and the given document. You remember, in the transformer architecture, I explained 3 kinds of self-attention: normal self-attention, cross-attention, and masked attention. The cross-encoder works on the cross-attention technique."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px;">
+        <h4 style="font-size:0.88rem; color:var(--accent5); margin-bottom:10px;">Bi-Encoder (Dense Retriever)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Query and document encoded SEPARATELY by the same model. Fast — embeddings can be pre-computed. Used for initial retrieval across millions of docs. Cosine similarity between two independent vectors.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px;">
+        <h4 style="font-size:0.88rem; color:var(--accent5); margin-bottom:10px;">Cross-Encoder (Re-Ranker)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Query and document passed TOGETHER through a model. Uses cross-attention to check deep query-document relationship. Much slower but far more accurate. Used only on top-k candidates, not full dataset.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRACTICAL CODE -->
+  <section id="practical-code">
+    <div class="section-eyebrow">09 — Hands-On Code</div>
+    <h2>Practical — Full Retrieval Notebook</h2>
+
+    <p>Sunny's live code from the <code>Retrieval.ipynb</code> notebook, covering all concepts taught in the theory section.</p>
+
+    <h3 id="similarity-metrics">Comparing All 3 Similarity Metrics Manually</h3>
+    <div class="code-block">
+      <span class="lang-label">python · similarity metrics comparison</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 36 — Retrieval Practical
+## File: Retrieval.ipynb  ·  Date: 29 July 2026
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+
+<span class="cm"># ── Setup: Load existing vector store ────────────────────────────</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-small"</span>)
+<span class="cm"># Assume we have a vector store built from a PDF with metadata:</span>
+<span class="cm"># {"section": "fine-tuning", "year": "2023", "page": 5, ...}</span>
+
+<span class="cm"># ── Run similarity search and get candidate chunks ───────────────</span>
+query        = <span class="str">"What are the different metrics in the RAG pipeline?"</span>
+candidate_docs = vector_store.<span class="fn">similarity_search</span>(query, k=<span class="num">6</span>)
+
+<span class="fn">print</span>(f<span class="str">f"Candidate chunks selected: {len(candidate_docs)}"</span>)
+
+<span class="cm"># ── Extract text and embed manually ──────────────────────────────</span>
+candidate_texts = [doc.page_content <span class="kw">for</span> doc <span class="kw">in</span> candidate_docs]
+
+<span class="cm"># Embed query and all candidate texts</span>
+query_vec     = np.<span class="fn">array</span>(embedding_model.<span class="fn">embed_query</span>(query))
+doc_vecs      = np.<span class="fn">array</span>(embedding_model.<span class="fn">embed_documents</span>(candidate_texts))
+
+<span class="fn">print</span>(f<span class="str">f"Query vector shape:    {query_vec.shape}"</span>)   <span class="cm"># (1536,)</span>
+<span class="fn">print</span>(f<span class="str">f"Doc vectors shape:     {doc_vecs.shape}"</span>)    <span class="cm"># (6, 1536)</span>
+
+<span class="cm"># ── Compare all 3 metrics for each candidate ─────────────────────</span>
+results = []
+<span class="kw">for</span> i, (doc_vec, text) <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">zip</span>(doc_vecs, candidate_texts)):
+
+    <span class="cm"># 1. Cosine Similarity (normalised, range −1 to +1)</span>
+    cosine = np.<span class="fn">dot</span>(query_vec, doc_vec) / (
+        np.<span class="fn">linalg</span>.<span class="fn">norm</span>(query_vec) * np.<span class="fn">linalg</span>.<span class="fn">norm</span>(doc_vec)
+    )
+
+    <span class="cm"># 2. Euclidean Distance (geometric, lower = more similar)</span>
+    euclidean = np.<span class="fn">linalg</span>.<span class="fn">norm</span>(query_vec - doc_vec)
+
+    <span class="cm"># 3. Dot Product (no fixed range)</span>
+    dot_product = np.<span class="fn">dot</span>(query_vec, doc_vec)
+
+    results.<span class="fn">append</span>({
+        <span class="str">"chunk_idx"</span>:   i,
+        <span class="str">"cosine"</span>:      <span class="fn">round</span>(<span class="fn">float</span>(cosine),      <span class="num">4</span>),
+        <span class="str">"euclidean"</span>:   <span class="fn">round</span>(<span class="fn">float</span>(euclidean),   <span class="num">4</span>),
+        <span class="str">"dot_product"</span>: <span class="fn">round</span>(<span class="fn">float</span>(dot_product), <span class="num">4</span>),
+        <span class="str">"preview"</span>:     text[:<span class="num">80</span>]
+    })
+
+<span class="cm"># ── Print comparison table ────────────────────────────────────────</span>
+<span class="fn">print</span>(<span class="str">f"\n{'Chunk':5} {'Cosine':10} {'Euclidean':12} {'Dot Prod':12} Preview"</span>)
+<span class="fn">print</span>(<span class="str">"-"</span> * <span class="num">80</span>)
+<span class="kw">for</span> r <span class="kw">in</span> results:
+    <span class="fn">print</span>(f<span class="str">f"{r['chunk_idx']:5} {r['cosine']:10.4f} {r['euclidean']:12.4f} {r['dot_product']:12.4f} {r['preview'][:40]}"</span>)
+
+<span class="cm"># Proof: after normalising dot product → same value as cosine</span>
+q_norm = query_vec / np.<span class="fn">linalg</span>.<span class="fn">norm</span>(query_vec)
+d_norm = doc_vecs[<span class="num">0</span>] / np.<span class="fn">linalg</span>.<span class="fn">norm</span>(doc_vecs[<span class="num">0</span>])
+<span class="fn">print</span>(f<span class="str">f"\nNormalised dot product: {np.dot(q_norm, d_norm):.4f}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Cosine similarity:      {results[0]['cosine']:.4f}"</span>)
+<span class="cm"># → These values are identical! Proving cosine = normalised dot product</span></pre>
+    </div>
+
+    <h3 id="score-threshold-code">Score Threshold Retriever</h3>
+    <div class="code-block">
+      <span class="lang-label">python · score threshold</span>
+      <pre><span class="cm"># ── similarity_search_with_relevance_score ────────────────────────</span>
+<span class="cm"># Returns (Document, score) — score is cosine similarity (0 to 1)</span>
+results_scored = vector_store.<span class="fn">similarity_search_with_relevance_score</span>(
+    query = <span class="str">"What are the different metrics in the RAG pipeline?"</span>,
+    k     = <span class="num">6</span>
+)
+
+<span class="fn">print</span>(<span class="str">"Documents with relevance scores:"</span>)
+<span class="kw">for</span> doc, score <span class="kw">in</span> results_scored:
+    <span class="fn">print</span>(f<span class="str">f"  Score: {score:.4f} | {doc.page_content[:60]}..."</span>)
+<span class="cm"># Sunny found: most scores were ~0.61–0.64 for this query</span>
+
+<span class="cm"># ── Score threshold retriever ─────────────────────────────────────</span>
+<span class="cm"># Only return documents with cosine similarity ≥ threshold</span>
+retriever_60 = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity_score_threshold"</span>,
+    search_kwargs = {<span class="str">"score_threshold"</span>: <span class="num">0.60</span>}
+)
+docs_60 = retriever_60.<span class="fn">invoke</span>(query)
+<span class="fn">print</span>(f<span class="str">f"\nWith threshold=0.60: {len(docs_60)} docs returned"</span>)
+
+<span class="cm"># Tune threshold by checking actual score distribution first</span>
+<span class="cm"># Sunny showed: at 0.95 → "No relevant document found"</span>
+<span class="cm">#               at 0.75 → "No relevant document"</span>
+<span class="cm">#               at 0.60 → results start appearing</span>
+<span class="cm">#               at 0.55 → more results</span>
+<span class="cm"># Recommendation: always run similarity_search_with_relevance_score</span>
+<span class="cm"># first to understand your score distribution before setting threshold</span></pre>
+    </div>
+
+    <h3 id="metadata-filtering-code">Metadata Pre-Filtering and Post-Filtering</h3>
+    <div class="code-block">
+      <span class="lang-label">python · pre and post filtering</span>
+      <pre><span class="cm"># ── PRE-FILTERING (recommended) ──────────────────────────────────</span>
+<span class="cm"># filter applied BEFORE similarity search, inside vector store</span>
+retriever_pre = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {
+        <span class="str">"k"</span>:      <span class="num">4</span>,
+        <span class="str">"filter"</span>: {
+            <span class="str">"section"</span>: <span class="str">"fine-tuning"</span>,
+            <span class="str">"year"</span>:    <span class="str">"2023"</span>
+        }
+    }
+)
+pre_results = retriever_pre.<span class="fn">invoke</span>(<span class="str">"Tell me about fine-tuning techniques"</span>)
+<span class="fn">print</span>(f<span class="str">f"Pre-filter results: {len(pre_results)}"</span>)
+<span class="cm"># All returned documents will be from section="fine-tuning" AND year="2023"</span>
+
+<span class="cm"># ── Verify pre-filtering type ────────────────────────────────────</span>
+<span class="kw">for</span> doc <span class="kw">in</span> pre_results:
+    <span class="fn">print</span>(f<span class="str">f"  section: {doc.metadata.get('section')} | year: {doc.metadata.get('year')}"</span>)
+
+<span class="cm"># ── POST-FILTERING (manual, use with caution) ─────────────────────</span>
+<span class="cm"># step 1: retrieve wide candidate set (no filter, k=15)</span>
+all_candidates = vector_store.<span class="fn">similarity_search</span>(
+    <span class="str">"Tell me about fine-tuning techniques"</span>,
+    k = <span class="num">15</span>   <span class="cm"># retrieve more docs since we'll filter some out</span>
+)
+
+<span class="cm"># step 2: apply metadata filter manually after retrieval</span>
+post_results = [
+    doc <span class="kw">for</span> doc <span class="kw">in</span> all_candidates
+    <span class="kw">if</span> doc.metadata.<span class="fn">get</span>(<span class="str">"section"</span>) == <span class="str">"fine-tuning"</span>
+    <span class="kw">and</span> doc.metadata.<span class="fn">get</span>(<span class="str">"year"</span>)    == <span class="str">"2023"</span>
+]
+<span class="fn">print</span>(f<span class="str">f"Post-filter results: {len(post_results)}"</span>)
+
+<span class="cm"># ── PRODUCTION VERDICT ───────────────────────────────────────────</span>
+<span class="cm"># Pre-filtering: faster, smaller search space, enables tenant isolation</span>
+<span class="cm"># Post-filtering: slower, may miss docs, unauthorized docs enter pool</span>
+<span class="cm"># → In production: ALWAYS prefer pre-filtering</span></pre>
+    </div>
+  </section>
+
+  <!-- EXPLORE MORE -->
+  <section id="explore-more">
+    <div class="section-eyebrow">10 — Self-Study</div>
+    <h2>Terms to Explore Further</h2>
+
+    <p>Sunny shared these as additional retrieval topics to research independently. Some will be covered in subsequent classes:</p>
+
+    <div class="explore-grid">
+      <div class="explore-item">
+        <div class="ei-name">Weighted Fusion</div>
+        <p>Merge sparse + dense results by assigning weights to each. Tunable for your dataset.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">RRF (Reciprocal Rank Fusion)</div>
+        <p>Standard algorithm to combine ranked lists from sparse and dense retrievers.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">Multi-Query Retriever</div>
+        <p>Generate multiple rephrasings of the user query; retrieve for each; merge results.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">HyDE</div>
+        <p>Hypothetical Document Embeddings — generate a hypothetical answer, embed it, use it as query.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">Parent Document Retriever</div>
+        <p>Store large chunks; retrieve small child chunks; return parent context to LLM.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">Sentence Window Retriever</div>
+        <p>Index sentences; retrieve individual sentences; expand to surrounding window for context.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">Contextual Compression</div>
+        <p>Compress/summarise retrieved chunks before sending to LLM to reduce tokens.</p>
+      </div>
+      <div class="explore-item">
+        <div class="ei-name">Multi-Hop Retriever</div>
+        <p>Answer complex questions by chaining multiple retrieval steps.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>From Sunny:</strong> "I'll explain some of these terms that I feel are most important from production experience. Not everything is possible to cover in class. But these are the terms you should know exist — search them, understand the concept. The framework (LangChain) supports most of them already."</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">11 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 36 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What does a retriever do, and what does it NOT do? Give a one-line definition.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A retriever takes a user query and returns the most relevant document chunks from the knowledge source (vector database). It does NOT generate the final answer — that is the LLM's job. The retriever's sole purpose is to collect relevant context; the LLM then uses that context to generate a grounded answer.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Explain the 5 retriever parameters: k, filter, score_threshold, fetch_k, and lambda_mult.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">k: number of documents to retrieve (top-k results). filter: metadata dictionary for pre-filtering — only documents matching these metadata values are considered before similarity search. score_threshold: minimum cosine similarity score (0–1) a document must have to be returned; used with search_type="similarity_score_threshold". fetch_k: MMR-specific — fetch this many candidate documents first (wider pool) before MMR selection. lambda_mult: MMR-specific (0–1) — controls relevance vs diversity balance; 1.0 = pure relevance, 0.0 = pure diversity, 0.5 = balanced.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is the mathematical relationship between cosine similarity and dot product?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Cosine similarity is the normalised version of dot product: cos(A,B) = (A·B) / (‖A‖ × ‖B‖). You divide the raw dot product by the product of the magnitudes (norms) of both vectors. When vectors are already normalised (unit vectors, magnitude=1), the dot product equals cosine similarity. Sunny proved this live: computing normalised dot product and cosine similarity on the same vectors gives identical values. This is why cosine similarity is range-bounded (−1 to +1) while raw dot product has no fixed range.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is MMR (Maximum Marginal Relevance) and how does it differ from standard cosine similarity search?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">MMR (Maximum Marginal Relevance) is an advanced type of similarity search that balances relevance AND diversity. It is NOT a separate formula — it is an updated version of cosine similarity with an additional diversity penalty. Standard cosine search: just return the k most similar documents. MMR: first fetch fetch_k candidates using cosine similarity; then iteratively select k documents that are both relevant to the query AND different from already-selected documents. lambda_mult controls the balance. This prevents returning near-duplicate chunks and ensures the LLM gets diverse coverage of the document. Use when you see repetitive chunks in your top-k results.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Explain pre-filtering vs post-filtering. Which is recommended in production and why?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Pre-filtering: Apply metadata filter FIRST (inside the vector database), then run similarity search on the smaller filtered document set. Post-filtering: Run similarity search on all documents FIRST, then apply metadata filter to the results. Pre-filtering is strongly recommended in production because: (1) faster — searches a smaller space, (2) more precise — no irrelevant documents enter the candidate pool, (3) enables tenant isolation — Department A's users can only retrieve Department A's documents, which is impossible with post-filtering, (4) better security — unauthorized documents never enter the intermediate candidate set. Post-filtering has limitations: may miss relevant documents if they weren't in the initial top-k, and unauthorized documents can enter the intermediate retrieval pool before being filtered out.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What is re-ranking, and how does a cross-encoder work for re-ranking?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Re-ranking is a second-stage retrieval process that takes the initial top-k retrieved documents, scores them more accurately against the user query, and reorders them so the most relevant documents go to the LLM. It's like filtering 50 students by IQ to get 10, then further filtering by reasoning to get 3 extraordinary ones. A cross-encoder is an LLM model used as a re-ranker. Unlike a bi-encoder (which embeds query and document separately), a cross-encoder receives (query, document) pairs together and uses cross-attention mechanism to deeply check how relevant each document is to the query. Cross-attention examines token-level interactions between query and document, making it much more accurate than simple cosine similarity — but slower, so it's only applied to the top-k candidates, not the full dataset.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. What are the 3 retriever types and when was sparse retrieval introduced relative to dense retrieval?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Type 1 (Sparse): Uses TF-IDF, BM25, keyword/term matching — sparse vectors. Old technique that predated dense LLM embeddings. The original RAG research paper (2020, Facebook) used sparse retrieval before modern embedding models existed. Type 2 (Dense): Uses state-of-the-art LLM embedding models to generate dense vectors. Semantic search based on meaning, not keywords. The dominant approach since strong embedding models emerged. Type 3 (Hybrid): Combines both sparse and dense retrieval. Results merged using Reciprocal Rank Fusion (RRF) or Weighted Fusion. Best coverage — gets exact keyword matches AND semantic meaning. ChatGPT came in December 2022; before that, most people hadn't heard of LLMs, but RAG research had already begun with sparse approaches in 2020.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 36 · Retriever Deep Dive · 29 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
