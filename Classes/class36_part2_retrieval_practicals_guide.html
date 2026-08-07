@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 36 Part 2 — Retrieval Practicals | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — dense retrieval */
+  --accent2:     #fb923c;   /* orange — BM25 / sparse */
+  --accent3:     #4ade80;   /* green — hybrid / success */
+  --accent4:     #f472b6;   /* pink — query rewriting */
+  --accent5:     #a78bfa;   /* violet — reranking */
+  --accent6:     #facc15;   /* yellow — highlights */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent3), var(--accent5)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent3); border-left-color: var(--accent3); background: rgba(74,222,128,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(74,222,128,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent3); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent3); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent2) 0%, var(--accent3) 50%, var(--accent5) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent3); padding-left: 18px; }
+
+.sunny-says { background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.2); border-left: 4px solid var(--accent3); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 36 Pt 2 · 05 Aug):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent3); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent3); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── RETRIEVER PIPELINE VISUAL ── */
+.pipeline-box { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; }
+.pb-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.pb-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.pb-node { padding: 8px 14px; border-radius: 6px; font-size: 0.74rem; font-weight: 500; border: 1px solid; white-space: nowrap; font-family: 'IBM Plex Mono', monospace; }
+.pb-arrow { color: var(--muted); font-size: 1rem; }
+.pb-split { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── COMPARISON VISUAL ── */
+.compare-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.compare-col { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.compare-col .cc-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; margin-bottom: 10px; }
+.compare-col ul { list-style: none; }
+.compare-col ul li { font-size: 0.8rem; color: #94a3b8; padding: 3px 0; }
+.compare-col ul li::before { content: '→ '; color: var(--muted); }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHAPTER PREVIEW ── */
+.chapter-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+.cp-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.cp-card .cp-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.cp-card h4 { font-size: 0.82rem; font-weight: 600; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(74,222,128,0.1); border: 1px solid var(--accent3); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent3); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent3); }
+details[open] summary { color: var(--accent3); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(74,222,128,0.04); border-left: 2px solid var(--accent3); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent3); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .compare-cols { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#session-context">Session Context</a></li>
+    <li><a href="#notebook-setup">Notebook Setup</a></li>
+    <li><a href="#bm25">BM25 Sparse Retriever</a></li>
+    <li class="sub"><a href="#bm25-concept">Concept</a></li>
+    <li class="sub"><a href="#bm25-code">Code</a></li>
+    <li class="sub"><a href="#bm25-vs-dense">BM25 vs Dense</a></li>
+    <li><a href="#hybrid">Hybrid Retriever</a></li>
+    <li class="sub"><a href="#ensemble-retriever">EnsembleRetriever</a></li>
+    <li class="sub"><a href="#rrf">Reciprocal Rank Fusion</a></li>
+    <li class="sub"><a href="#hybrid-code">Full Hybrid Code</a></li>
+    <li><a href="#query-rewriting">Query Rewriting</a></li>
+    <li class="sub"><a href="#why-rewrite">Why Rewrite?</a></li>
+    <li class="sub"><a href="#rewrite-code">Code</a></li>
+    <li class="sub"><a href="#agentic-use">Use in Agentic RAG</a></li>
+    <li><a href="#reranking">Cross-Encoder Reranking</a></li>
+    <li class="sub"><a href="#reranking-flow">Flow</a></li>
+    <li class="sub"><a href="#reranking-code">Code</a></li>
+    <li class="sub"><a href="#hybrid-reranking">Hybrid + Reranking</a></li>
+    <li><a href="#choosing-retriever">Choosing a Retriever</a></li>
+    <li><a href="#prompting-preview">Prompting Chapter Preview</a></li>
+    <li><a href="#homework">Homework</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 36 — Part 2</span></div>
+    <div class="hero-class-num">Class 36 Part 2 · 05 August 2026</div>
+    <h1>Retrieval<br><em>Practicals</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> BM25 Sparse Retriever</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Hybrid (EnsembleRetriever)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Query Rewriting</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Cross-Encoder Reranking</div>
+    </div>
+    <p class="hero-summary">
+      The makeup session for Class 36 (05 August 2026). Sunny completes the Retrieval chapter practicals: BM25 sparse retrieval from scratch, the Hybrid Retriever (EnsembleRetriever with Reciprocal Rank Fusion), query rewriting/decomposition using an LLM chain, and production-grade reranking using a HuggingFace cross-encoder. All code is from the live <code>Retrieval.ipynb</code> notebook.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Session Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> BM25 Retriever — keyword-based sparse retrieval, no embedding model needed</li>
+      <li><span class="chk">✓</span> Dense Retriever — standard embedding-based semantic retrieval for comparison</li>
+      <li><span class="chk">✓</span> Side-by-side comparison of BM25 vs Dense results on the same query</li>
+      <li><span class="chk">✓</span> Hybrid Retriever (EnsembleRetriever) — combining BM25 + Dense with equal weights (50/50)</li>
+      <li><span class="chk">✓</span> Reciprocal Rank Fusion (RRF) — how results from sparse + dense are merged and ranked</li>
+      <li><span class="chk">✓</span> Deduplication helper function — removing duplicate chunks from retrieval results</li>
+      <li><span class="chk">✓</span> Query Rewriting — using an LLM chain to transform an original query based on chat history</li>
+      <li><span class="chk">✓</span> Why query rewriting matters for Agentic RAG (retry logic)</li>
+      <li><span class="chk">✓</span> Cross-Encoder Reranking practical: 21 candidates → top 5 (ContextualCompressionRetriever)</li>
+      <li><span class="chk">✓</span> Most powerful combination: Hybrid + Cross-Encoder Reranking</li>
+      <li><span class="chk">✓</span> How to choose between retriever strategies</li>
+      <li><span class="chk">✓</span> Prompting chapter preview (covered next weekend)</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">📓</span>
+      <p><strong>Notebook:</strong> All code is in <code>Retrieval.ipynb</code> (same notebook from Class 36 Part 1). The session picks up from where pre-filtering / post-filtering ended. Data: 343 chunks from a research PDF, stored in a FAISS vector store with OpenAI embeddings, enriched with custom metadata fields (section, year, chunk_id, page number).</p>
+    </div>
+  </section>
+
+  <!-- SESSION CONTEXT -->
+  <section id="session-context">
+    <div class="section-eyebrow">02 — Session Context</div>
+    <h2>Why This Extra Session</h2>
+
+    <div class="sunny-says">
+      "This is just an extra session. Last weekend I was not available — I was out of station. So I couldn't conduct a class. One session I took on last Wednesday, and this is one more. This is just a compensation of the last Sunday's session. Today I will not take a very long session — just 1.5 to 2 hours. We'll complete the remaining topics from last class, and then I will wrap up."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Retrieval Chapter — Complete Status After This Session</div>
+      <div style="color:var(--accent3);">✓ Done:</div>
+      <div style="padding-left:20px; color:#94a3b8;">Pre-filtering · Post-filtering · Score threshold · Cosine/Dot/Euclidean metrics · MMR (theory)</div>
+      <div style="color:var(--accent3); margin-top:8px;">✓ Done today:</div>
+      <div style="padding-left:20px; color:#94a3b8;">BM25 · Dense retriever · Hybrid retriever · Query rewriting · Cross-encoder reranking</div>
+      <div style="color:var(--muted); margin-top:8px;">→ Next (Saturday):</div>
+      <div style="padding-left:20px; color:var(--muted);">Quick revision of retrieval PDF · Prompting chapter · Multimodal RAG project</div>
+    </div>
+  </section>
+
+  <!-- NOTEBOOK SETUP -->
+  <section id="notebook-setup">
+    <div class="section-eyebrow">03 — Setup</div>
+    <h2>Notebook Setup & Data</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · imports & setup</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 36 PART 2 — Retrieval Practicals (Continuation)
+## Date: 05 August 2026  ·  File: Retrieval.ipynb
+## Data: Research PDF → 343 chunks, FAISS + on-disk store
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># All imports used across the complete retrieval notebook</span>
+<span class="kw">from</span> langchain_community.retrievers <span class="kw">import</span> <span class="cls">BM25Retriever</span>
+<span class="kw">from</span> langchain.retrievers <span class="kw">import</span> <span class="cls">EnsembleRetriever</span>   <span class="cm"># hybrid</span>
+<span class="kw">from</span> langchain.retrievers <span class="kw">import</span> <span class="cls">ContextualCompressionRetriever</span>
+<span class="kw">from</span> langchain.retrievers.document_compressors <span class="kw">import</span> <span class="cls">CrossEncoderReranker</span>
+<span class="kw">from</span> langchain_community.cross_encoders <span class="kw">import</span> <span class="cls">HuggingFaceCrossEncoder</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>, <span class="cls">ChatOpenAI</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain.prompts <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+
+<span class="fn">load_dotenv</span>()
+
+<span class="cm"># ── Models ───────────────────────────────────────────────────────</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-small"</span>)
+llm             = <span class="cls">ChatOpenAI</span>(model=<span class="str">"gpt-4.1-mini"</span>)
+
+<span class="cm"># ── Load existing FAISS vector store from disk ───────────────────</span>
+<span class="cm"># (created in previous session with 343 chunks)</span>
+vector_store = <span class="cls">FAISS</span>.<span class="fn">load_local</span>(
+    <span class="str">"faiss_retrieval_index"</span>,
+    embedding_model,
+    allow_dangerous_deserialization=<span class="kw">True</span>
+)
+
+<span class="cm"># ── Dense retriever (baseline) ───────────────────────────────────</span>
+dense_retriever = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">8</span>}
+)
+
+<span class="cm"># ── Utility: print results cleanly ───────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">print_results</span>(docs, title=<span class="str">"Results"</span>, max_docs=<span class="num">4</span>, max_chars=<span class="num">200</span>):
+    <span class="fn">print</span>(f<span class="str">f"\n{'='*60}\n{title} ({len(docs)} docs)\n{'='*60}"</span>)
+    <span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(docs[:<span class="num">max_docs</span>]):
+        <span class="fn">print</span>(f<span class="str">f"\n[{i+1}] Page {doc.metadata.get('page','?')} | "
+              f"Section: {doc.metadata.get('section','?')}"</span>)
+        <span class="fn">print</span>(f<span class="str">f"     {doc.page_content[:max_chars]}..."</span>)
+
+<span class="cm"># ── Utility: deduplicate results ─────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">deduplicate_docs</span>(docs):
+    <span class="str">"""Remove duplicate retrieved chunks while preserving order."""</span>
+    seen = <span class="fn">set</span>()
+    unique = []
+    <span class="kw">for</span> doc <span class="kw">in</span> docs:
+        content_hash = <span class="fn">hash</span>(doc.page_content)
+        <span class="kw">if</span> content_hash <span class="kw">not in</span> seen:
+            seen.<span class="fn">add</span>(content_hash)
+            unique.<span class="fn">append</span>(doc)
+    <span class="kw">return</span> unique</pre>
+    </div>
+  </section>
+
+  <!-- BM25 SECTION -->
+  <section id="bm25">
+    <div class="section-eyebrow">04 — Sparse Retrieval</div>
+    <h2>BM25 Sparse Retriever</h2>
+
+    <h3 id="bm25-concept">What BM25 Is</h3>
+    <p>BM25 (Best Match 25) is an advanced variant of TF-IDF — a classic information retrieval algorithm. It works on <strong>keyword matching and term frequency</strong>, not dense embeddings. Sunny covered TF-IDF in the Encoding & Embedding sessions early in the bootcamp.</p>
+
+    <div class="compare-cols">
+      <div class="compare-col" style="border-top:2px solid var(--accent2);">
+        <div class="cc-title" style="color:var(--accent2);">BM25 — How it Works</div>
+        <ul>
+          <li>Builds a sparse vector from vocabulary term frequencies</li>
+          <li>Scores documents by matching query keywords</li>
+          <li>No neural network, no embedding model required</li>
+          <li>Term importance weighted by IDF (rare terms = higher weight)</li>
+          <li>Document length normalisation built in</li>
+        </ul>
+      </div>
+      <div class="compare-col" style="border-top:2px solid var(--accent);">
+        <div class="cc-title" style="color:var(--accent);">Dense Retriever — How it Works</div>
+        <ul>
+          <li>Uses SOTA embedding model to create dense vectors</li>
+          <li>Semantic similarity — meaning, not keywords</li>
+          <li>Requires embedding model + vector database</li>
+          <li>Can retrieve semantically related text even without exact words</li>
+          <li>Standard RAG approach</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Key difference from dense retrieval:</strong> "In BM25, query embedding is not needed. In the Dense Retriever, we require that. In BM25, the embedding is not required — automatically it will handle that. Explicitly, we don't need to define any embedding model." BM25 goes directly to the chunks — not to the vector database. It operates on text directly.</p>
+    </div>
+
+    <h3 id="bm25-code">BM25 Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · BM25 retriever</span>
+      <pre><span class="cm"># !pip install rank_bm25 langchain-community</span>
+
+<span class="kw">from</span> langchain_community.retrievers <span class="kw">import</span> <span class="cls">BM25Retriever</span>
+
+<span class="cm"># ── BM25 uses chunks directly, NOT the vector store ───────────────</span>
+<span class="cm"># This is different from dense retrieval — no embedding needed</span>
+<span class="cm"># Pass the same chunks you used when building the vector store</span>
+bm25_retriever = <span class="cls">BM25Retriever</span>.<span class="fn">from_documents</span>(
+    documents = chunks,   <span class="cm"># list of 343 LangChain Document objects</span>
+    k         = <span class="num">8</span>        <span class="cm"># return top 8 results</span>
+)
+
+<span class="cm"># ── Test BM25 retrieval ───────────────────────────────────────────</span>
+query = <span class="str">"Llama 2 70 billion grouped query attention and inference capability"</span>
+bm25_results = bm25_retriever.<span class="fn">invoke</span>(query)
+
+<span class="fn">print_results</span>(bm25_results, <span class="str">"BM25 Sparse Retrieval Results"</span>)
+<span class="cm"># BM25 prioritises exact keyword matches: "Llama 2", "70 billion",</span>
+<span class="cm"># "grouped query attention" — finds text containing those exact terms</span>
+
+<span class="cm"># ── Compare with Dense retrieval on same query ───────────────────</span>
+dense_results = dense_retriever.<span class="fn">invoke</span>(query)
+<span class="fn">print_results</span>(dense_results, <span class="str">"Dense (Semantic) Retrieval Results"</span>)
+<span class="cm"># Dense finds semantically similar text — even if exact words differ</span>
+
+<span class="cm"># ── You will see different pages / chunks retrieved by each ───────</span>
+<span class="cm"># BM25: page 13, page 40 (keyword-rich pages)   ← Sunny's live output</span>
+<span class="cm"># Dense: different pages with semantic similarity ← different results</span>
+<span class="cm"># This difference is why hybrid retrieval is powerful</span></pre>
+    </div>
+
+    <h3 id="bm25-vs-dense">When BM25 Wins vs When Dense Wins</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">BM25 wins when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Query contains specific technical terms, names, model names</li>
+          <li>→ Exact keyword match matters (product codes, IDs)</li>
+          <li>→ Domain vocabulary is specialised and sparse</li>
+          <li>→ No GPU / embedding budget available</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">Dense wins when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Query is conversational / paraphrased</li>
+          <li>→ Synonyms, related concepts matter</li>
+          <li>→ Cross-lingual retrieval needed</li>
+          <li>→ Semantic intent, not exact words</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- HYBRID RETRIEVER -->
+  <section id="hybrid">
+    <div class="section-eyebrow">05 — Combined Retrieval</div>
+    <h2>Hybrid Retriever — Best of Both</h2>
+
+    <h3 id="ensemble-retriever">EnsembleRetriever in LangChain</h3>
+    <p>LangChain's <code>EnsembleRetriever</code> combines multiple retrievers and merges their results using Reciprocal Rank Fusion. Sunny's implementation uses 50/50 weights between BM25 and Dense.</p>
+
+    <div class="pipeline-box">
+      <div class="pb-label">Hybrid Retriever Architecture</div>
+      <div class="pb-row">
+        <div class="pb-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent4);">User Query</div>
+        <span class="pb-arrow">→</span>
+        <div class="pb-split">
+          <div class="pb-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent2);">BM25 Retriever (k=15)</div>
+          <div class="pb-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">Dense Retriever (k=15)</div>
+        </div>
+        <span class="pb-arrow">→</span>
+        <div class="pb-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">EnsembleRetriever<br><small>Reciprocal Rank Fusion<br>weights=[0.5, 0.5]</small></div>
+        <span class="pb-arrow">→</span>
+        <div class="pb-node" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">Merged Results<br><small>deduplicated</small></div>
+      </div>
+    </div>
+
+    <h3 id="rrf">Reciprocal Rank Fusion (RRF) — How Merging Works</h3>
+
+    <div class="sunny-says">
+      "This reciprocal rank fusion means we are giving the weightage to every Retriever — to which Retriever, how much weightage needs to be provided. So this you can provide inside the weight parameter. 50-50 is more balanced. Otherwise, you can try with 40-60 or 60-40. If you are more confident about semantic search, you can give more weight to the Dense Retriever."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem; color:#94a3b8;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">How RRF Works — Intuition</div>
+      <p style="margin-bottom:10px;">Each retriever ranks its results 1 through k. RRF assigns a score to each document based on its rank position in each list: <strong>score = Σ 1/(rank + constant)</strong></p>
+      <p style="margin-bottom:10px;">A document that appears highly in BOTH lists (BM25 rank 1 AND dense rank 2) scores higher than a document that only appears in one list at rank 1.</p>
+      <p>The weight parameter (0.5, 0.5) scales each retriever's contribution. More weight = that retriever's rankings matter more in the final merged order.</p>
+    </div>
+
+    <h3 id="hybrid-code">Full Hybrid Retriever Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · hybrid EnsembleRetriever</span>
+      <pre><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> <span class="cls">EnsembleRetriever</span>
+
+<span class="cm"># ── Create individual retrievers with same k ──────────────────────</span>
+bm25_retriever_h = <span class="cls">BM25Retriever</span>.<span class="fn">from_documents</span>(documents=chunks, k=<span class="num">8</span>)
+dense_retriever_h = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">8</span>}
+)
+
+<span class="cm"># ── Build Hybrid Retriever ────────────────────────────────────────</span>
+hybrid_retriever = <span class="cls">EnsembleRetriever</span>(
+    retrievers = [bm25_retriever_h, dense_retriever_h],
+    weights    = [<span class="num">0.5</span>, <span class="num">0.5</span>]   <span class="cm"># 50% BM25, 50% Dense — equal weight</span>
+    <span class="cm"># Try [0.4, 0.6] if semantic search works better for your data</span>
+    <span class="cm"># Try [0.6, 0.4] if keyword matching is more important</span>
+)
+
+<span class="cm"># ── Test hybrid retrieval ─────────────────────────────────────────</span>
+query = <span class="str">"Llama 2 70 billion grouped query attention and inference capability"</span>
+
+hybrid_results = hybrid_retriever.<span class="fn">invoke</span>(query)
+<span class="cm"># Automatically deduplicates — no duplicate chunks in results</span>
+<span class="fn">print_results</span>(hybrid_results, <span class="str">"Hybrid Retrieval Results"</span>)
+
+<span class="cm"># ── Compare all 3 on the same query ──────────────────────────────</span>
+sparse_r = bm25_retriever_h.<span class="fn">invoke</span>(query)
+dense_r  = dense_retriever_h.<span class="fn">invoke</span>(query)
+hybrid_r = hybrid_retriever.<span class="fn">invoke</span>(query)
+
+<span class="fn">print</span>(<span class="str">f"\n{'='*50}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Query: {query[:60]}..."</span>)
+<span class="fn">print</span>(<span class="str">f"\nSparse (BM25) pages: {[d.metadata.get('page') for d in sparse_r]}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Dense pages:         {[d.metadata.get('page') for d in dense_r]}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Hybrid pages:        {[d.metadata.get('page') for d in hybrid_r]}"</span>)
+<span class="cm"># Compare: which pages are unique to BM25? Which to dense? Which in both?</span>
+<span class="cm"># Hybrid gives you the union — maximum coverage</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <p><strong>When does hybrid shine?</strong> When a user query has both specific technical terms (BM25 advantage) AND conversational phrasing (Dense advantage). For example: "How does grouped query attention help Llama 2 be faster?" — BM25 catches "Llama 2" and "grouped query attention" exactly; Dense catches "faster inference" via semantic similarity to "inference efficiency." Together they get the best chunks from both angles.</p>
+    </div>
+  </section>
+
+  <!-- QUERY REWRITING -->
+  <section id="query-rewriting">
+    <div class="section-eyebrow">06 — Query Transformation</div>
+    <h2>Query Rewriting / Decomposition</h2>
+
+    <h3 id="why-rewrite">Why Rewrite the Query?</h3>
+
+    <div class="sunny-says">
+      "Query expansion means we can rewrite the query, or we can basically divide the query into multiple parts, and then retrieve the information. HyDE Retriever, Multi-Query Retrieval, Multi-Hop Retrieval — they all work on the same concept. What we do inside query decomposition, query rewriting, query expansion — we transform our query. Whatever query we are going to ask, we transform that query."
+    </div>
+
+    <p>The core problem query rewriting solves: a user's original question may be ambiguous, too short, contains pronouns ("it", "they", "that model"), or lacks vocabulary that matches the documents. By rewriting the query using an LLM — informed by chat history — you get a cleaner, standalone search query.</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Query Rewriting — Before & After</div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.7rem; color:var(--accent4); font-family:'IBM Plex Mono',monospace; margin-bottom:4px;">ORIGINAL QUERY (from user)</div>
+        <div style="background:rgba(244,114,182,0.08); border:1px solid rgba(244,114,182,0.2); border-radius:4px; padding:8px 12px; color:var(--text);">"What did Meta do after that?"</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">⚠ Ambiguous — "after what?" — only makes sense with conversation history</div>
+      </div>
+      <div>
+        <div style="font-size:0.7rem; color:var(--accent3); font-family:'IBM Plex Mono',monospace; margin-bottom:4px;">REWRITTEN QUERY (from LLM chain)</div>
+        <div style="background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:4px; padding:8px 12px; color:var(--text);">"What step did Meta take after initiating supervised fine-tuning for the Llama Chat model?"</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">✓ Standalone, specific, uses document vocabulary — retrieves correctly</div>
+      </div>
+    </div>
+
+    <h3 id="rewrite-code">Query Rewriting Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · query rewriting chain</span>
+      <pre><span class="kw">from</span> langchain.prompts         <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">from</span> langchain_openai          <span class="kw">import</span> <span class="cls">ChatOpenAI</span>
+
+llm = <span class="cls">ChatOpenAI</span>(model=<span class="str">"gpt-4.1-mini"</span>)
+
+<span class="cm"># ── Query Rewriting Prompt ────────────────────────────────────────</span>
+<span class="cm"># Instructs the LLM to transform the user's query into a clean search query</span>
+query_rewrite_prompt = <span class="cls">ChatPromptTemplate</span>.<span class="fn">from_template</span>(<span class="str">"""
+You are a query rewriting assistant for a RAG system.
+Your task: Rewrite the conversational question into a CLEAR standalone search query.
+
+Rules:
+- Do NOT answer the question
+- Preserve important entities, dates, and technical terms
+- Resolve pronouns using the conversation history
+- Return only ONE rewritten query (no explanations)
+
+Conversation History:
+{chat_history}
+
+Original Question: {question}
+
+Rewritten Search Query:"""</span>)
+
+<span class="cm"># ── Build rewriting chain ─────────────────────────────────────────</span>
+query_rewriting_chain = query_rewrite_prompt | llm | <span class="cls">StrOutputParser</span>()
+
+<span class="cm"># ── Example: rewrite with conversation context ────────────────────</span>
+chat_history = [
+    {<span class="str">"role"</span>: <span class="str">"user"</span>,      <span class="str">"content"</span>: <span class="str">"Tell me about Meta's Llama 2 training process."</span>},
+    {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: <span class="str">"Meta trained Llama 2 using supervised fine-tuning "
+                                               "followed by RLHF with human preference data."</span>},
+]
+original_query = <span class="str">"What did Meta do after that?"</span>
+
+rewritten_query = query_rewriting_chain.<span class="fn">invoke</span>({
+    <span class="str">"chat_history"</span>: chat_history,
+    <span class="str">"question"</span>:     original_query
+})
+
+<span class="fn">print</span>(f<span class="str">f"Original:  {original_query}"</span>)
+<span class="fn">print</span>(f<span class="str">f"Rewritten: {rewritten_query}"</span>)
+<span class="cm"># → "What step did Meta take after initiating supervised fine-tuning for the Llama Chat model?"</span>
+
+<span class="cm"># ── Now retrieve using the rewritten query ────────────────────────</span>
+results = dense_retriever.<span class="fn">invoke</span>(rewritten_query)
+<span class="fn">print_results</span>(results, <span class="str">"Results from Rewritten Query"</span>)</pre>
+    </div>
+
+    <h3 id="agentic-use">How This Powers Agentic RAG</h3>
+
+    <div class="sunny-says">
+      "Whenever we are going to orchestrate our flow using LangGraph, this thing we are going to use a lot in our Agentic RAG system. If we are not going to retrieve the desired information from the given user query, then we'll rewrite that particular query again, and we'll try to retrieve our information based on that query. This is what we are going to do inside the Agentic flow — inside the Agentic RAG."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Agentic RAG Retry Loop (Preview)</div>
+      <div style="color:#94a3b8;">
+        User Query → <span style="color:var(--accent);">Retriever</span> → <span style="color:var(--accent4);">Check: relevant docs found?</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ No<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--accent4);">Query Rewriter</span> → New Query → <span style="color:var(--accent);">Retriever</span> → <span style="color:var(--accent3);">LLM Answer</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Yes<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--accent3);">LLM Answer ✓</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RERANKING -->
+  <section id="reranking">
+    <div class="section-eyebrow">07 — Second-Stage Retrieval</div>
+    <h2>Cross-Encoder Reranking — Practical</h2>
+
+    <h3 id="reranking-flow">Live Numbers from Sunny's Demo</h3>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:var(--accent); margin-bottom:4px;">21</div>
+        <div style="font-size:0.78rem; color:var(--muted);">Initial candidate chunks (candidate retriever, k=20)</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:var(--accent5); margin-bottom:4px;">✦</div>
+        <div style="font-size:0.78rem; color:var(--muted);">Cross-Encoder scores all 21 by cross-attention with query</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px; text-align:center;">
+        <div style="font-size:2rem; font-weight:700; color:var(--accent3); margin-bottom:4px;">5</div>
+        <div style="font-size:0.78rem; color:var(--muted);">Final top documents after reranking</div>
+      </div>
+    </div>
+
+    <h3 id="reranking-code">Reranking with HuggingFace Cross-Encoder</h3>
+    <div class="code-block">
+      <span class="lang-label">python · cross-encoder reranking</span>
+      <pre><span class="cm"># !pip install sentence-transformers</span>
+
+<span class="kw">from</span> langchain.retrievers                    <span class="kw">import</span> <span class="cls">ContextualCompressionRetriever</span>
+<span class="kw">from</span> langchain.retrievers.document_compressors <span class="kw">import</span> <span class="cls">CrossEncoderReranker</span>
+<span class="kw">from</span> langchain_community.cross_encoders      <span class="kw">import</span> <span class="cls">HuggingFaceCrossEncoder</span>
+
+<span class="cm"># ── Step 1: Candidate retriever (wide initial pool) ───────────────</span>
+<span class="cm"># Retrieve many candidates — cross-encoder will narrow them down</span>
+candidate_retriever = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">20</span>}   <span class="cm"># wide pool for reranker to work with</span>
+)
+
+<span class="cm"># ── Step 2: Load HuggingFace Cross-Encoder model ─────────────────</span>
+<span class="cm"># This model uses cross-attention to score (query, document) pairs</span>
+<span class="cm"># ms-marco-MiniLM-L-6-v2 is a popular, lightweight cross-encoder</span>
+cross_encoder_model = <span class="cls">HuggingFaceCrossEncoder</span>(
+    model_name = <span class="str">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>
+)
+
+<span class="cm"># ── Step 3: Build reranker wrapper ───────────────────────────────</span>
+reranker = <span class="cls">CrossEncoderReranker</span>(
+    model     = cross_encoder_model,
+    top_n     = <span class="num">5</span>    <span class="cm"># keep top 5 after reranking</span>
+)
+
+<span class="cm"># ── Step 4: Build ContextualCompressionRetriever ─────────────────</span>
+<span class="cm"># This wraps the candidate retriever + reranker into one pipeline</span>
+reranking_retriever = <span class="cls">ContextualCompressionRetriever</span>(
+    base_compressor = reranker,
+    base_retriever  = candidate_retriever
+)
+
+<span class="cm"># ── Step 5: Test ─────────────────────────────────────────────────</span>
+query = <span class="str">"What is the safety evaluation methodology used in Llama 2?"</span>
+
+<span class="cm"># Show candidate count before reranking</span>
+candidates = candidate_retriever.<span class="fn">invoke</span>(query)
+candidates = <span class="fn">deduplicate_docs</span>(candidates)
+<span class="fn">print</span>(f<span class="str">f"Initial candidates: {len(candidates)}"</span>)   <span class="cm"># 21</span>
+
+<span class="cm"># Run through reranking pipeline</span>
+reranked = reranking_retriever.<span class="fn">invoke</span>(query)
+<span class="fn">print</span>(f<span class="str">f"After reranking:    {len(reranked)}"</span>)    <span class="cm"># 5</span>
+<span class="fn">print_results</span>(reranked, <span class="str">"Reranked Top 5 Documents"</span>)</pre>
+    </div>
+
+    <h3 id="hybrid-reranking">Most Powerful: Hybrid + Cross-Encoder Reranking</h3>
+
+    <div class="sunny-says">
+      "This is going to be a more powerful retrieval, because here we are going to retrieve information — first we retrieve the 15 documents with the hybrid technique, and then we are re-ranking those documents using the cross-encoder. User query → BM25 search → Dense search → Weighted RRF → 15 candidate documents → cross-encoder re-ranker → final top 5 documents. This is the overall process."
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · hybrid + cross-encoder reranking</span>
+      <pre><span class="cm"># ── Most powerful retrieval: Hybrid + Reranking ───────────────────</span>
+
+<span class="cm"># Step 1: BM25 retriever (wider pool for hybrid)</span>
+bm25_r15 = <span class="cls">BM25Retriever</span>.<span class="fn">from_documents</span>(documents=chunks, k=<span class="num">15</span>)
+
+<span class="cm"># Step 2: Dense retriever (wider pool)</span>
+dense_r15 = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">15</span>}
+)
+
+<span class="cm"># Step 3: Build Hybrid retriever with equal weights</span>
+hybrid_base = <span class="cls">EnsembleRetriever</span>(
+    retrievers = [bm25_r15, dense_r15],
+    weights    = [<span class="num">0.5</span>, <span class="num">0.5</span>]
+)
+
+<span class="cm"># Step 4: Cross-encoder reranker (top 5 from hybrid's candidates)</span>
+cross_encoder = <span class="cls">HuggingFaceCrossEncoder</span>(
+    model_name = <span class="str">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>
+)
+reranker_5 = <span class="cls">CrossEncoderReranker</span>(model=cross_encoder, top_n=<span class="num">5</span>)
+
+<span class="cm"># Step 5: Combine hybrid + reranker</span>
+hybrid_reranking_retriever = <span class="cls">ContextualCompressionRetriever</span>(
+    base_compressor = reranker_5,
+    base_retriever  = hybrid_base   <span class="cm"># hybrid is the base, not just dense!</span>
+)
+
+<span class="cm"># Step 6: Test</span>
+query = <span class="str">"What safety measures and red-teaming were used in Llama 2?"</span>
+final_docs = hybrid_reranking_retriever.<span class="fn">invoke</span>(query)
+
+<span class="fn">print</span>(f<span class="str">f"\nHybrid + Reranking → top {len(final_docs)} documents:"</span>)
+<span class="fn">print_results</span>(final_docs, <span class="str">"Hybrid + Cross-Encoder Reranked"</span>)
+
+<span class="cm"># Flow summary:</span>
+<span class="cm"># Query → BM25 (15 docs) + Dense (15 docs) → RRF merge → 15 candidates</span>
+<span class="cm"># → Cross-Encoder scores each (query, doc) pair via cross-attention</span>
+<span class="cm"># → Returns top 5 most accurately relevant documents</span>
+<span class="cm"># → LLM receives these 5 highly accurate, diverse chunks</span></pre>
+    </div>
+  </section>
+
+  <!-- CHOOSING RETRIEVER -->
+  <section id="choosing-retriever">
+    <div class="section-eyebrow">08 — Decision Guide</div>
+    <h2>Choosing the Right Retriever Strategy</h2>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; margin:16px 0;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.83rem;">
+        <thead>
+          <tr>
+            <th style="background:var(--card); color:var(--text); font-weight:600; padding:10px 12px; text-align:left; border:1px solid var(--border); font-family:'IBM Plex Mono',monospace; font-size:0.7rem;">Strategy</th>
+            <th style="background:var(--card); color:var(--text); font-weight:600; padding:10px 12px; text-align:left; border:1px solid var(--border); font-family:'IBM Plex Mono',monospace; font-size:0.7rem;">Complexity</th>
+            <th style="background:var(--card); color:var(--text); font-weight:600; padding:10px 12px; text-align:left; border:1px solid var(--border); font-family:'IBM Plex Mono',monospace; font-size:0.7rem;">Accuracy</th>
+            <th style="background:var(--card); color:var(--text); font-weight:600; padding:10px 12px; text-align:left; border:1px solid var(--border); font-family:'IBM Plex Mono',monospace; font-size:0.7rem;">Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent2);">BM25 only</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Low</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Moderate</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Keyword-heavy docs, no embedding budget</td>
+          </tr>
+          <tr style="background:rgba(255,255,255,0.02);">
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent);">Dense only</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Low–Medium</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Good</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">General RAG, conversational queries</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent3);">Hybrid (BM25 + Dense)</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Medium</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent3);">Better</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Most production RAG systems</td>
+          </tr>
+          <tr style="background:rgba(255,255,255,0.02);">
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent5);">Hybrid + Reranking</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">High</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent6); font-weight:600;">Best ★</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">High-accuracy requirements, large datasets</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent4);">Dense + Query Rewriting</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Medium</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:var(--accent3);">Better</td>
+            <td style="padding:9px 12px; border:1px solid var(--border); color:#94a3b8;">Multi-turn conversations, Agentic RAG</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sunny-says">
+      "You will have to evaluate which retriever is working good for your solution. For checking which is a good technique — see the end result. Otherwise, there are so many metrics: precision, recall, MRR (Mean Reciprocal Rank), relevant result. We can show you those in the upcoming session on the RAGAs evaluation framework. But guys — manual evaluation is worth it. Business and your end product won't rely on those metrics too much. Manually, you will have to evaluate whether it is good or not, and you will have to check with the respective Subject Matter Expert."
+    </div>
+  </section>
+
+  <!-- PROMPTING PREVIEW -->
+  <section id="prompting-preview">
+    <div class="section-eyebrow">09 — What's Next</div>
+    <h2>Prompting Chapter — Preview</h2>
+
+    <p>Sunny outlined the upcoming prompting session at the end of this class. The full practical is scheduled for the next weekend session.</p>
+
+    <div class="chapter-preview">
+      <div class="cp-card" style="border-top:2px solid var(--accent);">
+        <div class="cp-label">Basics</div>
+        <h4 style="color:var(--accent);">Prompt Anatomy</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">Instructions, context, cautions, output format</p>
+      </div>
+      <div class="cp-card" style="border-top:2px solid var(--accent2);">
+        <div class="cp-label">Techniques</div>
+        <h4 style="color:var(--accent2);">Zero / One / Few Shot</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">Examples in the prompt</p>
+      </div>
+      <div class="cp-card" style="border-top:2px solid var(--accent4);">
+        <div class="cp-label">Advanced</div>
+        <h4 style="color:var(--accent4);">Chain of Thought</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">Tree of Thought, ReAct prompting</p>
+      </div>
+      <div class="cp-card" style="border-top:2px solid var(--accent3);">
+        <div class="cp-label">Production</div>
+        <h4 style="color:var(--accent3);">Prompt Versioning</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">JSON / YAML / Jinja2 templates</p>
+      </div>
+      <div class="cp-card" style="border-top:2px solid var(--accent5);">
+        <div class="cp-label">Management</div>
+        <h4 style="color:var(--accent5);">Prompt Hub / Registry</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">LangSmith prompt registry, prompt libraries</p>
+      </div>
+      <div class="cp-card" style="border-top:2px solid var(--accent6);">
+        <div class="cp-label">LangChain</div>
+        <h4 style="color:var(--accent6);">ChatPromptTemplate</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:6px 0 0;">Conditional prompting, Jinja2</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Prompting is a very easy chapter. But how we are going to manage the prompt — that is an important one. How I approach prompts in terms of managing them in real time — I will discuss all those things. Prompt versioning, prompt management — that is important. In whatever way I have managed the prompt in real time, I will discuss all those things. From Saturday, from the next class, I will continue in the same pace."
+    </div>
+  </section>
+
+  <!-- HOMEWORK -->
+  <section id="homework">
+    <div class="section-eyebrow">10 — Action Items</div>
+    <h2>Homework Before Next Class</h2>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;">
+        <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--accent3); flex-shrink:0; margin-top:2px;">1</span>
+        <div>
+          <h4 style="font-size:0.9rem; color:#fff; margin-bottom:4px;">Complete the Retrieval.ipynb notebook</h4>
+          <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Run every cell, try your own queries on each retriever type. Observe the difference in results between BM25, Dense, Hybrid, and Hybrid+Reranking for the same query.</p>
+        </div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--accent); flex-shrink:0; margin-top:2px;">2</span>
+        <div>
+          <h4 style="font-size:0.9rem; color:#fff; margin-bottom:4px;">Read the Retrieval theory PDF</h4>
+          <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Sunny's reference PDF (available on GitHub) covers all the theoretical points — RRF formula, retriever types, filter comparison table. Sunny will add remaining theory points to the PDF (parent document retriever, sentence window) before Saturday.</p>
+        </div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">3</span>
+        <div>
+          <h4 style="font-size:0.9rem; color:#fff; margin-bottom:4px;">Register for Smart RAGhu Build Challenge 2026</h4>
+          <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Hackathon open until 11th August 2026. Prize pool: $75,000 (1st: $20K, 2nd: $10K, 3rd: $5K). Theme: GenAI RAG, Agents, full-stack AI. Partner: Mesh API. Use your registered bootcamp email to log in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">11 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 36 Part 2 — Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is the key difference between BM25 and Dense retrieval? Does BM25 need an embedding model?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">BM25 is a sparse keyword-based retrieval algorithm (advanced variant of TF-IDF) that works by scoring documents based on term frequency and inverse document frequency — it does NOT need an embedding model. It operates directly on text chunks using vocabulary matching. Dense retrieval uses a state-of-the-art embedding model to generate dense vectors; retrieval is based on cosine/dot/Euclidean similarity between vector representations. BM25 is faster and simpler but misses semantic meaning; dense retrieval understands meaning but needs embedding infrastructure.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is EnsembleRetriever and how does Reciprocal Rank Fusion (RRF) combine results?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">EnsembleRetriever is LangChain's class for hybrid retrieval — it takes multiple retrievers (e.g. BM25 + Dense) and combines their results using Reciprocal Rank Fusion. RRF works by: each retriever ranks its results 1 through k; each document gets a score = Σ 1/(rank + constant) across all retrievers; documents appearing highly ranked in BOTH retrievers score higher than those appearing in only one. The weights parameter ([0.5, 0.5]) scales each retriever's contribution to the final score. Equal weights (50/50) is a balanced baseline; you can experiment with [0.4, 0.6] to weight semantic search more, or [0.6, 0.4] to weight keyword matching more.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What problem does query rewriting solve, and how is it built in LangChain?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Query rewriting solves the problem of ambiguous, context-dependent, or pronoun-heavy user queries that don't match document vocabulary well. For example: "What did Meta do after that?" cannot be retrieved well because "that" needs conversation context, and "Meta" may not match the vocabulary. A query rewriting chain: creates a prompt instructing the LLM to rewrite the query into a standalone search query; provides chat history as context; the LLM generates a clear, specific query like "What step did Meta take after initiating supervised fine-tuning for the Llama Chat model?" — which retrieves correctly. Built as: ChatPromptTemplate | ChatOpenAI | StrOutputParser().</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. Walk through the complete Hybrid + Cross-Encoder Reranking pipeline step by step.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Step 1: User query goes to both BM25 (k=15 chunks) AND Dense retriever (k=15 chunks) in parallel. Step 2: EnsembleRetriever merges both result sets using Reciprocal Rank Fusion with equal weights — produces ~15 deduplicated candidate documents. Step 3: The ContextualCompressionRetriever takes these 15 candidates and passes each (query, document) pair to the HuggingFace CrossEncoder. Step 4: Cross-Encoder uses cross-attention (not simple cosine similarity) to deeply score how relevant each document is to the query. Step 5: Reranker returns the top N (e.g. top_n=5) documents sorted by cross-encoder score. Step 6: These 5 highly accurate, diverse documents go to the LLM as context. Sunny called this "the most powerful retrieval" because it combines keyword precision (BM25) + semantic understanding (dense) + deep relevance scoring (cross-encoder).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. How does query rewriting power Agentic RAG differently from standard RAG?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">In standard RAG, the user's original query is passed directly to the retriever — if it retrieves poor results, the LLM answers poorly, and the flow ends. In Agentic RAG (built with LangGraph), the system includes a retry loop: if the retriever returns no relevant documents or the answer quality is poor, the agent triggers the query rewriting step to generate a better search query, then retrieves again. This self-correcting loop makes the system far more robust for complex questions, ambiguous queries, and multi-turn conversations where context matters. Sunny explicitly said: "Whenever we orchestrate our flow using LangGraph, this thing we are going to use a lot in our Agentic RAG system."</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 36 Part 2 · Retrieval Practicals · 05 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
