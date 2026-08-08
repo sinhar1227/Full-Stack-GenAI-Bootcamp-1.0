@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 23 — Preference Tuning & DPO | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #f472b6;   /* pink — preference/DPO */
+  --accent2:     #22d3ee;   /* cyan — chosen response */
+  --accent3:     #4ade80;   /* green — success */
+  --accent4:     #fb923c;   /* orange — warning/rejected */
+  --accent5:     #a78bfa;   /* violet — LoRa/adapters */
+  --accent6:     #facc15;   /* yellow — highlights */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(244,114,182,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(244,114,182,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(244,114,182,0.05); border: 1px solid rgba(244,114,182,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 23):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── FINE-TUNING PIPELINE VISUAL ── */
+.ft-pipeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 20px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.ft-stage { padding: 20px; text-align: center; border-right: 1px solid var(--border); }
+.ft-stage:last-child { border-right: none; }
+.ft-stage .st-num  { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.ft-stage .st-name { font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.ft-stage .st-aka  { font-size: 0.72rem; color: var(--muted); margin-bottom: 10px; }
+.ft-stage .st-data { font-size: 0.72rem; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 4px 8px; font-family: 'IBM Plex Mono', monospace; }
+.ft-stage .st-lora { font-size: 0.7rem; color: var(--accent5); margin-top: 6px; }
+
+/* ── PREFERENCE DATA FORMAT ── */
+.pref-data-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; }
+.pdv-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.pref-row { background: rgba(0,0,0,0.2); border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; }
+.pref-field { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; margin-bottom: 4px; }
+.pref-value { font-size: 0.82rem; color: #94a3b8; }
+
+/* ── ALGORITHMS TABLE ── */
+.algo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+.algo-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; border-top: 3px solid; }
+.algo-card .ag-name  { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; }
+.algo-card .ag-full  { font-size: 0.72rem; color: var(--muted); margin-bottom: 8px; }
+.algo-card .ag-type  { font-size: 0.7rem; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace; }
+.algo-card p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.55; }
+
+/* ── LORA MERGE DIAGRAM ── */
+.lora-diagram { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; }
+.ld-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.ld-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.ld-node { padding: 7px 12px; border-radius: 5px; border: 1px solid; font-size: 0.72rem; }
+.ld-arrow { color: var(--muted); }
+.ld-result { padding: 7px 12px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; }
+.ld-comment { font-size: 0.7rem; color: var(--muted); margin-left: 8px; }
+
+/* ── TRAINING OUTPUT METRICS ── */
+.metrics-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.metrics-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.metrics-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; }
+.metrics-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.metrics-table .mn { font-family: 'IBM Plex Mono', monospace; color: var(--accent2); font-size: 0.76rem; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(244,114,182,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(244,114,182,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .ft-pipeline, .algo-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#ft-recap">Fine-Tuning Recap</a></li>
+    <li><a href="#what-is-pref">What is Preference Tuning?</a></li>
+    <li class="sub"><a href="#why-pref">Why We Need It</a></li>
+    <li class="sub"><a href="#exam-analogy">Exam Analogy</a></li>
+    <li class="sub"><a href="#data-format">Data Format</a></li>
+    <li class="sub"><a href="#how-to-create">Creating the Dataset</a></li>
+    <li><a href="#algorithms">Preference Algorithms</a></li>
+    <li class="sub"><a href="#rlhf">RLHF + PPO</a></li>
+    <li class="sub"><a href="#grpo">GRPO</a></li>
+    <li class="sub"><a href="#dpo">DPO (Class Focus)</a></li>
+    <li class="sub"><a href="#orpo">ORPO</a></li>
+    <li><a href="#lora-pipeline">3-Stage LoRa Pipeline</a></li>
+    <li class="sub"><a href="#stage1">Stage 1 — CPT</a></li>
+    <li class="sub"><a href="#stage2">Stage 2 — SFT</a></li>
+    <li class="sub"><a href="#stage3">Stage 3 — DPO</a></li>
+    <li class="sub"><a href="#merge-vs-append">Merge vs Append</a></li>
+    <li class="sub"><a href="#class-analogy">Class 10–12 Analogy</a></li>
+    <li><a href="#dpo-practical">DPO Practical</a></li>
+    <li class="sub"><a href="#trl-library">TRL Library</a></li>
+    <li class="sub"><a href="#load-data">Load Data</a></li>
+    <li class="sub"><a href="#dpo-config">DPOConfig</a></li>
+    <li class="sub"><a href="#dpo-trainer">DPOTrainer</a></li>
+    <li class="sub"><a href="#training-metrics">Training Metrics</a></li>
+    <li class="sub"><a href="#save-push">Save & Push</a></li>
+    <li class="sub"><a href="#inference">Inference</a></li>
+    <li><a href="#whats-next">What's Next</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 23</span></div>
+    <div class="hero-class-num">Class 23 · 13 June 2026</div>
+    <h1>Preference Tuning<br><em>&amp; DPO</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Stage 3 of Fine-Tuning</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Chosen / Rejected Format</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> TRL DPOTrainer</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Google Colab T4 GPU</div>
+    </div>
+    <p class="hero-summary">
+      Class 23 completes the 3-stage LLM fine-tuning pipeline with Preference Tuning — Stage 3. Sunny explains why preference alignment is needed (aligning model output with human preferences), the 4 major preference algorithms (RLHF/PPO, GRPO, DPO, ORPO), and builds a full DPO training pipeline on a pharma preference dataset using HuggingFace TRL's DPOTrainer.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Recap of the 3-stage fine-tuning pipeline: Non-instruction → Instruction (SFT) → Preference Tuning</li>
+      <li><span class="chk">✓</span> What preference tuning (preference alignment) is and why it's needed</li>
+      <li><span class="chk">✓</span> The 3-column preference data format: prompt, chosen, rejected</li>
+      <li><span class="chk">✓</span> How to create preference data: manually (SME) or synthetically (AI-generated)</li>
+      <li><span class="chk">✓</span> 4 preference alignment algorithms: RLHF+PPO, GRPO, DPO, ORPO — RL vs non-RL</li>
+      <li><span class="chk">✓</span> The complete 3-stage LoRa merge pipeline (M0 → L1 → M1 → L2 → M2 → L3 → M3)</li>
+      <li><span class="chk">✓</span> Two approaches: sequential merging vs loading any adapter on M0</li>
+      <li><span class="chk">✓</span> Why you cannot skip stages (Class 10 → Class 12 analogy)</li>
+      <li><span class="chk">✓</span> DPO practical: TRL library, DPOConfig, DPOTrainer, save/push adapter, inference</li>
+      <li><span class="chk">✓</span> DPO training output metrics explained (loss, entropy, reward margin, etc.)</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">💻</span>
+      <p><strong>Environment:</strong> Google Colab with T4 GPU. This is Stage 3 of the sequential pipeline — the model must have been fine-tuned through Stage 1 (CPT) and Stage 2 (SFT) first. Sunny uses his pharma domain TinyLlama model from previous classes. The final merged model is: <code>pharma-tinyllama-instruct-merge-model</code> on HuggingFace.</p>
+    </div>
+  </section>
+
+  <!-- FINE-TUNING RECAP -->
+  <section id="ft-recap">
+    <div class="section-eyebrow">02 — Full Pipeline Recap</div>
+    <h2>The 3-Stage Fine-Tuning Pipeline</h2>
+
+    <div class="ft-pipeline">
+      <div class="ft-stage" style="background:rgba(251,146,60,0.05);" id="stage1">
+        <div class="st-num" style="color:var(--accent4);">Stage 1</div>
+        <div class="st-name">Non-Instruction Fine-Tuning</div>
+        <div class="st-aka">aka Continued Pre-Training (CPT)</div>
+        <div class="st-data" style="color:var(--accent4);">Data: Raw text (domain knowledge)</div>
+        <div class="st-lora">→ Produces: LoRa Adapter 1 (L1)</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">Base M0 + L1 → Merge = M1</div>
+      </div>
+      <div class="ft-stage" style="background:rgba(34,211,238,0.05);" id="stage2">
+        <div class="st-num" style="color:var(--accent2);">Stage 2</div>
+        <div class="st-name">Instruction Fine-Tuning</div>
+        <div class="st-aka">aka Supervised Fine-Tuning (SFT)</div>
+        <div class="st-data" style="color:var(--accent2);">Data: instruction / input / output</div>
+        <div class="st-lora">→ Produces: LoRa Adapter 2 (L2)</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">M1 + L2 → Merge = M2</div>
+      </div>
+      <div class="ft-stage" style="background:rgba(244,114,182,0.05);" id="stage3">
+        <div class="st-num" style="color:var(--accent);">Stage 3</div>
+        <div class="st-name">Preference Tuning</div>
+        <div class="st-aka">aka Preference Alignment / DPO</div>
+        <div class="st-data" style="color:var(--accent);">Data: prompt / chosen / rejected</div>
+        <div class="st-lora">→ Produces: LoRa Adapter 3 (L3)</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:6px;">M2 + L3 → Merge = M3 (Final)</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "We performed the fine-tuning using LoRa and QLoRa. Now I'll show you the preference tuning. The DPO code we have already completed in today's class. Tomorrow I'll show you the RLHF code also. Then, the same fine-tuning pipeline in a single notebook I'll show you with Unsloth. And then I'll show you fine-tuning with the OpenAI API — within 5 lines of code, we can do it."
+    </div>
+  </section>
+
+  <!-- WHAT IS PREFERENCE TUNING -->
+  <section id="what-is-pref">
+    <div class="section-eyebrow">03 — Core Concept</div>
+    <h2>What is Preference Tuning?</h2>
+
+    <h3 id="why-pref">Why It's Needed</h3>
+    <p>After Stage 1 (domain knowledge) and Stage 2 (instruction following), the model can answer questions — but not necessarily in the way humans actually prefer. The model might give technically correct but practically unhelpful responses. Preference tuning fixes this.</p>
+
+    <div style="background:rgba(244,114,182,0.06); border:1px solid rgba(244,114,182,0.2); border-radius:8px; padding:20px 24px; margin:16px 0; text-align:center;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--muted); margin-bottom:10px; letter-spacing:0.12em; text-transform:uppercase;">Definition</div>
+      <div style="font-size:1rem; font-weight:600; color:#fff; line-height:1.7;">Preference Tuning = aligning the model with <span style="color:var(--accent)">human preferences</span><br>by training it to prefer <span style="color:var(--accent2)">chosen</span> responses over <span style="color:var(--accent4)">rejected</span> ones</div>
+    </div>
+
+    <div class="sunny-says">
+      "We are doing preference tuning to align the model with human responses. ChatGPT has done this particular training, and you will find that in many enterprises, we are doing this kind of training."
+    </div>
+
+    <h3 id="exam-analogy">Sunny's Exam Analogy (from the Blackboard)</h3>
+    <p>Sunny used this specific example to illustrate what preference tuning does:</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:24px; margin:16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:16px;">Preference Tuning Illustrated</div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.7rem; color:var(--accent6); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">PROMPT (user question)</div>
+        <div style="background:rgba(250,204,21,0.08); border:1px solid rgba(250,204,21,0.2); border-radius:5px; padding:10px 14px; color:var(--text); font-size:0.85rem;">"How to prepare for the exam within 48 hours?"</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <div style="font-size:0.7rem; color:#f87171; font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">REJECTED (poor answer)</div>
+          <div style="background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.25); border-radius:5px; padding:10px 14px; font-size:0.82rem; color:#94a3b8;">Study 48 hours continuously without a break.</div>
+          <div style="font-size:0.7rem; color:var(--muted); margin-top:5px;">✗ Unhealthy, impractical advice</div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem; color:var(--accent2); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">CHOSEN (better answer)</div>
+          <div style="background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.25); border-radius:5px; padding:10px 14px; font-size:0.82rem; color:#94a3b8;">Take the important questions. Learn from previous question papers. Take short breaks between study sessions.</div>
+          <div style="font-size:0.7rem; color:var(--accent2); margin-top:5px;">✓ Practical, balanced, helpful</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; font-size:0.8rem; color:#94a3b8; border-top:1px solid var(--border); padding-top:12px;">
+        <strong style="color:var(--text);">Goal:</strong> Train the model to always prefer the <span style="color:var(--accent2)">chosen</span> response over the <span style="color:#f87171;">rejected</span> one. Do this across many examples → model learns what "better" looks like.
+      </div>
+    </div>
+
+    <h3 id="data-format">The Preference Data Format — 3 Required Columns</h3>
+    <p>Unlike SFT (3 columns: instruction, input, output), preference data has a different structure:</p>
+
+    <div class="pref-data-visual">
+      <div class="pdv-label">Preference Dataset Structure — JSONL format</div>
+      <div class="pref-row">
+        <div class="pref-field" style="color:var(--accent6);">prompt</div>
+        <div class="pref-value">The user instruction / question. What the model is asked.</div>
+      </div>
+      <div class="pref-row">
+        <div class="pref-field" style="color:var(--accent2);">chosen</div>
+        <div class="pref-value">The BETTER (preferred) response. What humans would prefer as the answer.</div>
+      </div>
+      <div class="pref-row">
+        <div class="pref-field" style="color:#f87171;">rejected</div>
+        <div class="pref-value">The WEAKER (rejected) response. What the model should learn NOT to produce.</div>
+      </div>
+      <div style="margin-top:14px; font-size:0.72rem; color:var(--muted);">+ Optional metadata columns: source, page, topic — stored in the dataset for traceability</div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📊</span>
+      <p><strong>Sunny's dataset for this class:</strong> <code>pharma_preference_dataset.jsonl</code> — 48 rows, pharma domain, 3-column preference format (prompt / chosen / rejected), split 80/20 → 8 rows for validation. Created manually with SME help for a realistic production simulation.</p>
+    </div>
+
+    <h3 id="how-to-create">Creating the Preference Dataset</h3>
+    <div class="sunny-says">
+      "If you are working in any real-time project, let's say you are working for a pharma company, for healthcare, for aviation — you are going to be training your own LLM. In that case, you will create this data manually. You will take the help of Subject Matter Experts, and they will help to create this kind of data. Otherwise, you can create this data with the help of AI — give the required document to AI, give the appropriate prompt, and based on that knowledge, AI will generate the data for you."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">Method 1: Manual (SME)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Human Subject Matter Experts review AI responses and label which are chosen (preferred) vs rejected. Slow but highest quality. May take 6 months to 2 years for large datasets. Best for production.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent5);">
+        <h4 style="font-size:0.88rem; color:var(--accent5); margin-bottom:8px;">Method 2: Synthetic (AI-generated)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Provide domain documents to a stronger LLM (GPT-4, Claude) with a prompt asking it to generate preferred and rejected response pairs. Faster but quality depends on the generating model.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALGORITHMS -->
+  <section id="algorithms">
+    <div class="section-eyebrow">04 — The Methods</div>
+    <h2>4 Preference Alignment Algorithms</h2>
+
+    <p>Sunny explained all 4 algorithms, clarifying which use reinforcement learning and which don't. In today's practical, DPO is demonstrated. RLHF will be shown in the next class; GRPO and ORPO are self-study assignments.</p>
+
+    <div class="algo-grid">
+      <div class="algo-card" style="border-top-color:#f87171;" id="rlhf">
+        <div class="ag-name" style="color:#f87171;">RLHF + PPO</div>
+        <div class="ag-full">Reinforcement Learning from Human Feedback</div>
+        <span class="ag-type" style="background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.3);">RL-based · Introduced by OpenAI</span>
+        <p>The original alignment framework used by OpenAI. Uses PPO (Proximal Policy Optimization) — an actor-critic reinforcement learning algorithm. Requires a separate reward model. Complex to implement. Now largely considered outdated in the current context.</p>
+      </div>
+
+      <div class="algo-card" style="border-top-color:var(--accent4);" id="grpo">
+        <div class="ag-name" style="color:var(--accent4);">GRPO</div>
+        <div class="ag-full">Group Relative Policy Optimization</div>
+        <span class="ag-type" style="background:rgba(251,146,60,0.1); color:var(--accent4); border:1px solid rgba(251,146,60,0.3);">RL-based · Introduced by DeepSeek</span>
+        <p>An updated version of PPO, introduced by DeepSeek. Still uses reinforcement learning but is more efficient. Very popular currently — used in DeepSeek B4. Available in HuggingFace TRL. Given as self-study/assignment.</p>
+      </div>
+
+      <div class="algo-card" style="border-top-color:var(--accent);" id="dpo">
+        <div class="ag-name" style="color:var(--accent);">DPO ← Today's Focus</div>
+        <div class="ag-full">Direct Preference Optimization</div>
+        <span class="ag-type" style="background:rgba(244,114,182,0.1); color:var(--accent); border:1px solid rgba(244,114,182,0.3);">Non-RL · Stanford University · NeurIPS 2023</span>
+        <p>Eliminates the need for a reward model and RL training. Trains directly on (prompt, chosen, rejected) triplets using maximum likelihood. Much simpler than RLHF. The language model itself acts as a secret reward model. Most popular for practical implementation today.</p>
+      </div>
+
+      <div class="algo-card" style="border-top-color:var(--accent3);" id="orpo">
+        <div class="ag-name" style="color:var(--accent3);">ORPO</div>
+        <div class="ag-full">Odds Ratio Preference Optimization</div>
+        <span class="ag-type" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">Non-RL · Advanced DPO variant</span>
+        <p>An advanced version of DPO. Still non-RL, no reward model needed. Available in HuggingFace TRL. More recent improvement over DPO. Given as self-study/assignment alongside GRPO.</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">💡</span>
+      <p><strong>Sunny's guidance on depth:</strong> "No one is going to ask you this mathematical equation and all in an interview. It is the work of the researcher. As a developer, we just need to use the framework, use the library to perform the fine-tuning, and we should be aware of the fundamentals — how this thing is working. For that, you don't need to learn the entire reinforcement learning."</p>
+    </div>
+  </section>
+
+  <!-- LORA PIPELINE -->
+  <section id="lora-pipeline">
+    <div class="section-eyebrow">05 — Architecture Deep Dive</div>
+    <h2>The 3-Stage LoRa Merge Pipeline</h2>
+
+    <p>Sunny drew this on the blackboard and spent significant time on it. This is the sequential pipeline used in industry-grade multi-stage fine-tuning.</p>
+
+    <div class="lora-diagram">
+      <div class="ld-label">Sequential Merge Approach (Sunny's Recommended Method)</div>
+
+      <div class="ld-row">
+        <div class="ld-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">M0 (Base Model)</div>
+        <span class="ld-arrow">+</span>
+        <div class="ld-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">L1 (CPT Adapter)</div>
+        <span class="ld-arrow">→ Merge →</span>
+        <div class="ld-result" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.4); color:var(--accent4);">M1</div>
+        <span class="ld-comment">← used as base for Stage 2</span>
+      </div>
+
+      <div class="ld-row">
+        <div class="ld-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent2);">M1</div>
+        <span class="ld-arrow">+</span>
+        <div class="ld-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">L2 (SFT Adapter)</div>
+        <span class="ld-arrow">→ Merge →</span>
+        <div class="ld-result" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.4); color:var(--accent2);">M2</div>
+        <span class="ld-comment">← used as base for Stage 3</span>
+      </div>
+
+      <div class="ld-row">
+        <div class="ld-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent);">M2</div>
+        <span class="ld-arrow">+</span>
+        <div class="ld-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">L3 (DPO Adapter)</div>
+        <span class="ld-arrow">→ Merge →</span>
+        <div class="ld-result" style="background:rgba(74,222,128,0.2); border:2px solid rgba(74,222,128,0.5); color:var(--accent3);">M3 ✓ FINAL MODEL</div>
+      </div>
+    </div>
+
+    <h3 id="merge-vs-append">Two Approaches: Merge vs Runtime Append</h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent3); margin-bottom:8px;">Approach 1: Sequential Merge (Recommended)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">M0 + L1 → M1 → M1 + L2 → M2 → M2 + L3 → M3. Each stage gets the full knowledge of all previous stages baked into the weights. Simple, predictable, inference-ready model (M3) without any adapter loading.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">Approach 2: Runtime Append (Flexible)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Keep M0 as base. Load any adapter (L1, L2, or L3) at inference time. Allows routing — different tasks use different adapters. More flexible but requires careful adapter selection. Code commented in notebook.</p>
+      </div>
+    </div>
+
+    <h3 id="class-analogy">The Class 10–12 Analogy (Why You Can't Skip Stages)</h3>
+
+    <div class="sunny-says">
+      "M0 model is a raw model — which is a Class 10 student. M1 model is a merged model, where we have Class 10 knowledge AND Class 11 knowledge (L1 LoRa). M2 is again a merged model with the M1 stage knowledge and L2 LoRa — this is the Class 12 student. Now, just think — if this particular M0, we are going to append L2, it's Class 10 and Class 12. Is this combination fine? No, it is not fine, because in between, Class 11 is missing. Class 11 knowledge is missing. This is a complete analogy which I'm trying to explain. Don't go with that particular approach."
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>You cannot skip stages.</strong> Applying L2 (SFT adapter) on top of M0 (base model) without the domain knowledge from L1 (CPT adapter) is like teaching a Class 12 curriculum to a Class 10 student — the prerequisite knowledge from Class 11 is missing. Always follow the sequential pipeline.</p>
+    </div>
+  </section>
+
+  <!-- DPO PRACTICAL -->
+  <section id="dpo-practical">
+    <div class="section-eyebrow">06 — Hands-On Code</div>
+    <h2>DPO Practical — Step by Step</h2>
+
+    <h3 id="trl-library">TRL Library — The Key Dependency</h3>
+
+    <div class="callout info">
+      <span class="callout-icon">📚</span>
+      <p><strong>TRL = Transformer Reinforcement Learning</strong> (HuggingFace library). Despite the name, it's the library for ALL preference alignment — including non-RL methods like DPO and ORPO. Under TRL you get: <code>DPOTrainer</code>, <code>GRPOTrainer</code>, <code>RewardTrainer</code>, <code>SFTTrainer</code> — one library for the entire fine-tuning ecosystem.</p>
+    </div>
+
+    <h3 id="load-data">Step 1 — Load the Preference Dataset</h3>
+    <div class="code-block">
+      <span class="lang-label">python · load preference data</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 23 — Preference Tuning with DPO (Stage 3)
+## Platform: Google Colab · GPU: T4
+## Model: TinyLlama (pharma domain) · Dataset: pharma preference data
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># !pip install trl transformers peft bitsandbytes datasets</span>
+
+<span class="kw">from</span> datasets <span class="kw">import</span> <span class="fn">load_dataset</span>
+<span class="kw">from</span> trl <span class="kw">import</span> <span class="cls">DPOConfig</span>, <span class="cls">DPOTrainer</span>
+<span class="kw">from</span> transformers <span class="kw">import</span> (
+    <span class="cls">AutoModelForCausalLM</span>, <span class="cls">AutoTokenizer</span>,
+    <span class="cls">BitsAndBytesConfig</span>
+)
+<span class="kw">from</span> peft <span class="kw">import</span> <span class="cls">LoraConfig</span>, <span class="cls">get_peft_model</span>, <span class="cls">PeftModel</span>
+<span class="kw">import</span> os
+
+<span class="cm"># ── Directories ──────────────────────────────────────────────────</span>
+PREFERENCE_OUTPUT_DIR = <span class="str">"outputs/pharma_tinyllama_preference"</span>
+ADAPTER_SAVE_DIR      = <span class="str">"outputs/pharma_preference_lora_adapter"</span>  <span class="cm"># L3</span>
+os.makedirs(PREFERENCE_OUTPUT_DIR, exist_ok=<span class="kw">True</span>)
+os.makedirs(ADAPTER_SAVE_DIR,      exist_ok=<span class="kw">True</span>)
+
+<span class="cm"># ── Load preference dataset (JSONL format) ────────────────────────</span>
+<span class="cm"># Format: {prompt, chosen, rejected, source, page, topic}</span>
+preference_data = <span class="fn">load_dataset</span>(
+    <span class="str">"json"</span>,
+    data_files = <span class="str">"pharma_preference_dataset.jsonl"</span>,
+    split      = <span class="str">"train"</span>       <span class="cm"># load as train split</span>
+)
+<span class="fn">print</span>(f<span class="str">f"Total rows: {len(preference_data)}"</span>)          <span class="cm"># 48 rows</span>
+<span class="fn">print</span>(preference_data[<span class="num">0</span>])  <span class="cm"># check first row: {prompt, chosen, rejected, ...}</span>
+
+<span class="cm"># ── Train/validation split ───────────────────────────────────────</span>
+split_data = preference_data.<span class="fn">train_test_split</span>(
+    test_size = <span class="num">0.2</span>,   <span class="cm"># 20% validation</span>
+    seed      = <span class="num">42</span>    <span class="cm"># reproducibility — same split every run</span>
+)
+train_dataset = split_data[<span class="str">"train"</span>]   <span class="cm"># ~40 rows</span>
+eval_dataset  = split_data[<span class="str">"test"</span>]    <span class="cm"># ~8 rows</span>
+<span class="fn">print</span>(f<span class="str">f"Train: {len(train_dataset)} | Eval: {len(eval_dataset)}"</span>)</pre>
+    </div>
+
+    <h3>Step 2 — Load M2 Model (Instruction-Tuned Merged Model)</h3>
+    <div class="code-block">
+      <span class="lang-label">python · load M2 base model for DPO</span>
+      <pre><span class="cm"># ── Load M2 (instruction-merged model) as base for DPO ───────────</span>
+<span class="cm"># M2 = M0 + L1 merged + L2 merged (non-instruction + instruction stages done)</span>
+<span class="cm"># This is the "preference base model" — what DPO trains on top of</span>
+
+M2_MODEL_PATH = <span class="str">"outputs/pharma_tinyllama_merge_instruction_model"</span>
+<span class="cm"># OR from HuggingFace Hub: "your-username/pharma-tinyllama-merge-model"</span>
+
+<span class="cm"># Quantization config (4-bit QLoRa for T4 GPU)</span>
+bnb_config = <span class="cls">BitsAndBytesConfig</span>(
+    load_in_4bit              = <span class="kw">True</span>,
+    bnb_4bit_quant_type       = <span class="str">"nf4"</span>,
+    bnb_4bit_compute_dtype    = <span class="str">"float16"</span>,
+    bnb_4bit_use_double_quant = <span class="kw">True</span>
+)
+
+<span class="cm"># Load the M2 model with quantization</span>
+preference_base_model = <span class="cls">AutoModelForCausalLM</span>.<span class="fn">from_pretrained</span>(
+    M2_MODEL_PATH,
+    quantization_config = bnb_config,
+    device_map          = <span class="str">"auto"</span>
+)
+preference_base_model.config.use_cache = <span class="kw">False</span>
+
+<span class="cm"># Load tokenizer</span>
+tokenizer = <span class="cls">AutoTokenizer</span>.<span class="fn">from_pretrained</span>(M2_MODEL_PATH)
+tokenizer.pad_token = tokenizer.eos_token
+
+<span class="cm"># ── Attach LoRa Adapter 3 (L3) — preference fine-tuning target ───</span>
+lora_config = <span class="cls">LoraConfig</span>(
+    r              = <span class="num">16</span>,
+    lora_alpha     = <span class="num">32</span>,
+    target_modules = [<span class="str">"q_proj"</span>, <span class="str">"v_proj"</span>],
+    lora_dropout   = <span class="num">0.05</span>,
+    bias           = <span class="str">"none"</span>,
+    task_type      = <span class="str">"CAUSAL_LM"</span>
+)
+<span class="cm"># M2 model + L3 adapter (L3 starts random, will be trained by DPOTrainer)</span>
+preference_model = <span class="fn">get_peft_model</span>(preference_base_model, lora_config)
+<span class="fn">print</span>(f<span class="str">f"Trainable params: {preference_model.print_trainable_parameters()}"</span>)</pre>
+    </div>
+
+    <h3 id="dpo-config">Step 3 — DPOConfig (Training Configuration)</h3>
+    <div class="code-block">
+      <span class="lang-label">python · DPOConfig</span>
+      <pre><span class="cm"># ── DPOConfig — all training hyperparameters ──────────────────────</span>
+<span class="cm"># Requires: DPOConfig and DPOTrainer from trl (that's all you need)</span>
+
+dpo_config = <span class="cls">DPOConfig</span>(
+    <span class="cm"># Output</span>
+    output_dir                  = PREFERENCE_OUTPUT_DIR,  <span class="cm"># checkpoints + metadata</span>
+
+    <span class="cm"># Training duration</span>
+    num_train_epochs             = <span class="num">3</span>,
+    max_steps                    = <span class="num">-1</span>,          <span class="cm"># -1 → use num_train_epochs</span>
+
+    <span class="cm"># Batch settings</span>
+    per_device_train_batch_size  = <span class="num">2</span>,
+    per_device_eval_batch_size   = <span class="num">2</span>,
+    gradient_accumulation_steps  = <span class="num">4</span>,
+
+    <span class="cm"># Optimizer</span>
+    optim                        = <span class="str">"paged_adamw_32bit"</span>,
+    learning_rate                = <span class="num">2e-5</span>,
+    lr_scheduler_type            = <span class="str">"cosine"</span>,
+    warmup_ratio                 = <span class="num">0.1</span>,
+
+    <span class="cm"># Logging & evaluation</span>
+    logging_steps                = <span class="num">10</span>,
+    evaluation_strategy          = <span class="str">"steps"</span>,
+    eval_steps                   = <span class="num">50</span>,
+    report_to                    = <span class="str">"none"</span>,     <span class="cm"># no wandb/tensorboard</span>
+
+    <span class="cm"># Checkpointing</span>
+    save_strategy                = <span class="str">"steps"</span>,
+    save_steps                   = <span class="num">50</span>,
+    save_total_limit             = <span class="num">2</span>,
+
+    <span class="cm"># Precision</span>
+    fp16                         = <span class="kw">True</span>,        <span class="cm"># use float16 on T4 GPU</span>
+
+    <span class="cm"># DPO-specific</span>
+    beta                         = <span class="num">0.1</span>,         <span class="cm"># KL penalty weight</span>
+    remove_unused_columns        = <span class="kw">False</span>,      <span class="cm"># keep metadata columns</span>
+
+    <span class="cm"># Max token lengths for preference data</span>
+    max_prompt_length            = <span class="num">512</span>,
+    max_length                   = <span class="num">1024</span>,
+)</pre>
+    </div>
+
+    <h3 id="dpo-trainer">Step 4 — DPOTrainer (The Core Training Class)</h3>
+    <div class="code-block">
+      <span class="lang-label">python · DPOTrainer</span>
+      <pre><span class="cm"># ── DPOTrainer — the main class for preference fine-tuning ────────</span>
+trainer = <span class="cls">DPOTrainer</span>(
+    model          = preference_model,   <span class="cm"># M2 + L3 adapter (L3 to be trained)</span>
+    ref_model      = <span class="kw">None</span>,              <span class="cm"># None → TRL uses internal ref behavior</span>
+    <span class="cm"># Note: ref_model is optional in DPO (unlike RLHF which requires it)</span>
+    <span class="cm"># When None, TRL internally maintains the reference policy via a function</span>
+    args           = dpo_config,
+    train_dataset  = train_dataset,
+    eval_dataset   = eval_dataset,
+    tokenizer      = tokenizer,
+)
+
+<span class="cm"># ── Start training ────────────────────────────────────────────────</span>
+trainer.<span class="fn">train</span>()
+<span class="cm"># Training begins — you will see the output table below</span></pre>
+    </div>
+
+    <h3 id="training-metrics">DPO Training Output Metrics — Explained</h3>
+    <p>After training starts, Sunny explained every metric column in the output:</p>
+
+    <table class="metrics-table">
+      <thead><tr><th>Metric</th><th>What it Means</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">step</td><td>Current optimizer step number during training</td></tr>
+        <tr><td class="mn">train_loss</td><td>DPO loss on the training data — should decrease over time</td></tr>
+        <tr><td class="mn">eval_loss</td><td>DPO loss on the validation (unseen) data</td></tr>
+        <tr><td class="mn">entropy</td><td>How certain the model is in its predictions. High entropy = more random/uncertain. Low entropy = more confident.</td></tr>
+        <tr><td class="mn">num_tokens</td><td>Total number of tokens processed so far during training</td></tr>
+        <tr><td class="mn">logits_chosen</td><td>Raw model score (log probability) for the chosen/preferred answer</td></tr>
+        <tr><td class="mn">logits_rejected</td><td>Raw model score (log probability) for the rejected answer</td></tr>
+        <tr><td class="mn">mean_token_accuracy</td><td>Average token-level accuracy across all predictions</td></tr>
+        <tr><td class="mn">rewards_chosen</td><td>Reward score for the preferred response (should increase)</td></tr>
+        <tr><td class="mn">rewards_rejected</td><td>Reward score for the rejected response (should decrease)</td></tr>
+        <tr><td class="mn">reward_accuracy</td><td>How often the model correctly ranks chosen above rejected</td></tr>
+        <tr><td class="mn">reward_margin</td><td>Gap between chosen reward and rejected reward (larger = better alignment)</td></tr>
+        <tr><td class="mn">logps_chosen</td><td>Log probability sum for the chosen response tokens</td></tr>
+        <tr><td class="mn">logps_rejected</td><td>Log probability sum for the rejected response tokens</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <span class="callout-icon">📈</span>
+      <p><strong>What "good training" looks like:</strong> <code>train_loss</code> decreasing, <code>reward_margin</code> increasing (model increasingly prefers chosen over rejected), <code>reward_accuracy</code> moving toward 1.0. These are the key signals that DPO is working correctly.</p>
+    </div>
+
+    <h3 id="save-push">Step 5 — Save Adapter and Push to HuggingFace</h3>
+    <div class="code-block">
+      <span class="lang-label">python · save and push</span>
+      <pre><span class="cm"># ── Save tokenizer and LoRa Adapter 3 separately ────────────────</span>
+<span class="cm"># The adapter is also saved in output_dir, but we save it separately</span>
+<span class="cm"># for clean isolated loading later</span>
+tokenizer.<span class="fn">save_pretrained</span>(ADAPTER_SAVE_DIR)
+trainer.model.<span class="fn">save_pretrained</span>(ADAPTER_SAVE_DIR)
+<span class="fn">print</span>(f<span class="str">f"✓ LoRa Adapter 3 saved to: {ADAPTER_SAVE_DIR}"</span>)
+
+<span class="cm"># ── Push adapter to HuggingFace Hub ──────────────────────────────</span>
+<span class="cm"># So you can load it anytime without re-training</span>
+<span class="kw">from</span> huggingface_hub <span class="kw">import</span> <span class="fn">login</span>
+<span class="fn">login</span>(token=os.<span class="fn">getenv</span>(<span class="str">"HF_TOKEN"</span>))
+
+trainer.model.<span class="fn">push_to_hub</span>(<span class="str">"your-username/pharma-tinyllama-preference-adapter"</span>)
+tokenizer.<span class="fn">push_to_hub</span>(<span class="str">"your-username/pharma-tinyllama-preference-adapter"</span>)
+<span class="fn">print</span>(<span class="str">"✓ Adapter pushed to HuggingFace Hub"</span>)</pre>
+    </div>
+
+    <h3 id="inference">Step 6 — Inference with the Preference-Aligned Model</h3>
+    <div class="code-block">
+      <span class="lang-label">python · inference with DPO model</span>
+      <pre><span class="cm"># ── For inference: load M2 base + append L3 adapter ─────────────</span>
+<span class="cm"># This is an APPEND operation (not merge) — faster for inference testing</span>
+
+<span class="kw">from</span> peft <span class="kw">import</span> <span class="cls">PeftModel</span>
+
+<span class="cm"># Load the M2 base model (instruction-merged)</span>
+base_for_inf = <span class="cls">AutoModelForCausalLM</span>.<span class="fn">from_pretrained</span>(
+    M2_MODEL_PATH, device_map=<span class="str">"auto"</span>, torch_dtype=<span class="str">"float16"</span>
+)
+<span class="cm"># Append L3 adapter on top (no weight merging — adapter loaded in VRAM)</span>
+preference_inf_model = <span class="cls">PeftModel</span>.<span class="fn">from_pretrained</span>(
+    base_for_inf, ADAPTER_SAVE_DIR
+)
+
+<span class="kw">def</span> <span class="fn">build_preference_prompt</span>(instruction, input_text=<span class="str">""</span>):
+    <span class="str">"""Build the Alpaca-style prompt for inference."""</span>
+    <span class="kw">if</span> input_text:
+        <span class="kw">return</span> f<span class="str">f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n"</span>
+    <span class="kw">return</span> f<span class="str">f"### Instruction:\n{instruction}\n\n### Response:\n"</span>
+
+<span class="kw">def</span> <span class="fn">generate_preference_response</span>(question, max_new_tokens=<span class="num">200</span>):
+    prompt = <span class="fn">build_preference_prompt</span>(question)
+    inputs = tokenizer(prompt, <span class="fn">return_tensors</span>=<span class="str">"pt"</span>).<span class="fn">to</span>(<span class="str">"cuda"</span>)
+    <span class="kw">with</span> __import__(<span class="str">'torch'</span>).no_grad():
+        outputs = preference_inf_model.<span class="fn">generate</span>(
+            **inputs,
+            max_new_tokens = max_new_tokens,
+            temperature    = <span class="num">0.7</span>,
+            do_sample      = <span class="kw">True</span>,
+            pad_token_id   = tokenizer.eos_token_id
+        )
+    response = tokenizer.<span class="fn">decode</span>(outputs[<span class="num">0</span>], skip_special_tokens=<span class="kw">True</span>)
+    <span class="kw">return</span> response.<span class="fn">split</span>(<span class="str">"### Response:"</span>)[<span class="num">-1</span>].<span class="fn">strip</span>()
+
+<span class="cm"># Test with a pharma question</span>
+question = <span class="str">"What are the side effects of metformin?"</span>
+response  = <span class="fn">generate_preference_response</span>(question)
+<span class="fn">print</span>(f<span class="str">f"Q: {question}\n\nA: {response}"</span>)
+
+<span class="cm"># ── Full pipeline merge: M2 + L3 → M3 (Final Model) ─────────────</span>
+<span class="cm"># After inference testing, merge L3 into M2 to create the final M3 model</span>
+<span class="kw">from</span> peft <span class="kw">import</span> PeftModel
+
+m3_model = <span class="cls">PeftModel</span>.<span class="fn">from_pretrained</span>(base_for_inf, ADAPTER_SAVE_DIR)
+m3_merged = m3_model.<span class="fn">merge_and_unload</span>()   <span class="cm"># bakes L3 into weights → M3</span>
+
+FINAL_MODEL_DIR = <span class="str">"outputs/pharma_tinyllama_final_model"</span>
+m3_merged.<span class="fn">save_pretrained</span>(FINAL_MODEL_DIR)
+tokenizer.<span class="fn">save_pretrained</span>(FINAL_MODEL_DIR)
+<span class="fn">print</span>(<span class="str">f"✓ Final model (M3) saved to: {FINAL_MODEL_DIR}"</span>)
+
+<span class="cm"># ── Push M3 to HuggingFace Hub ────────────────────────────────────</span>
+m3_merged.<span class="fn">push_to_hub</span>(<span class="str">"your-username/pharma-tinyllama-final-model"</span>)
+<span class="cm"># Sunny's: "pharma-tinyllama-instruct-merge-model" on HuggingFace</span></pre>
+    </div>
+  </section>
+
+  <!-- WHAT'S NEXT -->
+  <section id="whats-next">
+    <div class="section-eyebrow">07 — Coming Up</div>
+    <h2>What's Remaining in the Fine-Tuning Module</h2>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">1</span>
+        <div><strong style="color:#fff;">LoRa & QLoRa Theory</strong> — detailed conceptual explanation of how LoRa adapters work mathematically (rank decomposition, r, alpha parameters)</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">2</span>
+        <div><strong style="color:#fff;">RLHF Theory + Practical</strong> — full explanation of the reward model, actor-critic PPO method, and a practical demo showing the RLHF code</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">3</span>
+        <div><strong style="color:#fff;">DPO Theory</strong> — how DPO eliminates the reward model, the mathematical insight ("language model as a secret reward model"), comparison with RLHF</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent3); flex-shrink:0; margin-top:2px;">4</span>
+        <div><strong style="color:#fff;">Unsloth Fine-Tuning</strong> — the full 3-stage pipeline in a single notebook using Unsloth (faster training, lower memory)</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent2); flex-shrink:0; margin-top:2px;">5</span>
+        <div><strong style="color:#fff;">OpenAI API Fine-Tuning</strong> — how to fine-tune GPT models via OpenAI API (5 lines of code, data goes to OpenAI's servers)</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(250,204,21,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent6); flex-shrink:0; margin-top:2px;">6</span>
+        <div><strong style="color:#fff;">Fine-Tuning Assignment</strong> — a comprehensive assignment covering the full pipeline. Completing it means you can revise all fine-tuning concepts from start to end</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🏗</span>
+      <p><strong>Self-study assignments:</strong> Implement GRPO and ORPO preference tuning using TRL — both are available in the same TRL library (<code>GRPOTrainer</code> and <code>ORPOTrainer</code>). The code pattern is nearly identical to DPOTrainer. Sunny mentioned: "Programmatically, it would be same — you just need to use the library."</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">08 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 23 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is preference tuning and what problem does it solve that Stage 1 (CPT) and Stage 2 (SFT) cannot?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Preference tuning (Stage 3) aligns the model's outputs with human preferences. Stages 1 and 2 give the model domain knowledge (CPT) and the ability to follow instructions (SFT). But the model may still produce technically correct yet unhelpful, unsafe, or low-quality responses — like telling someone to "study 48 hours without a break." Preference tuning trains the model to prefer better (chosen) responses over worse (rejected) ones, by showing it paired examples of both. This is the same technique ChatGPT and other commercial LLMs use for alignment.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What are the 3 required columns in a preference dataset, and what does each contain?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">prompt: the user's instruction or question — what the model is being asked. chosen: the better/preferred response — what human evaluators (or SMEs) consider the higher-quality answer. rejected: the weaker/worse response — what the model should learn NOT to produce. The DPO training objective makes the model assign higher probability to the chosen response than the rejected response for each prompt.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What are the 4 preference alignment algorithms Sunny covered? Classify each as RL-based or non-RL.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">RL-based: (1) RLHF+PPO (Reinforcement Learning from Human Feedback) — introduced by OpenAI, uses Proximal Policy Optimization with an actor-critic framework and requires a separate reward model. Now largely outdated. (2) GRPO (Group Relative Policy Optimization) — introduced by DeepSeek, an updated version of PPO, very popular currently. Non-RL: (3) DPO (Direct Preference Optimization) — by Stanford, NeurIPS 2023. Trains directly on preference pairs using maximum likelihood. No reward model needed. Most popular for practical use. (4) ORPO (Odds Ratio Preference Optimization) — an advanced variant of DPO, also non-RL.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. Explain the 3-stage LoRa merge pipeline in order. What do M0, M1, M2, M3, L1, L2, L3 each represent?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">M0 = original base model (e.g. TinyLlama). L1 = LoRa adapter trained in Stage 1 (CPT on domain raw text). M1 = M0 + L1 merged (has domain knowledge). L2 = LoRa adapter trained in Stage 2 (SFT on instruction data, using M1 as base). M2 = M1 + L2 merged (has domain knowledge + instruction following). L3 = LoRa adapter trained in Stage 3 (DPO on preference data, using M2 as base). M3 = M2 + L3 merged = the final production-ready model with domain knowledge, instruction following, AND preference alignment.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Using Sunny's "Class 10–12 analogy," explain why you cannot apply L2 directly on top of M0.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">M0 is like a Class 10 student (base knowledge). M1 = M0 + L1 merged = Class 10 + Class 11 knowledge. M2 = M1 + L2 merged = Class 10 + Class 11 + Class 12 knowledge. If you try to apply L2 (Class 12 curriculum) directly on M0 (Class 10 student), you skip Class 11 entirely — the prerequisite knowledge is missing. The adapter L2 was trained assuming the model already has the Stage 1 (L1) knowledge baked in. Without it, the fine-tuning is built on an incorrect foundation, leading to poor model quality.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What is the TRL library, and which classes from it are needed for DPO training?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">TRL (Transformer Reinforcement Learning) is HuggingFace's library for preference alignment and fine-tuning. Despite the name, it covers both RL-based and non-RL methods. For DPO you need exactly two classes: DPOConfig (configures all training hyperparameters: output_dir, epochs, batch_size, optimizer, DPO-specific beta parameter) and DPOTrainer (the main training class that takes the model, ref_model=None, training args, train_dataset, eval_dataset, and tokenizer). TRL also contains GRPOTrainer, SFTTrainer, RewardTrainer, and ORPOTrainer.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. What is the role of ref_model=None in DPOTrainer, and how does this differ from RLHF?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">In DPO, ref_model=None means TRL will internally maintain the reference policy behavior using a frozen copy of the initial model (via a function), without requiring you to explicitly load a separate reference model. This is one of DPO's key simplifications over RLHF. In RLHF, you explicitly need: (1) a separate reward model (trained on human preference labels) and (2) a reference policy model (to compute KL divergence during PPO). DPO eliminates both — the language model itself acts as a secret reward model (per the paper: "Your Language Model is Secretly a Reward Model"), making the training much simpler and computationally cheaper.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 23 · Preference Tuning & DPO · 13 June 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
