@@ -1,0 +1,61 @@
+{
+  "rag_prompt": {
+    "version": "1.0.0",
+    "template_format": "jinja2",
+    "messages": [
+      {
+        "role": "system",
+        "template": "You are a RAG assistant. Answer only from the provided context. If the answer is not available, say 'I do not have enough information.'"
+      },
+      {
+        "role": "human",
+        "template": "Context:\n{{ context }}\n\nQuestion:\n{{ question }}"
+      }
+    ]
+  },
+
+  "summarization_prompt": {
+    "version": "1.0.0",
+    "template_format": "jinja2",
+    "messages": [
+      {
+        "role": "system",
+        "template": "You are a professional text summarizer."
+      },
+      {
+        "role": "human",
+        "template": "Summarize the following text in {{ num_points }} bullet points:\n\n{{ text }}"
+      }
+    ]
+  },
+
+  "classification_prompt": {
+    "version": "1.0.0",
+    "template_format": "jinja2",
+    "messages": [
+      {
+        "role": "system",
+        "template": "You are a customer support classifier. Return only one category."
+      },
+      {
+        "role": "human",
+        "template": "Classify the following customer query into one of these categories:\n{% for category in categories %}- {{ category }}\n{% endfor %}\n\nCustomer Query:\n{{ query }}"
+      }
+    ]
+  },
+
+  "code_review_prompt": {
+    "version": "1.0.0",
+    "template_format": "jinja2",
+    "messages": [
+      {
+        "role": "system",
+        "template": "You are a senior Python code reviewer."
+      },
+      {
+        "role": "human",
+        "template": "Review the following Python code for:\n- Bugs\n- Security issues\n- Performance issues\n- Readability\n\nCode:\n{{ code }}"
+      }
+    ]
+  }
+}

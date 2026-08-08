@@ -1,0 +1,9 @@
+{
+  "rag_prompt": "Answer the question using only the provided context.\n\nContext: {context}\n\nQuestion: {question}",
+
+  "summary_prompt": "Summarize the following text in 3 bullet points.\n\nText: {text}",
+
+  "classification_prompt": "Classify the following text as Positive, Negative, or Neutral.\n\nText: {text}",
+
+  "code_review_prompt": "Review the following Python code and identify any bugs.\n\nCode: {code}"
+}
