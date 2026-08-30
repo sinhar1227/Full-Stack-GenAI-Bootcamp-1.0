@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 41 — LangGraph Fundamentals | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #a78bfa;   /* violet — LangGraph */
+  --accent2:     #22d3ee;   /* cyan — StateGraph */
+  --accent3:     #4ade80;   /* green — success/LLM */
+  --accent4:     #fb923c;   /* orange — nodes */
+  --accent5:     #f472b6;   /* pink — routing */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(167,139,250,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(167,139,250,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 41):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── STATE VISUAL ── */
+.state-flow { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 16px 0; }
+.sf-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.sf-nodes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sf-node { padding: 12px 18px; border-radius: 8px; border: 1px solid; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.sf-arrow { color: var(--muted); font-size: 1.2rem; }
+.sf-state-box { display: flex; flex-direction: column; gap: 4px; background: rgba(34,211,238,0.06); border: 1px dashed rgba(34,211,238,0.3); border-radius: 6px; padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.sf-state-key { color: var(--accent2); }
+.sf-state-val { color: #94a3b8; margin-left: 8px; }
+
+/* ── ROUTING DIAGRAM ── */
+.routing-flow { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 16px 0; }
+.rf-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.rf-center { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.rf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rf-node { padding: 8px 16px; border-radius: 6px; border: 1px solid; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.rf-branch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 8px; }
+.rf-branch-item { text-align: center; }
+
+/* ── MESSAGE STATE VISUAL ── */
+.msg-state-visual { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-radius: 8px; padding: 18px; margin: 16px 0; }
+.msv-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+.msg-list { display: flex; flex-direction: column; gap: 8px; }
+.msg-item { display: flex; gap: 10px; font-size: 0.82rem; }
+.msg-role { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; padding: 2px 8px; border-radius: 3px; min-width: 90px; text-align: center; flex-shrink: 0; margin-top: 2px; }
+.msg-text { color: #94a3b8; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(167,139,250,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(167,139,250,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .rf-branch { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#session-context">Session Context</a></li>
+    <li><a href="#lg-architecture">LangGraph Architecture</a></li>
+    <li class="sub"><a href="#nodes-edges">Nodes & Edges</a></li>
+    <li class="sub"><a href="#state-concept">State Concept</a></li>
+    <li><a href="#state-types">3 Ways to Define State</a></li>
+    <li class="sub"><a href="#typedict-state">TypedDict State</a></li>
+    <li class="sub"><a href="#pydantic-state">Pydantic State</a></li>
+    <li class="sub"><a href="#messages-state">MessagesState (Built-in)</a></li>
+    <li><a href="#first-graph">First StateGraph Program</a></li>
+    <li class="sub"><a href="#simple-nodes">Simple Node Flow</a></li>
+    <li class="sub"><a href="#compile-invoke">Compile & Invoke</a></li>
+    <li class="sub"><a href="#visualise-graph">Visualise the Graph</a></li>
+    <li><a href="#llm-integration">LLM Integration in Graph</a></li>
+    <li class="sub"><a href="#groq-setup">Groq Setup</a></li>
+    <li class="sub"><a href="#llm-node">LLM Node Code</a></li>
+    <li class="sub"><a href="#human-ai-message">HumanMessage & AIMessage</a></li>
+    <li><a href="#conditional-edges">Conditional Edges</a></li>
+    <li class="sub"><a href="#conditional-concept">Concept</a></li>
+    <li class="sub"><a href="#conditional-code">Code</a></li>
+    <li><a href="#agentic-routing">Agentic Routing Flow</a></li>
+    <li class="sub"><a href="#routing-problem">3-Route Problem</a></li>
+    <li class="sub"><a href="#structured-output">Structured Output Routing</a></li>
+    <li class="sub"><a href="#supervisor-agent">Supervisor Agent</a></li>
+    <li class="sub"><a href="#validator-agent">Validator Agent</a></li>
+    <li class="sub"><a href="#full-routing-code">Full Routing Code</a></li>
+    <li><a href="#state-vs-memory">State vs Memory</a></li>
+    <li><a href="#next-class">What's Next</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 41</span></div>
+    <div class="hero-class-num">Class 41 · 23 August 2026</div>
+    <h1>LangGraph<br><em>Fundamentals</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> StateGraph · Nodes · Edges</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> State & MessagesState</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> LLM Integration (Groq)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Agentic Routing Flow</div>
+    </div>
+    <p class="hero-summary">
+      The first full LangGraph practical session. Sunny builds up from scratch: what state is and why it exists, 3 ways to define it (TypedDict, Pydantic, MessagesState), how to build a StateGraph with nodes and edges, how to integrate an LLM (Groq) as a node, how conditional edges implement routing decisions, and finally a complete 5-node Agentic RAG routing system — supervisor agent → RAG / LLM / web → validator → final/fail output.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> LangChain ecosystem recap: LangChain vs LangGraph vs LangSmith vs LangFlow vs LangFuse</li>
+      <li><span class="chk">✓</span> StateGraph as the central class — Graph class removed in latest LangGraph version</li>
+      <li><span class="chk">✓</span> Node = Python function; Edge = relationship/connection between nodes</li>
+      <li><span class="chk">✓</span> State: the data object flowing through the entire graph — like XCOM in Airflow</li>
+      <li><span class="chk">✓</span> 3 state definition approaches: TypedDict (basic), Pydantic BaseModel (validated), MessagesState (built-in)</li>
+      <li><span class="chk">✓</span> Building from scratch: a simple 3-node graph → compile → invoke → get output</li>
+      <li><span class="chk">✓</span> Graph visualisation with .get_graph().draw_mermaid_png()</li>
+      <li><span class="chk">✓</span> Integrating Groq LLM into a node — MessagesState + HumanMessage/AIMessage pattern</li>
+      <li><span class="chk">✓</span> Conditional edges — routing function returns a string, graph uses it to pick next node</li>
+      <li><span class="chk">✓</span> Full Agentic RAG routing system: 3-route decision (RAG / LLM / Web) using structured output</li>
+      <li><span class="chk">✓</span> Pydantic schemas for structured output routing and validation</li>
+      <li><span class="chk">✓</span> Supervisor agent node + Validator agent node — complete working demo</li>
+      <li><span class="chk">✓</span> Groq hallucination caveat: good LLM recommendation for production</li>
+      <li><span class="chk">✓</span> State vs Memory — clarification (state = within one execution; memory = across sessions/threads)</li>
+      <li><span class="chk">✓</span> Next: tool engineering, parallel workflow, short/long-term memory, human-in-the-loop</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>File:</strong> <code>langgraph_introduction.ipynb</code> — all code pushed to GitHub. Uses Groq free-tier LLM (meta-llama/llama3-groq-70b-8192-tool-use-preview or similar). Note: Groq free tier models may hallucinate on date-specific questions — use GPT-4.1-mini or Claude for production.</p>
+    </div>
+  </section>
+
+  <!-- SESSION CONTEXT -->
+  <section id="session-context">
+    <div class="section-eyebrow">02 — Context</div>
+    <h2>Session Context & Plan</h2>
+
+    <div class="sunny-says">
+      "In the previous class, I just given you the theoretical understanding of the Agentic AI. So today's session will be more focused over practical. I will write the entire code from scratch, so that you will understand the LangGraph. All updated code is already pushed to GitHub — check it out. And in the next class, we'll go into tool engineering. From the tool, guys, we will reach out to MCP — we'll standardize our process."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Class 41 Build Progression</div>
+      <div style="color:var(--accent3);">Level 1 → Simple function call (no LangGraph)</div>
+      <div style="color:var(--accent3);">Level 2 → State concept introduction (TypedDict)</div>
+      <div style="color:var(--accent3);">Level 3 → First StateGraph (3 nodes, sequential edges)</div>
+      <div style="color:var(--accent3);">Level 4 → LLM-integrated node (Groq + MessagesState)</div>
+      <div style="color:var(--accent3);">Level 5 → Conditional edges (routing function)</div>
+      <div style="color:var(--accent6);">Level 6 → Full Agentic RAG router (supervisor + validator + 3 routes)</div>
+    </div>
+  </section>
+
+  <!-- LANGGRAPH ARCHITECTURE -->
+  <section id="lg-architecture">
+    <div class="section-eyebrow">03 — Core Concepts</div>
+    <h2>LangGraph Architecture</h2>
+
+    <h3 id="nodes-edges">Nodes and Edges</h3>
+    <p>Every LangGraph program is built from exactly two things:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:18px; border-top:3px solid var(--accent4);">
+        <h4 style="font-size:0.92rem; color:var(--accent4); margin-bottom:8px;">Node = Python Function</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">A node is nothing more than a Python function. It receives the current state as input and returns an updated state as output. Any logic goes inside — an LLM call, a database query, a tool call, a transformation, anything.</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--accent4); margin-top:10px; background:rgba(0,0,0,0.2); border-radius:4px; padding:8px;">def my_node(state: State) → dict: ...</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px; border-top:3px solid var(--accent);">
+        <h4 style="font-size:0.92rem; color:var(--accent); margin-bottom:8px;">Edge = Relationship</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">An edge connects two nodes. Sequential edge: always go from A to B. Conditional edge: a routing function inspects the state and returns which node to visit next — enabling dynamic Agentic flows.</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--accent); margin-top:10px; background:rgba(0,0,0,0.2); border-radius:4px; padding:8px;">graph.add_edge("node_a", "node_b")</div>
+      </div>
+    </div>
+
+    <h3 id="state-concept">What is State?</h3>
+
+    <div class="sunny-says">
+      "State means passing information, or data, from one node to another while maintaining the state. State is the data which is flowing across the nodes. Every node is aware about all the information — what information was there at node 1, now node 3 is aware about it. We are throwing the information across the node, and throughout this node, the state will be flowing."
+    </div>
+
+    <div class="state-flow">
+      <div class="sf-label">State Flow — Sunny's Blackboard Example (4-node RAG pipeline)</div>
+      <div class="sf-nodes">
+        <div class="sf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">Node 1<br><small>question arrives</small></div>
+        <span class="sf-arrow">→</span>
+        <div class="sf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent);">Node 2<br><small>route decided</small></div>
+        <span class="sf-arrow">→</span>
+        <div class="sf-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent2);">Node 3<br><small>context retrieved</small></div>
+        <span class="sf-arrow">→</span>
+        <div class="sf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">Node 4<br><small>answer generated</small></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div style="font-size:0.72rem; color:var(--muted); font-family:'IBM Plex Mono',monospace; margin-bottom:8px;">State class (TypedDict): question, route, context, answer</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="font-size:0.78rem; color:#94a3b8;">Node 1 → state has: <span style="color:var(--accent6);">question</span></div>
+          <div style="font-size:0.78rem; color:#94a3b8;">Node 2 → state has: <span style="color:var(--accent6);">question</span> + <span style="color:var(--accent);">route</span></div>
+          <div style="font-size:0.78rem; color:#94a3b8;">Node 3 → state has: <span style="color:var(--accent6);">question</span> + <span style="color:var(--accent);">route</span> + <span style="color:var(--accent2);">context</span></div>
+          <div style="font-size:0.78rem; color:#94a3b8;">Node 4 → state has: <span style="color:var(--accent6);">question</span> + <span style="color:var(--accent);">route</span> + <span style="color:var(--accent2);">context</span> + <span style="color:var(--accent3);">answer</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">💡</span>
+      <p><strong>Airflow analogy from Swati (student):</strong> "State is nothing but the XCOM in Airflow — where we communicate between two tasks." Sunny confirmed: "Got it — yes, that's a good way to think about it." State is the mechanism for passing data between nodes, just as XCOM passes data between Airflow tasks.</p>
+    </div>
+  </section>
+
+  <!-- STATE TYPES -->
+  <section id="state-types">
+    <div class="section-eyebrow">04 — State Definition</div>
+    <h2>3 Ways to Define State</h2>
+
+    <h3 id="typedict-state">Method 1 — TypedDict (Most Common)</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · TypedDict state</span>
+      <pre><span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">TypedDict</span>, <span class="cls">List</span>, <span class="cls">Optional</span>
+
+<span class="cm"># ── Custom State using TypedDict ──────────────────────────────────</span>
+<span class="cm"># State = a dictionary-like class where every key has a defined type</span>
+<span class="cm"># This is what flows through every node in the graph</span>
+<span class="kw">class</span> <span class="cls">State</span>(<span class="cls">TypedDict</span>):
+    message: str           <span class="cm"># simple string field</span>
+
+<span class="cm"># ── More realistic RAG pipeline state ────────────────────────────</span>
+<span class="kw">class</span> <span class="cls">RAGState</span>(<span class="cls">TypedDict</span>):
+    question: str          <span class="cm"># user's query</span>
+    route:    <span class="cls">Optional</span>[str] <span class="cm"># "rag", "llm", or "web" — decided by supervisor</span>
+    context:  <span class="cls">Optional</span>[str] <span class="cm"># retrieved context (from retriever node)</span>
+    answer:   <span class="cls">Optional</span>[str] <span class="cm"># final generated answer</span>
+
+<span class="cm"># ── Initialize and inspect ────────────────────────────────────────</span>
+my_state = <span class="cls">State</span>(message=<span class="str">"Hello World"</span>)
+<span class="fn">print</span>(my_state)   <span class="cm"># {"message": "Hello World"}</span>
+
+rag_state = <span class="cls">RAGState</span>(
+    question = <span class="str">"What is RLHF?"</span>,
+    route    = <span class="kw">None</span>,
+    context  = <span class="kw">None</span>,
+    answer   = <span class="kw">None</span>
+)
+
+<span class="cm"># Note: you don't have to initialize ALL fields at start</span>
+<span class="cm"># Uninitialized fields are None — nodes set them as they execute</span>
+<span class="cm"># By node 4: all 4 fields have values (question, route, context, answer)</span></pre>
+    </div>
+
+    <h3 id="pydantic-state">Method 2 — Pydantic BaseModel (Validated)</h3>
+    <div class="code-block">
+      <span class="lang-label">python · Pydantic state</span>
+      <pre><span class="kw">from</span> pydantic <span class="kw">import</span> <span class="cls">BaseModel</span>
+
+<span class="cm"># Pydantic gives you automatic type validation</span>
+<span class="cm"># If you pass wrong types, Pydantic raises a ValidationError immediately</span>
+<span class="cm"># Preferred in production for safety</span>
+<span class="kw">class</span> <span class="cls">AgentState</span>(<span class="cls">BaseModel</span>):
+    question: str
+    route:    str = <span class="str">"llm"</span>      <span class="cm"># default value</span>
+    context:  str = <span class="str">""</span>
+    answer:   str = <span class="str">""</span>
+
+<span class="cm"># Pydantic validates on instantiation</span>
+state = <span class="cls">AgentState</span>(question=<span class="str">"What is the HR policy?"</span>)
+<span class="fn">print</span>(state.route)   <span class="cm"># "llm" (default)</span>
+
+<span class="cm"># Pydantic is also used for structured output schemas in LLM routing</span>
+<span class="cm"># (covered in detail in the routing section below)</span></pre>
+    </div>
+
+    <h3 id="messages-state">Method 3 — MessagesState (LangGraph Built-in)</h3>
+    <p>LangGraph ships with a built-in state class already designed for conversational flows. Sunny navigated to the LangGraph GitHub source to show students exactly where it's defined.</p>
+
+    <div class="msg-state-visual">
+      <div class="msv-label">MessagesState — How it stores conversation history</div>
+      <div class="msg-list">
+        <div class="msg-item">
+          <span class="msg-role" style="background:rgba(250,204,21,0.1); color:var(--accent6); border:1px solid rgba(250,204,21,0.3);">HumanMessage</span>
+          <span class="msg-text">"What are the side effects of metformin?"</span>
+        </div>
+        <div class="msg-item">
+          <span class="msg-role" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">AIMessage</span>
+          <span class="msg-text">"Metformin commonly causes nausea, diarrhea, and stomach upset..."</span>
+        </div>
+        <div class="msg-item">
+          <span class="msg-role" style="background:rgba(250,204,21,0.1); color:var(--accent6); border:1px solid rgba(250,204,21,0.3);">HumanMessage</span>
+          <span class="msg-text">"Are there any interactions with other drugs?"</span>
+        </div>
+        <div class="msg-item">
+          <span class="msg-role" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">AIMessage</span>
+          <span class="msg-text">"Yes, metformin can interact with iodinated contrast media..."</span>
+        </div>
+      </div>
+      <div style="margin-top:12px; font-size:0.76rem; color:var(--muted);">As many messages as needed can be appended — Annotated[List[AnyMessage], add_messages]</div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · MessagesState import and usage</span>
+      <pre><span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> <span class="cls">MessagesState</span>
+<span class="cm"># or: from langgraph.graph import MessagesState (depending on version)</span>
+
+<span class="cm"># MessagesState is equivalent to writing:</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Annotated</span>, <span class="cls">List</span>
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> <span class="cls">AnyMessage</span>, <span class="fn">add_messages</span>
+
+<span class="kw">class</span> <span class="cls">MessagesState</span>(<span class="cls">TypedDict</span>):
+    messages: <span class="cls">Annotated</span>[<span class="cls">List</span>[<span class="cls">AnyMessage</span>], <span class="fn">add_messages</span>]
+<span class="cm"># "Annotated[List[AnyMessage], add_messages]" means:</span>
+<span class="cm"># → It's a list of messages (HumanMessage, AIMessage, SystemMessage...)</span>
+<span class="cm"># → add_messages = append operator: new messages are ADDED to the list,</span>
+<span class="cm">#   not overwritten — conversation history is preserved automatically</span>
+
+<span class="cm"># Usage: initialize with a list of messages</span>
+initial_state = {
+    <span class="str">"messages"</span>: [(<span class="str">"human"</span>, <span class="str">"What is the company HR policy?"</span>)]
+}
+<span class="cm"># Each message added by a node is appended to the list</span>
+<span class="cm"># The LLM sees the full message history on every call</span></pre>
+    </div>
+  </section>
+
+  <!-- FIRST GRAPH -->
+  <section id="first-graph">
+    <div class="section-eyebrow">05 — First Program</div>
+    <h2>First StateGraph — Build Step by Step</h2>
+
+    <h3 id="simple-nodes">Simple 3-Node Graph (No LLM)</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · first StateGraph</span>
+      <pre><span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">START</span>, <span class="cls">END</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">TypedDict</span>
+
+<span class="cm"># ── Step 1: Define the State ──────────────────────────────────────</span>
+<span class="kw">class</span> <span class="cls">State</span>(<span class="cls">TypedDict</span>):
+    message: str    <span class="cm"># single field flowing through all nodes</span>
+
+<span class="cm"># ── Step 2: Define nodes (Python functions) ───────────────────────</span>
+<span class="cm"># Each node receives state → modifies it → returns updated dict</span>
+<span class="kw">def</span> <span class="fn">node_first</span>(state: <span class="cls">State</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing node_first"</span>)
+    <span class="cm"># Read from state and update</span>
+    updated = state[<span class="str">"message"</span>] + <span class="str">" → node_first processed"</span>
+    <span class="kw">return</span> {<span class="str">"message"</span>: updated}
+
+<span class="kw">def</span> <span class="fn">node_second</span>(state: <span class="cls">State</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing node_second"</span>)
+    updated = state[<span class="str">"message"</span>] + <span class="str">" → node_second processed"</span>
+    <span class="kw">return</span> {<span class="str">"message"</span>: updated}
+
+<span class="kw">def</span> <span class="fn">node_third</span>(state: <span class="cls">State</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing node_third"</span>)
+    updated = state[<span class="str">"message"</span>] + <span class="str">" → node_third processed"</span>
+    <span class="kw">return</span> {<span class="str">"message"</span>: updated}
+
+<span class="cm"># ── Step 3: Build the StateGraph ─────────────────────────────────</span>
+workflow = <span class="cls">StateGraph</span>(<span class="cls">State</span>)
+
+<span class="cm"># Add nodes: (name_string, function)</span>
+workflow.<span class="fn">add_node</span>(<span class="str">"first"</span>,  node_first)
+workflow.<span class="fn">add_node</span>(<span class="str">"second"</span>, node_second)
+workflow.<span class="fn">add_node</span>(<span class="str">"third"</span>,  node_third)
+
+<span class="cm"># Add sequential edges</span>
+workflow.<span class="fn">add_edge</span>(<span class="cls">START</span>,    <span class="str">"first"</span>)   <span class="cm"># entry point</span>
+workflow.<span class="fn">add_edge</span>(<span class="str">"first"</span>,  <span class="str">"second"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"second"</span>, <span class="str">"third"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"third"</span>,  <span class="cls">END</span>)      <span class="cm"># exit point</span>
+
+<span class="cm"># ── Step 4: Compile ───────────────────────────────────────────────</span>
+<span class="cm"># compile() validates the graph structure and returns a runnable app</span>
+app = workflow.<span class="fn">compile</span>()</pre>
+    </div>
+
+    <h3 id="compile-invoke">Invoke the Graph</h3>
+    <div class="code-block">
+      <span class="lang-label">python · invoke</span>
+      <pre><span class="cm"># ── Step 5: Invoke ────────────────────────────────────────────────</span>
+<span class="cm"># Pass initial state as a dict matching the State TypedDict</span>
+result = app.<span class="fn">invoke</span>({<span class="str">"message"</span>: <span class="str">"Hello from user"</span>})
+<span class="fn">print</span>(result)
+<span class="cm"># Executing node_first</span>
+<span class="cm"># Executing node_second</span>
+<span class="cm"># Executing node_third</span>
+<span class="cm"># {"message": "Hello from user → node_first processed → node_second processed → node_third processed"}</span>
+
+<span class="cm"># ── What happens inside invoke: ───────────────────────────────────</span>
+<span class="cm"># 1. START → node_first  : state = {"message": "Hello from user"}</span>
+<span class="cm"># 2. node_first runs, returns {"message": "Hello from user → node_first processed"}</span>
+<span class="cm"># 3. State is UPDATED (merge): {"message": "Hello from user → node_first processed"}</span>
+<span class="cm"># 4. → node_second runs, same pattern</span>
+<span class="cm"># 5. → node_third runs, same pattern</span>
+<span class="cm"># 6. → END: final state returned</span></pre>
+    </div>
+
+    <h3 id="visualise-graph">Visualise the Graph</h3>
+    <div class="code-block">
+      <span class="lang-label">python · graph visualisation</span>
+      <pre><span class="kw">from</span> IPython.display <span class="kw">import</span> <span class="cls">Image</span>, <span class="fn">display</span>
+
+<span class="cm"># Render the graph as a PNG image (Mermaid diagram)</span>
+display(<span class="cls">Image</span>(app.<span class="fn">get_graph</span>().<span class="fn">draw_mermaid_png</span>()))
+<span class="cm"># → Shows a visual flowchart: START → first → second → third → END</span>
+<span class="cm"># → Each node is a box, each edge is an arrow</span>
+<span class="cm"># → Conditional edges show branch labels</span></pre>
+    </div>
+  </section>
+
+  <!-- LLM INTEGRATION -->
+  <section id="llm-integration">
+    <div class="section-eyebrow">06 — LLM in Graph</div>
+    <h2>Integrating an LLM as a Node</h2>
+
+    <h3 id="groq-setup">Groq Setup</h3>
+    <p>Sunny used Groq (free tier) to keep costs at zero during the demo. Any LangChain-compatible LLM can be swapped in.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · Groq LLM setup</span>
+      <pre><span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+
+<span class="fn">load_dotenv</span>()
+<span class="cm"># Verify key is present</span>
+<span class="kw">if</span> <span class="kw">not</span> os.<span class="fn">getenv</span>(<span class="str">"GROQ_API_KEY"</span>):
+    <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"GROQ_API_KEY not found in .env"</span>)
+
+<span class="cm"># Free tier Groq model — fast, free, but may hallucinate on date-specific info</span>
+<span class="cm"># For production: use GPT-4.1-mini (OpenAI) or claude-3-5-haiku (Anthropic)</span>
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+
+<span class="cm"># Quick test</span>
+response = llm.<span class="fn">invoke</span>(<span class="str">"Hi"</span>)
+<span class="fn">print</span>(response.content)   <span class="cm"># → "Hello! How can I help you today?"</span></pre>
+    </div>
+
+    <h3 id="llm-node">LLM Node with MessagesState</h3>
+    <div class="code-block">
+      <span class="lang-label">python · LLM-integrated graph</span>
+      <pre><span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> <span class="cls">MessagesState</span>
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">START</span>, <span class="cls">END</span>
+
+<span class="cm"># ── LLM node function ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">call_model</span>(state: <span class="cls">MessagesState</span>) -> dict:
+    <span class="str">"""
+    Node that calls an LLM with the current message history
+    and appends the response to the messages list.
+    """</span>
+    messages = state[<span class="str">"messages"</span>]   <span class="cm"># get current message list from state</span>
+    <span class="fn">print</span>(f<span class="str">f"Input messages: {messages}"</span>)
+
+    response = llm.<span class="fn">invoke</span>(messages)  <span class="cm"># pass full conversation history to LLM</span>
+    <span class="fn">print</span>(f<span class="str">f"LLM response: {response.content}"</span>)
+
+    <span class="cm"># Return: the response message is APPENDED to state["messages"]</span>
+    <span class="cm"># (because add_messages reducer is set on MessagesState)</span>
+    <span class="kw">return</span> {<span class="str">"messages"</span>: [response]}
+
+<span class="cm"># ── Build graph with MessagesState ────────────────────────────────</span>
+workflow = <span class="cls">StateGraph</span>(<span class="cls">MessagesState</span>)
+
+workflow.<span class="fn">add_node</span>(<span class="str">"my_bot"</span>, call_model)
+workflow.<span class="fn">add_edge</span>(<span class="cls">START</span>,    <span class="str">"my_bot"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"my_bot"</span>, <span class="cls">END</span>)
+
+app = workflow.<span class="fn">compile</span>()
+
+<span class="cm"># ── Invoke with a user message ────────────────────────────────────</span>
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> <span class="cls">HumanMessage</span>
+
+result = app.<span class="fn">invoke</span>({
+    <span class="str">"messages"</span>: [<span class="cls">HumanMessage</span>(content=<span class="str">"What is RLHF?"</span>)]
+})
+
+<span class="cm"># result["messages"] is a list: [HumanMessage, AIMessage]</span>
+<span class="fn">print</span>(result[<span class="str">"messages"</span>][-<span class="num">1</span>].content)  <span class="cm"># last message = LLM response</span></pre>
+    </div>
+
+    <h3 id="human-ai-message">HumanMessage & AIMessage — Why Both Types?</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(250,204,21,0.3); border-radius:8px; padding:14px;">
+        <h4 style="font-size:0.86rem; color:var(--accent6); margin-bottom:6px;">HumanMessage</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">The user's input message. Created before invoking the graph. <code>HumanMessage(content="...")</code> is passed in the initial state's messages list.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px;">
+        <h4 style="font-size:0.86rem; color:var(--accent3); margin-bottom:6px;">AIMessage</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">The LLM's response. Created by the LLM call and returned from the node. Automatically appended to the messages list via the add_messages reducer.</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>Simple AI assistant confirmed:</strong> This single-node graph with an LLM call produces a deterministic AI assistant — user input goes in, LLM response comes out, graph ends. Sunny called it: "This is my simple deterministic AI agent — or really it's a simple AI assistant, right? The flow is deterministic, we don't have any back and forth."</p>
+    </div>
+  </section>
+
+  <!-- CONDITIONAL EDGES -->
+  <section id="conditional-edges">
+    <div class="section-eyebrow">07 — Dynamic Routing</div>
+    <h2>Conditional Edges</h2>
+
+    <h3 id="conditional-concept">Concept</h3>
+    <p>Conditional edges enable dynamic routing — the path the graph takes depends on the current state value, not a fixed sequence. This is the key mechanism that makes Agentic systems non-deterministic.</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem; color:#94a3b8;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Sequential vs Conditional Edge</div>
+      <div style="margin-bottom:10px;"><strong style="color:#fff;">Sequential edge:</strong> node_A → node_B always. No logic. Fixed path.</div>
+      <div><strong style="color:#fff;">Conditional edge:</strong> node_A → ? depends on state["route"]. Could go to node_B, node_C, or node_D.</div>
+    </div>
+
+    <h3 id="conditional-code">Conditional Edge Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · conditional edge</span>
+      <pre><span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Literal</span>
+
+<span class="cm"># ── Routing function (returns string = next node name) ────────────</span>
+<span class="kw">def</span> <span class="fn">route_query</span>(state: <span class="cls">State</span>) -> <span class="cls">Literal</span>[<span class="str">"rag_node"</span>, <span class="str">"llm_node"</span>, <span class="str">"web_node"</span>]:
+    <span class="str">"""Inspect state and return the name of the next node to execute."""</span>
+    route = state[<span class="str">"route"</span>]
+    <span class="kw">if</span> route == <span class="str">"rag"</span>:
+        <span class="kw">return</span> <span class="str">"rag_node"</span>
+    <span class="kw">elif</span> route == <span class="str">"web"</span>:
+        <span class="kw">return</span> <span class="str">"web_node"</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"llm_node"</span>   <span class="cm"># default</span>
+
+<span class="cm"># ── Connect conditional edge to graph ─────────────────────────────</span>
+workflow.<span class="fn">add_conditional_edges</span>(
+    <span class="str">"supervisor_node"</span>,    <span class="cm"># source node</span>
+    route_query,           <span class="cm"># routing function (receives state → returns string)</span>
+    {                      <span class="cm"># mapping: function return value → node name</span>
+        <span class="str">"rag_node"</span>: <span class="str">"rag_node"</span>,
+        <span class="str">"llm_node"</span>: <span class="str">"llm_node"</span>,
+        <span class="str">"web_node"</span>: <span class="str">"web_node"</span>
+    }
+)
+<span class="cm"># When supervisor_node finishes, route_query(state) is called</span>
+<span class="cm"># Its return value selects the next node</span>
+<span class="cm"># This is the core mechanism of dynamic Agentic routing</span></pre>
+    </div>
+  </section>
+
+  <!-- AGENTIC ROUTING -->
+  <section id="agentic-routing">
+    <div class="section-eyebrow">08 — Advanced Flow</div>
+    <h2>Full Agentic Routing Flow</h2>
+
+    <h3 id="routing-problem">The 3-Route Problem</h3>
+    <p>Sunny designed a real-world Agentic RAG system where the user can ask 3 different types of questions — each needing a different data source. The Supervisor Agent dynamically decides which route to take.</p>
+
+    <div class="routing-flow">
+      <div class="rf-label">Conversational Bot — 3-Route Architecture</div>
+      <div class="rf-center">
+        <div class="rf-row">
+          <div class="rf-node" style="background:rgba(250,204,21,0.1); border-color:rgba(250,204,21,0.3); color:var(--accent6);">User Query</div>
+          <span style="color:var(--muted);">→</span>
+          <div class="rf-node" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent);">Supervisor Node<br><small>(structured output: rag|llm|web)</small></div>
+        </div>
+        <div class="rf-branch">
+          <div class="rf-branch-item">
+            <div class="rf-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent2); width:100%;">RAG Node<br><small>Company internal data</small></div>
+            <div style="color:var(--muted); text-align:center; font-size:0.72rem; margin-top:4px;">e.g. "HR policy?"</div>
+          </div>
+          <div class="rf-branch-item">
+            <div class="rf-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3); width:100%;">LLM Node<br><small>Model knowledge</small></div>
+            <div style="color:var(--muted); text-align:center; font-size:0.72rem; margin-top:4px;">e.g. "Hi, how are you?"</div>
+          </div>
+          <div class="rf-branch-item">
+            <div class="rf-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4); width:100%;">Web Search Node<br><small>Real-time web</small></div>
+            <div style="color:var(--muted); text-align:center; font-size:0.72rem; margin-top:4px;">e.g. "Public holiday 2026?"</div>
+          </div>
+        </div>
+        <div class="rf-row" style="margin-top:8px;">
+          <span style="color:var(--muted);">All routes →</span>
+          <div class="rf-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent5);">Validator Node<br><small>(score-based quality check)</small></div>
+        </div>
+        <div class="rf-row">
+          <div class="rf-node" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">Final Output ✓</div>
+          <span style="color:var(--muted);">or</span>
+          <div class="rf-node" style="background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); color:#f87171;">Failed Route ✗</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Conversational bot: user can ask questions from company internal data, user can ask generic question via the model itself, or user can ask from the current web data. So we have 3 ways for the information. Now, when I'm talking about this Agentic flow — after getting the input, what was the next step? Thinking, reasoning, decision. So this is what we are doing now — we are taking a decision what needs to be called."
+    </div>
+
+    <h3 id="structured-output">Structured Output for Routing</h3>
+    <p>Instead of keyword-matching or regex, the Supervisor Agent uses <strong>structured output</strong> — the LLM is forced to return a Pydantic-validated JSON with a specific schema. This is far more reliable than parsing free text.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · Pydantic schema + structured output</span>
+      <pre><span class="kw">from</span> pydantic <span class="kw">import</span> <span class="cls">BaseModel</span>, <span class="cls">Field</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Literal</span>
+
+<span class="cm"># ── Schema 1: Route Decision ──────────────────────────────────────</span>
+<span class="cm"># LLM MUST respond in this exact format</span>
+<span class="kw">class</span> <span class="cls">RouteDecision</span>(<span class="cls">BaseModel</span>):
+    route: <span class="cls">Literal</span>[<span class="str">"rag"</span>, <span class="str">"llm"</span>, <span class="str">"web"</span>] = <span class="cls">Field</span>(
+        description=<span class="str">"The route to take: 'rag' for company data, 'llm' for general, 'web' for real-time"</span>
+    )
+    reasoning: str = <span class="cls">Field</span>(
+        description=<span class="str">"Brief explanation of why this route was chosen"</span>
+    )
+
+<span class="cm"># ── Schema 2: Validation Result ───────────────────────────────────</span>
+<span class="kw">class</span> <span class="cls">ValidationResult</span>(<span class="cls">BaseModel</span>):
+    is_valid: bool = <span class="cls">Field</span>(
+        description=<span class="str">"True if the response adequately answers the user's query"</span>
+    )
+    score: float = <span class="cls">Field</span>(
+        description=<span class="str">"Confidence score 0.0–1.0 of answer quality"</span>
+    )
+    feedback: str = <span class="cls">Field</span>(
+        description=<span class="str">"Brief feedback on the quality of the answer"</span>
+    )
+
+<span class="cm"># ── View schema as JSON ───────────────────────────────────────────</span>
+<span class="fn">print</span>(<span class="cls">RouteDecision</span>.model_json_schema())
+<span class="cm"># {</span>
+<span class="cm">#   "properties": {</span>
+<span class="cm">#     "route": {"enum": ["rag", "llm", "web"], "type": "string"},</span>
+<span class="cm">#     "reasoning": {"type": "string"}</span>
+<span class="cm">#   }</span>
+<span class="cm"># }</span></pre>
+    </div>
+
+    <h3 id="supervisor-agent">Supervisor Agent Node</h3>
+    <div class="code-block">
+      <span class="lang-label">python · supervisor node with structured output</span>
+      <pre><span class="cm"># ── Supervisor model: LLM forced to output RouteDecision schema ───</span>
+supervisor_model = llm.<span class="fn">with_structured_output</span>(
+    schema = <span class="cls">RouteDecision</span>,
+    method = <span class="str">"json_schema"</span>
+)
+
+<span class="cm"># ── Test supervisor routing ───────────────────────────────────────</span>
+result = supervisor_model.<span class="fn">invoke</span>(<span class="str">"Hi, how are you?"</span>)
+<span class="fn">print</span>(result.route)      <span class="cm"># "llm" — generic greeting → model knowledge</span>
+<span class="fn">print</span>(result.reasoning)  <span class="cm"># "This is a conversational greeting..."</span>
+
+result2 = supervisor_model.<span class="fn">invoke</span>(<span class="str">"What is the current USA GDP?"</span>)
+<span class="fn">print</span>(result2.route)     <span class="cm"># "web" — real-time data needed</span>
+
+result3 = supervisor_model.<span class="fn">invoke</span>(<span class="str">"What is our company HR leave policy?"</span>)
+<span class="fn">print</span>(result3.route)     <span class="cm"># "rag" — company internal document</span>
+
+<span class="cm"># ── Supervisor node function ──────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">supervisor_node</span>(state: <span class="cls">State</span>) -> dict:
+    <span class="str">"""Decides which route to take using structured LLM output."""</span>
+    question = state[<span class="str">"question"</span>]
+    decision  = supervisor_model.<span class="fn">invoke</span>(question)
+    <span class="fn">print</span>(f<span class="str">f"Supervisor → route: {decision.route}, reason: {decision.reasoning}"</span>)
+    <span class="kw">return</span> {<span class="str">"route"</span>: decision.route, <span class="str">"reasoning"</span>: decision.reasoning}</pre>
+    </div>
+
+    <h3 id="validator-agent">Validator Agent Node</h3>
+    <div class="code-block">
+      <span class="lang-label">python · validator node</span>
+      <pre><span class="cm"># ── Validator model: checks answer quality ────────────────────────</span>
+validator_model = llm.<span class="fn">with_structured_output</span>(
+    schema = <span class="cls">ValidationResult</span>,
+    method = <span class="str">"json_schema"</span>
+)
+
+<span class="kw">def</span> <span class="fn">validator_node</span>(state: <span class="cls">State</span>) -> dict:
+    <span class="str">"""Validates the generated answer quality. Routes to final or fail."""</span>
+    question = state[<span class="str">"question"</span>]
+    answer   = state[<span class="str">"answer"</span>]
+    validation_prompt = f<span class="str">f"""
+    Question: {question}
+    Answer: {answer}
+    Is this answer adequate, accurate, and helpful? Score it 0.0 to 1.0.
+    """</span>
+    result = validator_model.<span class="fn">invoke</span>(validation_prompt)
+    <span class="fn">print</span>(f<span class="str">f"Validator → valid: {result.is_valid}, score: {result.score}"</span>)
+    <span class="kw">return</span> {
+        <span class="str">"validation_result"</span>: result.is_valid,
+        <span class="str">"validation_score"</span>:  result.score,
+        <span class="str">"validation_feedback"</span>: result.feedback
+    }
+
+<span class="cm"># ── Validator routing function ────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">route_after_validation</span>(state: <span class="cls">State</span>) -> str:
+    <span class="kw">if</span> state[<span class="str">"validation_result"</span>] <span class="kw">and</span> state.get(<span class="str">"validation_score"</span>, <span class="num">0</span>) >= <span class="num">0.7</span>:
+        <span class="kw">return</span> <span class="str">"final_node"</span>    <span class="cm"># answer is good → output it</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">"failed_node"</span>   <span class="cm"># answer insufficient → apologise</span></pre>
+    </div>
+
+    <h3 id="full-routing-code">Full Routing Graph Assembly</h3>
+    <div class="code-block">
+      <span class="lang-label">python · full 5-node routing graph</span>
+      <pre><span class="cm"># ── All node functions defined above (supervisor, rag, llm, web, validator, final, fail)</span>
+<span class="cm"># ── Assemble the complete graph ───────────────────────────────────</span>
+
+workflow = <span class="cls">StateGraph</span>(<span class="cls">AgentState</span>)
+
+<span class="cm"># Add all nodes</span>
+workflow.<span class="fn">add_node</span>(<span class="str">"supervisor_node"</span>, supervisor_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"rag_node"</span>,        rag_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"llm_node"</span>,        llm_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"web_node"</span>,        web_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"validator_node"</span>,  validator_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"final_node"</span>,      final_node)
+workflow.<span class="fn">add_node</span>(<span class="str">"failed_node"</span>,     failed_node)
+
+<span class="cm"># Entry point → supervisor</span>
+workflow.<span class="fn">add_edge</span>(<span class="cls">START</span>, <span class="str">"supervisor_node"</span>)
+
+<span class="cm"># Supervisor → conditional edge (route to one of 3 nodes)</span>
+workflow.<span class="fn">add_conditional_edges</span>(
+    <span class="str">"supervisor_node"</span>,
+    <span class="kw">lambda</span> state: state[<span class="str">"route"</span>],   <span class="cm"># routing function: read "route" from state</span>
+    {
+        <span class="str">"rag"</span>: <span class="str">"rag_node"</span>,
+        <span class="str">"llm"</span>: <span class="str">"llm_node"</span>,
+        <span class="str">"web"</span>: <span class="str">"web_node"</span>
+    }
+)
+
+<span class="cm"># All 3 routes → validator</span>
+workflow.<span class="fn">add_edge</span>(<span class="str">"rag_node"</span>, <span class="str">"validator_node"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"llm_node"</span>, <span class="str">"validator_node"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"web_node"</span>, <span class="str">"validator_node"</span>)
+
+<span class="cm"># Validator → conditional edge (pass or fail)</span>
+workflow.<span class="fn">add_conditional_edges</span>(
+    <span class="str">"validator_node"</span>,
+    route_after_validation,
+    {
+        <span class="str">"final_node"</span>:  <span class="str">"final_node"</span>,
+        <span class="str">"failed_node"</span>: <span class="str">"failed_node"</span>
+    }
+)
+
+<span class="cm"># Both final and failed → END</span>
+workflow.<span class="fn">add_edge</span>(<span class="str">"final_node"</span>,  <span class="cls">END</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"failed_node"</span>, <span class="cls">END</span>)
+
+app = workflow.<span class="fn">compile</span>()
+
+<span class="cm"># ── Test the full routing system ──────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">run_agent</span>(question: str):
+    result = app.<span class="fn">invoke</span>({<span class="str">"question"</span>: question, <span class="str">"answer"</span>: <span class="str">""</span>, <span class="str">"route"</span>: <span class="str">""</span>})
+    <span class="fn">print</span>(f<span class="str">f"\nQ: {question}"</span>)
+    <span class="fn">print</span>(f<span class="str">f"Route: {result['route']}"</span>)
+    <span class="fn">print</span>(f<span class="str">f"A: {result['answer']}"</span>)
+    <span class="kw">return</span> result
+
+<span class="cm"># Test all 3 routes</span>
+<span class="fn">run_agent</span>(<span class="str">"Hi, how can you help me?"</span>)         <span class="cm"># → llm route</span>
+<span class="fn">run_agent</span>(<span class="str">"What is the company HR policy?"</span>)   <span class="cm"># → rag route</span>
+<span class="fn">run_agent</span>(<span class="str">"What is the current USA GDP?"</span>)     <span class="cm"># → web route</span>
+<span class="fn">run_agent</span>(<span class="str">"What is Sunny's salary?"</span>)          <span class="cm"># → fail route (validation score low)</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Groq hallucination caveat — Sunny's live observation:</strong> "When I'm asking 'when is Rakhi festival in 2026?' — it is going to the LLM route but giving me wrong answer. It is not redirecting to the correct route (web). Maybe if I'm using a good model it will not fail. That's very important, guys — use a good LLM if you want good results. Because the context is going to be increased now, in that case." For production: use GPT-4.1-mini or Claude 3.5 Haiku.</p>
+    </div>
+  </section>
+
+  <!-- STATE VS MEMORY -->
+  <section id="state-vs-memory">
+    <div class="section-eyebrow">09 — Important Distinction</div>
+    <h2>State vs Memory — Clarification</h2>
+
+    <div class="sunny-says">
+      "State means: maintaining the input and output throughout the node execution — that's it. That's the meaning of the state. Inside ONE execution, inside ONE thread. State is not memory. For every question, it is following and executing the entire workflow. Memory is different — that is a little more advanced. I haven't explained you that side, because that required a couple more sessions."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">State (within one execution)</h4>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Data flowing between nodes in a single graph run</li>
+          <li>→ Lives for one invocation (one thread)</li>
+          <li>→ All nodes in that run share the same state object</li>
+          <li>→ Resets with each new invocation</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent);">
+        <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">Memory (across sessions — coming soon)</h4>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Short-term: Checkpointer (within same thread/session)</li>
+          <li>→ Long-term: Persistent storage (across different threads)</li>
+          <li>→ Per-user: Thread ID = one user, state persists for that user</li>
+          <li>→ Cross-thread: shared context across multiple users</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>Thread model preview:</strong> For every user, a new thread is launched. With a Checkpointer, the state for that thread persists — enabling conversational memory within a session. Cross-thread memory requires an additional long-term storage layer (e.g. Redis or Postgres). Sunny promised to cover this in detail in upcoming classes.</p>
+    </div>
+  </section>
+
+  <!-- NEXT CLASS -->
+  <section id="next-class">
+    <div class="section-eyebrow">10 — What's Coming</div>
+    <h2>Next Class Topics</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.84rem; color:var(--accent4); margin-bottom:6px;">Tool Engineering</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Defining tools as functions, tool schemas, binding tools to LLMs, handling tool call/response cycles in LangGraph</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent);">
+        <h4 style="font-size:0.84rem; color:var(--accent); margin-bottom:6px;">Parallel Workflow</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Running multiple nodes simultaneously in parallel (fan-out/fan-in pattern)</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.84rem; color:var(--accent2); margin-bottom:6px;">Short/Long-Term Memory</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Checkpointer for session memory, persistent storage for cross-session memory</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent3);">
+        <h4 style="font-size:0.84rem; color:var(--accent3); margin-bottom:6px;">Human-in-the-Loop</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Pausing graph execution at critical steps to get human approval before proceeding</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent5);">
+        <h4 style="font-size:0.84rem; color:var(--accent5); margin-bottom:6px;">MCP Integration</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">From tool engineering → standardise with Model Context Protocol</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "In the next class, again, I will spend at least 30–45 minutes — even 1 hour, guys — just to explain this entire code line by line. It's my promise. The last big program was just for your testing tonight — check it on GitHub, run it yourself. In the next class we'll go through every line, every concept, and I'll add tool engineering on top of it."
+    </div>
+  </section>
+
+  <!-- Q&A -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">11 — Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">Can we use Airflow instead of LangGraph for building Agentic AI flows?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">No — they serve different purposes. Airflow is for scheduling jobs, ETL pipelines, batch workflows, and data orchestration. LangGraph is specifically for building stateful AI agent workflows with LLM reasoning, dynamic routing, and tool calling. You can use BOTH together — Airflow to schedule and orchestrate data pipelines, LangGraph to handle the AI agent logic within those pipelines. They complement, not replace, each other.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">State is like XCOM in Airflow, right? And how does memory work across sessions?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">State analogy: yes, state in LangGraph is like XCOM in Airflow — both are mechanisms to pass data between execution units (tasks/nodes). For memory across sessions: each user triggers a new thread. With a Checkpointer attached, the state for that thread is persisted — this becomes short-term memory (within the same session). For long-term cross-session memory, you need additional persistent storage. For cross-thread memory (shared across multiple users), you need a separate store. All this is coming in upcoming classes.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Raghu</div>
+      <div class="qa-question">Why use MessagesState when I can define my own TypedDict with the same fields?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">You can absolutely use your own TypedDict — it's the same concept. MessagesState is a convenience: LangGraph pre-built it so you don't need to define the messages field and its add_messages reducer yourself. The key difference is the Annotated[List[AnyMessage], add_messages] type — it enables message appending without overwriting. When you use custom TypedDict, you can do the same thing by annotating your field similarly. MessagesState is just a shortcut for the most common conversational pattern.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">12 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 41 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is a Node in LangGraph? What are the two rules every node function must follow?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A node in LangGraph is simply a Python function — any regular def function. Two rules: (1) It must accept the current state as its only parameter (typed as the State class you defined). (2) It must return a dictionary with the keys it wants to UPDATE in the state — only the returned keys are merged into the state; unreturned keys remain unchanged. The function can contain any logic: an LLM call, a tool call, a database query, a transformation, anything. The function name is not the node name — you give it a string name when calling graph.add_node("my_name", my_function).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is State in LangGraph and what is the difference between State and Memory?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">State is the data object that flows through every node during a single graph execution. It's like XCOM in Airflow — the mechanism for passing information between nodes. Every node can read from and write to the state. State is defined as a TypedDict (or Pydantic BaseModel) and passed by reference through the graph. Memory is different: State lives only for ONE execution (one invocation, one thread). Memory persists ACROSS executions/sessions. Short-term memory (same session): use a Checkpointer that saves state after each step. Long-term memory (across sessions): persistent storage like Redis or Postgres. Sunny emphasised: "State is within one execution. For every question, the entire workflow runs fresh."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is MessagesState and why does it use <code>Annotated[List[AnyMessage], add_messages]</code>?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">MessagesState is a built-in LangGraph state class designed for conversational flows. Its messages field is typed as Annotated[List[AnyMessage], add_messages]. This means: (1) it stores a list of message objects (HumanMessage, AIMessage, SystemMessage, etc.), and (2) add_messages is a reducer — when a node returns {"messages": [new_msg]}, the new message is APPENDED to the existing list, not overwriting it. This automatically builds up the full conversation history as the graph executes. Without this annotation, returning {"messages": [x]} would overwrite the entire list. You can see the actual implementation in LangGraph's GitHub (langgraph/graph/message.py).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is the difference between a sequential edge and a conditional edge? Give a concrete example of each.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Sequential edge: always goes from node A to node B — no logic, fixed path. graph.add_edge("node_a", "node_b") — every time node_a finishes, it goes to node_b, no matter what the state contains. Example: after the retriever node, always go to the generation node. Conditional edge: a routing function inspects the current state and RETURNS the name of the next node to visit. graph.add_conditional_edges("supervisor_node", routing_fn, {return_value: node_name}) — the routing function can return "rag_node", "llm_node", or "web_node" depending on state["route"]. Example: if state["route"] == "rag" → go to rag_node; if state["route"] == "web" → go to web_node. Conditional edges enable dynamic Agentic flows — the path is decided at runtime by the LLM, not the developer.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What is structured output, and why did Sunny use it for the supervisor and validator nodes instead of parsing free text?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Structured output means forcing the LLM to return its response in a specific, validated format — defined by a Pydantic schema — rather than free text. Using llm.with_structured_output(schema=RouteDecision, method="json_schema"), the LLM's output is automatically parsed and validated against the schema. If the LLM tries to return something invalid (e.g. "maybe_rag" instead of "rag"|"llm"|"web"), Pydantic raises a ValidationError. Sunny used it for the supervisor because parsing "I think this should go to the RAG database" from free text is unreliable — the Literal["rag","llm","web"] type in RouteDecision constrains the LLM to exactly those three values. For the validator, ValidationResult.is_valid=bool ensures a clean True/False routing decision. This is far more reliable than regex or keyword matching in production.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 41 · LangGraph Fundamentals · 23 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

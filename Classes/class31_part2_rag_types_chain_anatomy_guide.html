@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 31 (Part 2) — RAG Types, Chain Anatomy & VDB Landscape | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — pipeline */
+  --accent2:     #f472b6;   /* pink — retrieval */
+  --accent3:     #4ade80;   /* green — success */
+  --accent4:     #fb923c;   /* orange — warning/notes */
+  --accent5:     #a78bfa;   /* violet — vector DB */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(34,211,238,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 31 Pt 2):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── RECORDING NOTE ── */
+.recording-note { background: rgba(250,204,21,0.06); border: 1px solid rgba(250,204,21,0.25); border-left: 4px solid var(--accent6); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0; }
+.recording-note h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent6); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.recording-note p { font-size: 0.83rem; color: #94a3b8; margin: 0; }
+
+/* ── CHAIN ANATOMY VISUAL ── */
+.chain-anatomy { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; }
+.chain-anatomy .ca-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 20px; }
+.ca-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; }
+.ca-step { display: flex; flex-direction: column; align-items: center; }
+.ca-badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 8px 14px; border-radius: 6px; border: 1px solid; white-space: nowrap; }
+.ca-arrow { color: var(--muted); font-size: 1.2rem; display: flex; align-items: center; padding-top: 8px; }
+.ca-desc { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 4px; max-width: 120px; line-height: 1.4; }
+
+/* ── RAG TYPE CARDS ── */
+.rag-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+.rag-type-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; border-top: 3px solid; }
+.rag-type-card .rt-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.rag-type-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.rag-type-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; line-height: 1.55; }
+.rag-type-card .rt-note { font-size: 0.72rem; padding: 4px 10px; border-radius: 4px; display: inline-block; font-family: 'IBM Plex Mono', monospace; }
+
+/* ── VDB HOSTING TREE ── */
+.vdb-tree { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; line-height: 2.2; }
+.vdb-tree .vt-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+.vt-l0 { color: var(--accent); font-weight: 700; }
+.vt-l1 { padding-left: 20px; color: var(--accent4); }
+.vt-l2 { padding-left: 40px; color: #94a3b8; }
+.vt-ex { color: var(--accent5); }
+
+/* ── MOVING VARIABLES TABLE ── */
+.variables-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.variables-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 11px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+.variables-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.variables-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.variables-table .var-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; color: var(--accent); font-weight: 600; }
+.variables-table .impact    { color: var(--accent4); font-weight: 500; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── QA BLOCKS ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-q { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-a { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(34,211,238,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(34,211,238,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .rag-types { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#recording-note">Recording Note</a></li>
+    <li><a href="#session-recap">Session Recap</a></li>
+    <li><a href="#pipeline-rebuilt">Pipeline — DeepSeek V3</a></li>
+    <li class="sub"><a href="#embedding-errors">Embedding Model Errors</a></li>
+    <li class="sub"><a href="#dimension-mismatch">Dimension Mismatch Fix</a></li>
+    <li class="sub"><a href="#ingestion-success">Ingestion Success</a></li>
+    <li><a href="#chain-anatomy">LCEL Chain Anatomy</a></li>
+    <li class="sub"><a href="#format-docs">format_docs Explained</a></li>
+    <li class="sub"><a href="#output-parsers">Output Parser Types</a></li>
+    <li class="sub"><a href="#lcel-history">LCEL vs Old Chains</a></li>
+    <li><a href="#moving-variables">RAG's Moving Variables</a></li>
+    <li><a href="#three-rag-types">3 Types of RAG</a></li>
+    <li class="sub"><a href="#vector-rag">Vector DB RAG</a></li>
+    <li class="sub"><a href="#vectorless-rag">Vectorless RAG</a></li>
+    <li class="sub"><a href="#graph-rag">Graph RAG</a></li>
+    <li><a href="#vdb-hosting">VDB Hosting Options</a></li>
+    <li class="sub"><a href="#local-vdb">Local: In-memory vs Disk</a></li>
+    <li class="sub"><a href="#cloud-vdb">Cloud: 3rd-party vs Provider</a></li>
+    <li><a href="#live-qa">Live Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 31 — Part 2</span></div>
+    <div class="hero-class-num">Class 31 Part 2 · 11 July 2026</div>
+    <h1>RAG Types,<br><em>Chain Anatomy</em><br>& VDB Landscape</h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> LCEL Chain Dissected</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> 3 RAG Types</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> VDB Hosting Map</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Live Debugging</div>
+    </div>
+    <p class="hero-summary">
+      The second recording of Class 31 (11 July 2026). Sunny rebuilds the RAG pipeline on DeepSeek V3 live — hitting real embedding quota errors and dimension mismatches and fixing them in front of the class. Then delivers his most conceptually rich revision: the anatomy of every component in the LCEL chain, why RAG has "so many moving variables," the three types of RAG architecture, and the four ways to host a vector database.
+    </p>
+  </div>
+
+  <!-- RECORDING NOTE -->
+  <div class="recording-note">
+    <h4>📼 About this file</h4>
+    <p>The file <code>GMT20260711-143144_Recording_cc__1_.vtt</code> is the <strong>second part</strong> of the 11 July 2026 class recording. Sunny explicitly says "today is 11th July 2026" and creates a folder called "Class 31." The content continues and deepens what was started in Part 1 — the same session, a second recording chunk. No separate "Class 32" was scheduled for this date.</p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Part Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Fine-tuning assignment recap — 44 submissions received, demo session announced for next day</li>
+      <li><span class="chk">✓</span> Rebuilding the RAG pipeline live on DeepSeek V3 research paper (PDF)</li>
+      <li><span class="chk">✓</span> Real debugging: Gemini embedding quota exhausted → switched to OpenAI embeddings</li>
+      <li><span class="chk">✓</span> Real debugging: dimension mismatch (384 vs 1536) → fixed and stored 588 chunks</li>
+      <li><span class="chk">✓</span> Blackboard revision of every component in the LCEL RAG chain</li>
+      <li><span class="chk">✓</span> What format_docs() really does — extracting page_content from Document objects</li>
+      <li><span class="chk">✓</span> Output parser types: StrOutputParser, JSON parser, HTML parser</li>
+      <li><span class="chk">✓</span> LCEL vs old sequential/parallel chain methods</li>
+      <li><span class="chk">✓</span> RAG has "so many moving variables" — the 5 key ones</li>
+      <li><span class="chk">✓</span> 3 types of RAG: Vector DB-based, Vectorless, Graph-based</li>
+      <li><span class="chk">✓</span> 4 ways to host a vector database: in-memory, on-disk, third-party cloud, cloud-provider managed</li>
+      <li><span class="chk">✓</span> Live Q&A: incremental doc updates, what's stored in VDB, hybrid retrieval, context condensing</li>
+    </ul>
+  </section>
+
+  <!-- SESSION RECAP -->
+  <section id="session-recap">
+    <div class="section-eyebrow">02 — Session Open</div>
+    <h2>How This Part Started</h2>
+
+    <p>Sunny opened by checking assignment submissions (44 received for the fine-tuning assignment), announced a demo session for the next day, and then recapped where the RAG chapter stands before diving back in.</p>
+
+    <div class="sunny-says">
+      "From next class onwards, again, we'll start from the main component of the RAG — data parsing. I'll discuss a couple more things related to that. Docling, LlamaParse — those libraries are still remaining. I parked that topic for one class and showed you the end-to-end pipeline first. Now we'll come back."
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🏛</span>
+      <p><strong>Claude mention:</strong> Sunny told students to learn Claude skills and Claude artifacts — "companies are forcing us to use Claude, not just build from scratch." He demonstrated using Claude's chat interface to generate LlamaParse code live, saying: "You can use Copilot, Claude Code, Cursor — for actual development we'll configure this in VS Code later."</p>
+    </div>
+  </section>
+
+  <!-- PIPELINE REBUILT -->
+  <section id="pipeline-rebuilt">
+    <div class="section-eyebrow">03 — Live Rebuild</div>
+    <h2>Rebuilding the Pipeline on DeepSeek V3</h2>
+
+    <p>Sunny rebuilt the entire RAG pipeline from scratch — this time on the <strong>DeepSeek V3 research paper</strong> (instead of DeepSeek B4 as in Part 1). He demonstrated hallucination first, then built the solution. Students watched every error and fix in real time.</p>
+
+    <h3>Step 1 — Demonstrate Hallucination First</h3>
+    <div class="code-block">
+      <span class="lang-label">python · simple AI assistant (no RAG)</span>
+      <pre><span class="cm">## Simple AI assistant — just LLM, no RAG, no external data</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="kw">from</span> langchain_google_genai <span class="kw">import</span> <span class="cls">ChatGoogleGenerativeAI</span>
+
+<span class="fn">load_dotenv</span>()
+llm = <span class="cls">ChatGoogleGenerativeAI</span>(model=<span class="str">"gemini-2.0-flash-lite"</span>)
+
+<span class="cm"># Run a simple chat loop in VS Code terminal</span>
+<span class="fn">print</span>(<span class="str">"Simple AI Assistant (no RAG) — type 'exit' to quit"</span>)
+<span class="kw">while</span> <span class="kw">True</span>:
+    user_input = <span class="fn">input</span>(<span class="str">"You: "</span>)
+    <span class="kw">if</span> user_input.<span class="fn">lower</span>() <span class="kw">in</span> [<span class="str">"exit"</span>, <span class="str">"quit"</span>]:
+        <span class="fn">print</span>(<span class="str">"Goodbye!"</span>)
+        <span class="kw">break</span>
+    response = llm.<span class="fn">invoke</span>(user_input)
+    <span class="fn">print</span>(f<span class="str">f"AI: {response.content}\n"</span>)
+
+<span class="cm"># Asked: "What is DeepSeek B3 model and how does it work?"</span>
+<span class="cm"># AI says: "released in 2024" — hallucination (may be 2025)</span>
+
+<span class="cm"># Asked: "When was DeepSeek B4 model released?"</span>
+<span class="cm"># AI says: "As of now, DeepSeek B4 has not been released.</span>
+<span class="cm">#           The current series is DeepSeek B3, released in 2024."</span>
+<span class="cm"># ← hallucination — confidently wrong</span></pre>
+    </div>
+
+    <h3 id="embedding-errors">Step 2 — The Real Errors (Live Debugging)</h3>
+    <p>Sunny hit two real errors back-to-back. These are documented here because they happen to real developers and the fixes are instructive:</p>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin:16px 0;">
+
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent4);">
+        <h4 style="font-size:0.9rem; color:var(--accent4); margin-bottom:6px;">Error 1 — Gemini Embedding Quota Exhausted</h4>
+        <div style="background:rgba(0,0,0,0.2); border-radius:4px; padding:10px; font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:#f87171; margin-bottom:8px;">ResourceExhausted: 429 You have exceeded your current quota, please check your plan and billing details.</div>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;"><strong>Cause:</strong> The free tier Gemini embedding model (<code>models/embedding-002</code>) has very low quota limits — cannot embed 588 chunks in one go. <strong>Fix:</strong> Switch to OpenAI embeddings (<code>text-embedding-3-small</code>), which has a paid tier with much higher limits. Alternatively: use HuggingFace local embeddings (no quota at all).</p>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">✅</span>
+        <p><strong>Sunny's advice on embedding quota errors:</strong> "If you're getting this kind of error, change the model. Use a different model, test with a different model. Even you can create a smaller number of chunks — increase the chunk size, then this model might work. If you want good accuracy and money is not a constraint, use OpenAI or Anthropic-based embedding models."</p>
+      </div>
+
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent4);">
+        <h4 style="font-size:0.9rem; color:var(--accent4); margin-bottom:6px;" id="dimension-mismatch">Error 2 — FAISS Dimension Mismatch</h4>
+        <div style="background:rgba(0,0,0,0.2); border-radius:4px; padding:10px; font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:#f87171; margin-bottom:8px;">add_documents not implemented / dimension mismatch error</div>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;"><strong>Cause:</strong> Sunny created the FAISS index with <code>dimension=384</code> (for HuggingFace all-MiniLM) but then switched to OpenAI embeddings which output <code>1536</code> dimensions (<code>text-embedding-3-small</code>). The FAISS index and the embedding model dimensions must match exactly. <strong>Fix:</strong> Recreate the FAISS index with the correct dimension.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · dimension mismatch fix</span>
+      <pre><span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">import</span> faiss
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+
+<span class="cm"># ── Step 1: Get the actual dimension from the model ───────────────</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-small"</span>)
+test_vec = embedding_model.<span class="fn">embed_query</span>(<span class="str">"test"</span>)
+dim = <span class="fn">len</span>(test_vec)
+<span class="fn">print</span>(f<span class="str">f"Actual embedding dimension: {dim}"</span>)
+<span class="cm"># text-embedding-3-small → 1536</span>
+<span class="cm"># text-embedding-3-large → 3072</span>
+<span class="cm"># all-MiniLM-L6-v2 (HuggingFace) → 384</span>
+<span class="cm"># ALWAYS check before creating the FAISS index!</span>
+
+<span class="cm"># ── Step 2: Create FAISS index with CORRECT dimension ─────────────</span>
+<span class="cm"># This must match dim above — or you'll get a mismatch error</span>
+index = faiss.<span class="fn">IndexFlatL2</span>(dim)   <span class="cm"># use actual dim, not hardcoded 384</span>
+
+vector_store = <span class="cls">FAISS</span>(
+    embedding_function   = embedding_model,
+    index                = index,
+    docstore             = <span class="cls">FAISS</span>.<span class="fn">_InMemoryDocstore</span>({}),
+    index_to_docstore_id = {}
+)
+
+<span class="cm"># ── Step 3: Add documents — each gets a UUID ─────────────────────</span>
+vector_store.<span class="fn">add_documents</span>(chunks)   <span class="cm"># chunks from text splitter</span>
+<span class="cm"># Returns list of UUIDs — one per stored chunk</span>
+<span class="cm"># ["abc-123...", "def-456...", ...]</span>
+<span class="fn">print</span>(<span class="str">f"✓ Data ingestion complete — {len(chunks)} chunks stored"</span>)</pre>
+    </div>
+
+    <h3 id="ingestion-success">Step 3 — Successful Ingestion and Retrieval</h3>
+    <div class="code-block">
+      <span class="lang-label">python · retrieval and chain</span>
+      <pre><span class="cm"># ── Retriever: k=3 ────────────────────────────────────────────────</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">3</span>})
+
+<span class="cm"># ── Test retrieval directly ───────────────────────────────────────</span>
+query   = <span class="str">"What is DeepSeek V3?"</span>
+results = retriever.<span class="fn">invoke</span>(query)
+<span class="fn">print</span>(f<span class="str">f"Retrieved {len(results)} chunks"</span>)
+
+<span class="cm"># ── RAG Chain ────────────────────────────────────────────────────</span>
+<span class="kw">from</span> langchain.prompts             <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">from</span> langchain_core.runnables      <span class="kw">import</span> <span class="cls">RunnablePassthrough</span>
+<span class="kw">from</span> langchain_google_genai        <span class="kw">import</span> <span class="cls">ChatGoogleGenerativeAI</span>
+
+llm = <span class="cls">ChatGoogleGenerativeAI</span>(model=<span class="str">"gemini-2.0-flash-lite"</span>)
+
+prompt = <span class="cls">ChatPromptTemplate</span>.<span class="fn">from_template</span>(<span class="str">"""
+Answer the question based only on the provided context.
+Context: {context}
+Question: {question}
+Answer:"""</span>)
+
+<span class="kw">def</span> <span class="fn">format_docs</span>(docs):
+    <span class="kw">return</span> <span class="str">"\n\n"</span>.<span class="fn">join</span>(d.page_content <span class="kw">for</span> d <span class="kw">in</span> docs)
+
+rag_chain = (
+    {<span class="str">"context"</span>: retriever | format_docs, <span class="str">"question"</span>: <span class="cls">RunnablePassthrough</span>()}
+    | prompt | llm | <span class="cls">StrOutputParser</span>()
+)
+
+<span class="cm"># ── Test: RLHF vocab mismatch ─────────────────────────────────────</span>
+bad_q  = <span class="str">"Which RLHF is used inside DeepSeek B4?"</span>
+good_q = <span class="str">"Which reinforcement learning method is used in DeepSeek B4?"</span>
+
+<span class="fn">print</span>(rag_chain.<span class="fn">invoke</span>(bad_q))
+<span class="cm"># → "Does not provide... no reinforcement from human method"  ← missed!</span>
+
+<span class="fn">print</span>(rag_chain.<span class="fn">invoke</span>(good_q))
+<span class="cm"># → "Based on the provided context, DeepSeek B4 uses GRPO as</span>
+<span class="cm">#    a reinforcement learning method during the post-training pipeline."  ✓</span></pre>
+    </div>
+  </section>
+
+  <!-- CHAIN ANATOMY -->
+  <section id="chain-anatomy">
+    <div class="section-eyebrow">04 — Blackboard Revision</div>
+    <h2>LCEL RAG Chain — Every Component Explained</h2>
+
+    <p>After the live demo, Sunny put the RAG chain on the blackboard and explained each component from first principles. This is the clearest explanation of what each piece does.</p>
+
+    <div class="chain-anatomy">
+      <div class="ca-label">RAG Chain — Component by Component</div>
+      <div class="ca-row">
+
+        <div class="ca-step">
+          <div class="ca-badge" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:#f9a8d4;">{"context": retriever | format_docs,<br>"question": RunnablePassthrough()}</div>
+          <div class="ca-desc">Builds the dict of inputs the prompt needs. Context comes from retriever → format_docs. Question passes straight through.</div>
+        </div>
+
+        <div class="ca-arrow">→</div>
+
+        <div class="ca-step">
+          <div class="ca-badge" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:#c4b5fd;">prompt</div>
+          <div class="ca-desc">ChatPromptTemplate inserts context + question into the template string. Formats the final augmented prompt.</div>
+        </div>
+
+        <div class="ca-arrow">→</div>
+
+        <div class="ca-step">
+          <div class="ca-badge" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">llm</div>
+          <div class="ca-desc">The chat LLM (Gemini, GPT, Claude, Groq, Ollama). Receives the formatted prompt. Returns an output message object.</div>
+        </div>
+
+        <div class="ca-arrow">→</div>
+
+        <div class="ca-step">
+          <div class="ca-badge" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">StrOutputParser()</div>
+          <div class="ca-desc">Extracts the plain string text from the LLM's output message object. Returns a readable string answer.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <h3 id="format-docs">format_docs() — What It Really Does</h3>
+
+    <div class="sunny-says">
+      "Context is coming from the vector database. format_docs means what? So whatever context we are retrieving, it is a Document object. From this Document object, what we are doing — we are going to be extract the page content. That's the meaning of the format document. We are joining all the page_content strings of the retrieved chunks into one big string."
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · format_docs anatomy</span>
+      <pre><span class="cm"># What the retriever returns: a list of Document objects</span>
+retrieved_docs = retriever.<span class="fn">invoke</span>(<span class="str">"some query"</span>)
+<span class="cm"># [Document(page_content="...", metadata={...}),</span>
+<span class="cm">#  Document(page_content="...", metadata={...}),</span>
+<span class="cm">#  Document(page_content="...", metadata={...})]</span>
+
+<span class="cm"># format_docs extracts only page_content and joins them</span>
+<span class="kw">def</span> <span class="fn">format_docs</span>(docs):
+    <span class="kw">return</span> <span class="str">"\n\n"</span>.<span class="fn">join</span>(doc.page_content <span class="kw">for</span> doc <span class="kw">in</span> docs)
+
+<span class="cm"># Result: one big context string ready for the prompt</span>
+<span class="cm"># "...text of chunk 1...\n\n...text of chunk 2...\n\n...text of chunk 3..."</span>
+
+<span class="cm"># This string fills {context} in the prompt template</span>
+<span class="cm"># The user's query fills {question} via RunnablePassthrough()</span></pre>
+    </div>
+
+    <h3 id="output-parsers">Output Parser Types</h3>
+
+    <div class="sunny-says">
+      "If you want to convert that particular output into the JSON, then I will be using the JSON parser. If I wanted to convert that particular output into the HTML, into the YAML, so I'll be using that particular parser. As of now I wanted to show you that output in the final string format — that's why I'm using StrOutputParser."
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--accent3); margin-bottom:6px;">StrOutputParser()</div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Extracts the text content from the LLM's AIMessage. Returns a plain Python string. Most common.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--accent2); margin-bottom:6px;">JsonOutputParser()</div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Parses LLM output as JSON. Use when you need structured data back from the LLM.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--accent5); margin-bottom:6px;">PydanticOutputParser()</div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Validates and parses output into a Pydantic model. Strong typing for structured LLM outputs.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--accent4); margin-bottom:6px;">XMLOutputParser()</div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">Parses LLM output as XML. Useful when the LLM is instructed to generate structured XML responses.</p>
+      </div>
+    </div>
+
+    <h3 id="lcel-history">LCEL vs Old Chain Methods</h3>
+
+    <div class="sunny-says">
+      "In the LCEL, what we do, we use this pipe operator in the LangChain, and we are going to connect all the components of the RAG. Before that, basically, we were having the specific chaining method — sequential chaining, parallel chaining. Different, different chaining methods were there in the previous LangChain version. But now in the updated version, basically, we just have this LCEL method. Everything working in the backend."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px; opacity:0.7;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Old LangChain (deprecated)</div>
+        <ul style="list-style:none; font-size:0.8rem; color:var(--muted); line-height:2;">
+          <li>→ LLMChain</li>
+          <li>→ SequentialChain</li>
+          <li>→ SimpleSequentialChain</li>
+          <li>→ ConversationalRetrievalChain</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Modern LangChain (LCEL)</div>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li style="color:var(--accent);">→ <code>a | b | c | d</code> (pipe operator)</li>
+          <li>→ RunnablePassthrough()</li>
+          <li>→ RunnableParallel()</li>
+          <li>→ RunnableLambda()</li>
+        </ul>
+        <p style="font-size:0.75rem; color:var(--muted); margin:8px 0 0;">Composable, lazy evaluation, streaming support, more Pythonic.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOVING VARIABLES -->
+  <section id="moving-variables">
+    <div class="section-eyebrow">05 — Key Insight</div>
+    <h2>RAG's "Moving Variables" — Why It's Complex</h2>
+
+    <div class="sunny-says">
+      "RAG seems very simple. But if you will see the RAG — there are so many moving components in the RAG. So many variable things. The final output completely depends on all of these. This is where the real engineering skill in RAG comes in."
+    </div>
+
+    <table class="variables-table">
+      <thead><tr><th>Moving Variable</th><th>What it means</th><th>Impact on output quality</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="var-name">Data Parsing</td>
+          <td>How well you extract clean text from source files — simple loader vs complex from-scratch parser</td>
+          <td class="impact">High — garbage in, garbage out. Poor parsing → missing context → wrong answers</td>
+        </tr>
+        <tr>
+          <td class="var-name">Chunking</td>
+          <td>Whether to chunk, what chunk_size, what overlap, which splitter strategy</td>
+          <td class="impact">High — too large = noisy context; too small = missing full sentences; wrong strategy = broken semantics</td>
+        </tr>
+        <tr>
+          <td class="var-name">Embedding Model</td>
+          <td>Which model to use, its dimension, its domain (general vs code vs multilingual)</td>
+          <td class="impact">High — poor embedding = irrelevant chunks retrieved = wrong answer even if data is correct</td>
+        </tr>
+        <tr>
+          <td class="var-name">Vector Database</td>
+          <td>Which DB, which index type, similarity metric, hosting (local vs cloud)</td>
+          <td class="impact">Medium — affects speed, scalability, and filtering capabilities</td>
+        </tr>
+        <tr>
+          <td class="var-name">Retrieval (k, strategy)</td>
+          <td>How many chunks to retrieve (k), similarity threshold, MMR, hybrid, reranking</td>
+          <td class="impact">High — too few = missing info; too many = noise; wrong strategy = irrelevant chunks</td>
+        </tr>
+        <tr>
+          <td class="var-name">Prompt Template</td>
+          <td>System instructions, output format, vocabulary hints, persona, strictness</td>
+          <td class="impact">High — poorly written prompt = hallucination even with correct context retrieved</td>
+        </tr>
+        <tr>
+          <td class="var-name">LLM Model</td>
+          <td>Which LLM, temperature, context window, reasoning capability</td>
+          <td class="impact">Medium-High — some LLMs follow grounding instructions better; larger models reason better over context</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3 RAG TYPES -->
+  <section id="three-rag-types">
+    <div class="section-eyebrow">06 — Architecture Types</div>
+    <h2>The 3 Types of RAG</h2>
+
+    <p>Sunny introduced this taxonomy during the blackboard revision — a framework for thinking about different RAG architectures.</p>
+
+    <div class="rag-types">
+      <div class="rag-type-card" style="border-top-color:var(--accent5);">
+        <div class="rt-num" style="color:var(--accent5);">Type 1</div>
+        <h4 id="vector-rag">Vector DB RAG</h4>
+        <p>The standard RAG. All retrieval is based on embedding similarity — cosine/dot/Euclidean distance in a vector database. Both documents and queries are embedded as dense vectors. Most RAG systems use this.</p>
+        <span class="rt-note" style="background:rgba(167,139,250,0.1); color:var(--accent5); border:1px solid rgba(167,139,250,0.3);">What we've been building</span>
+        <p style="margin-top:10px; font-size:0.76rem; color:var(--muted);">✓ Best accuracy · ✓ Most researched · ✓ Works for most use cases</p>
+      </div>
+
+      <div class="rag-type-card" style="border-top-color:var(--accent4);">
+        <div class="rt-num" style="color:var(--accent4);">Type 2</div>
+        <h4 id="vectorless-rag">Vectorless RAG</h4>
+        <p>Retrieval using keyword search, BM25, metadata filters — not embedding-based. No vector database needed. An old approach — keyword search is decades old. Not magic, just a different retrieval method.</p>
+        <span class="rt-note" style="background:rgba(251,146,60,0.1); color:var(--accent4); border:1px solid rgba(251,146,60,0.3);">Not as new as it sounds</span>
+        <p style="margin-top:10px; font-size:0.76rem; color:var(--muted);">✓ Works for small, structured docs · ✗ Misses semantic meaning · ✗ No research paper dominance</p>
+      </div>
+
+      <div class="rag-type-card" style="border-top-color:var(--accent3);">
+        <div class="rt-num" style="color:var(--accent3);">Type 3</div>
+        <h4 id="graph-rag">Graph-Based RAG</h4>
+        <p>Data is arranged as a knowledge graph — entities (nodes) and relationships (edges). Retrieval traverses the graph to find connected, relevant information. Requires entity extraction and relationship mapping from your data.</p>
+        <span class="rt-note" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">LangGraph chapter covers this</span>
+        <p style="margin-top:10px; font-size:0.76rem; color:var(--muted);">✓ Excellent for relationship-heavy data · ✗ Complex to build · ✗ Requires POC to validate</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Vectorless RAG — it is an old method of retrieving the information. Don't think that vectorless RAG is some magic, or it's a new thing. No. You will find very few research papers on it — and even those give more weightage to the vector-based system. In some small documents, it is working a little well compared to vector DB, but it's not completely magic."
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">📊</span>
+      <p><strong>Hybrid RAG (Bonus):</strong> A student in the session mentioned using hybrid retrieval (semantic + keyword) after getting failures with purely semantic search. Sunny affirmed this is a valid production approach — combining vector similarity with BM25 keyword search gives better coverage. This is covered in the Retrieval Techniques session.</p>
+    </div>
+  </section>
+
+  <!-- VDB HOSTING -->
+  <section id="vdb-hosting">
+    <div class="section-eyebrow">07 — Infrastructure</div>
+    <h2>4 Ways to Host a Vector Database</h2>
+
+    <div class="sunny-says">
+      "In today's solution, what kind of database we have used? In-memory! Because that is going to be vanished once you stop the server. The data is not persistent — it is stored in RAM. Going forward, I will show you all the other types."
+    </div>
+
+    <div class="vdb-tree">
+      <div class="vt-label">Vector Database Hosting — Full Map</div>
+      <div class="vt-l0">🗄 Vector Database</div>
+
+      <div class="vt-l1">📦 Local (on your machine)</div>
+      <div class="vt-l2"><span class="vt-ex">1. In-Memory (Volatile)</span> — data in RAM, lost on restart · FAISS default · ChromaDB no persist_directory</div>
+      <div class="vt-l2"><span class="vt-ex">2. On-Disk (Persistent)</span> — saved to local filesystem · FAISS save_local() · ChromaDB persist_directory</div>
+
+      <div class="vt-l1">☁️ Cloud</div>
+      <div class="vt-l2"><span class="vt-ex">3. Third-Party Managed (SaaS)</span> — vendor manages everything · <span style="color:var(--accent2);">Pinecone</span> · <span style="color:var(--accent);">Qdrant Cloud</span> · Weaviate</div>
+      <div class="vt-l2"><span class="vt-ex">4. Cloud-Provider Managed</span> — your cloud provider's service · <span style="color:var(--accent4);">AWS OpenSearch</span> · <span style="color:var(--accent);">Azure AI Search</span> · Google Vertex AI</div>
+    </div>
+
+    <h3 id="local-vdb">Local: In-Memory vs On-Disk</h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.88rem; color:var(--accent4); margin-bottom:8px;">In-Memory (Volatile)</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Data lives in RAM</li>
+          <li>→ Lost when process stops</li>
+          <li>→ Fastest (no disk I/O)</li>
+          <li>→ Today's class used this</li>
+          <li style="color:var(--accent4);">→ <code>FAISS</code> without save_local()</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent);">
+        <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">On-Disk (Persistent)</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Data saved to local files</li>
+          <li>→ Survives restarts</li>
+          <li>→ Single machine only</li>
+          <li style="color:var(--accent);">→ <code>vector_store.save_local()</code></li>
+          <li style="color:var(--accent);">→ <code>Chroma(persist_directory=...)</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 id="cloud-vdb">Cloud: Third-Party vs Provider</h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent5);">
+        <h4 style="font-size:0.88rem; color:var(--accent5); margin-bottom:8px;">Third-Party Managed</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Dedicated vector DB vendors</li>
+          <li>→ Best-in-class for vector search</li>
+          <li>→ No infra management</li>
+          <li style="color:var(--accent5);">→ Pinecone, Qdrant Cloud, Weaviate</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.88rem; color:var(--accent4); margin-bottom:8px;">Cloud-Provider Managed</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Your cloud provider's service</li>
+          <li>→ Integrated with existing infra</li>
+          <li>→ Enterprise standard</li>
+          <li style="color:var(--accent4);">→ AWS OpenSearch, Azure AI Search</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE Q&A -->
+  <section id="live-qa">
+    <div class="section-eyebrow">08 — Student Questions</div>
+    <h2>Live Q&amp;A — Key Exchanges</h2>
+
+    <div class="qa-block">
+      <div class="qa-q">Q — Student (Amol)</div>
+      <div class="qa-question">"When we have a 50-page PDF and push it to the vector database, and tomorrow they add 10 more pages — do we push all 60 pages again, or just the new 10 pages?"</div>
+      <div class="qa-a">A — Sunny</div>
+      <div class="qa-answer">"Why would you push all 60 pages? You will only push the 10 new pages. But if you don't know which parts changed — for example if they updated content in the middle — you can create a new index and archive the previous one. That way, you maintain full history."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-q">Q — Student (Amol)</div>
+      <div class="qa-question">"When we store vectors in the vector database — does the original Document object (with metadata and page_content) also get stored, or just the embedding vector?"</div>
+      <div class="qa-a">A — Sunny</div>
+      <div class="qa-answer">"Yes — that is being stored. Going forward I will show you the different vector databases — Chroma, Pinecone, Qdrant — and I can show you what exactly is stored inside each one. You will see the embedding, the text, and the metadata all stored together."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-q">Q — Student (Raghu)</div>
+      <div class="qa-question">"I was getting retrieval failures with purely semantic search — the correct chunk was in my pgvector database but wasn't being retrieved. I added query rewriting and hybrid retrieval (semantic + keyword) and then got the correct answer. Can you explain this?"</div>
+      <div class="qa-a">A — Sunny</div>
+      <div class="qa-answer">"This is exactly right. If your query vocabulary doesn't match the document vocabulary, semantic search alone can fail — the embeddings diverge enough that the correct chunk ranks low. Hybrid retrieval (semantic similarity + BM25 keyword matching) gives you the best of both worlds: semantic meaning AND exact keyword coverage. Query rewriting rewrites the query to better match document vocabulary. Both are advanced retrieval techniques — we'll cover them specifically in the Retrieval session."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-q">Q — Student (Raghu)</div>
+      <div class="qa-question">"My manager mentioned 'context condensing' — what happens when we give too much context? Does the LLM retain or replace information?"</div>
+      <div class="qa-a">A — Sunny</div>
+      <div class="qa-answer">"Context condensing is a technique to compress the retrieved context before passing it to the LLM — summarising or filtering it down to the most relevant parts. When you give an LLM too much context, you get: (1) higher API cost (more tokens), (2) potential dilution where relevant info gets buried in noise, and (3) hitting context window limits. Context condensing solves this by passing a shorter, denser representation. We'll cover this in the Prompting and Generation sessions."</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🌐</span>
+      <p><strong>On data sources in production:</strong> "In real-time projects, most data will be over SharePoint, Databricks, or third-party document management tools. Companies give contract subscriptions to manage their data. LangChain has connectors for all of these — Gmail, Outlook, Notion, Slack, SharePoint — you can load data from anywhere into the same Document format."</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">09 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 31 Part 2 — Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What causes a FAISS dimension mismatch error and how do you fix it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">The error occurs when the FAISS index was created with a specific dimension (e.g. 384 for HuggingFace all-MiniLM-L6-v2) but the actual embedding model being used has a different output dimension (e.g. 1536 for text-embedding-3-small or 3072 for text-embedding-3-large). Fix: always check the actual embedding dimension first with <code>len(embedding_model.embed_query("test"))</code>, then use that value when creating the FAISS index: <code>faiss.IndexFlatL2(actual_dim)</code>. Never hardcode a dimension without verifying it against your specific model.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What exactly does format_docs() do in the RAG chain, and why is it needed?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">format_docs() takes a list of LangChain Document objects (returned by the retriever) and extracts the page_content field from each, then joins them into one single string separated by double newlines. It's needed because the prompt template expects a plain string for the {context} variable, but the retriever returns Document objects. Without format_docs, you'd be inserting a Python list representation into the prompt rather than readable text. The function is: <code>def format_docs(docs): return "\n\n".join(doc.page_content for doc in docs)</code></div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What are the 3 types of RAG? For each, describe what makes it different.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Type 1 — Vector DB RAG: Standard RAG using embedding models and vector databases. All retrieval is based on cosine/dot/Euclidean similarity between embedded query and stored chunk vectors. Most researched and most effective for most use cases. Type 2 — Vectorless RAG: Uses keyword search (BM25), metadata filtering, or lexical matching — no embeddings required. An older approach, not magic, works best for small structured documents but misses semantic meaning. Type 3 — Graph-based RAG: Data is structured as a knowledge graph with entities (nodes) and relationships (edges). Retrieval traverses the graph. Complex to build, best for relationship-heavy data, requires POC validation.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What are the 4 ways to host a vector database? Give one example for each.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">1. In-Memory (Local volatile): data lives in RAM, lost on restart. Example: FAISS without save_local(). 2. On-Disk (Local persistent): saved to local filesystem, survives restarts. Example: FAISS with save_local() or ChromaDB with persist_directory. 3. Third-Party Managed SaaS: dedicated vector DB vendors host everything. Example: Pinecone (hosted on AWS) or Qdrant Cloud. 4. Cloud-Provider Managed: your cloud provider's managed vector search service. Example: AWS OpenSearch or Azure AI Search.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Sunny said "RAG seems very simple, but there are so many moving variables." Name 4 of the key moving variables and briefly describe how each affects output quality.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Any 4 from: (1) Data Parsing — quality of extracted text; poor parsing = noisy chunks = wrong answers. (2) Chunking — size and overlap; too large adds noise, too small breaks meaning. (3) Embedding Model — which model determines vector quality; wrong model = irrelevant chunks retrieved. (4) Retrieval strategy — k value, similarity metric, MMR; too few chunks = missing info, too many = noise. (5) Prompt Template — system instructions, vocabulary hints; poor prompt = hallucination even with correct context. (6) LLM — some models follow grounding instructions better than others.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. A student mentioned using hybrid retrieval after pure semantic search failed. What is hybrid retrieval and when should you use it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Hybrid retrieval combines two retrieval methods: (1) semantic similarity search using embeddings (dense retrieval) and (2) keyword-based search like BM25 (sparse retrieval). Results from both are combined and ranked. Use it when: your query vocabulary doesn't match document vocabulary (semantic search misses relevant chunks), you have precise technical terms that benefit from exact matching, or you need better recall in production. The student's scenario — relevant chunk existed in pgvector but wasn't retrieved by semantic alone — is a classic case where hybrid retrieval helps. Adding query rewriting (which rewrites the query to better match document language) can also help with vocabulary mismatch.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 31 Part 2 · RAG Types · Chain Anatomy · VDB Landscape · 11 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero, div.recording-note');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

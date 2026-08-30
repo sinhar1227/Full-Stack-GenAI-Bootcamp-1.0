@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 35 — Chunking Techniques for RAG | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — RAG pipeline */
+  --accent2:     #f472b6;   /* pink — semantic/custom */
+  --accent3:     #4ade80;   /* green — best practice */
+  --accent4:     #fb923c;   /* orange — chunk size/overlap */
+  --accent5:     #a78bfa;   /* violet — LangChain classes */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(34,211,238,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent5) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 35):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── RAG PIPELINE POSITION ── */
+.pipeline-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 16px 20px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.ps-stage { padding: 6px 12px; border-radius: 5px; border: 1px solid; }
+.ps-arrow { color: var(--muted); }
+
+/* ── OVERLAP VISUAL ── */
+.overlap-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; }
+.ov-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.ov-sentence { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text); margin-bottom: 14px; line-height: 1.8; }
+.ov-chunk { display: flex; gap: 10px; margin-bottom: 10px; font-size: 0.8rem; align-items: flex-start; }
+.ov-clabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 3px 8px; border-radius: 3px; min-width: 70px; text-align: center; flex-shrink: 0; margin-top: 2px; }
+.ov-words { color: #94a3b8; }
+
+/* ── METHOD CARDS ── */
+.method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.method-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; border-top: 2px solid; }
+.method-card .mc-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; font-weight: 700; margin-bottom: 6px; }
+.method-card .mc-class { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-bottom: 8px; }
+.method-card p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.55; }
+
+/* ── RCTSPLITTER SEPARATOR TABLE ── */
+.sep-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.83rem; }
+.sep-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.sep-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.sep-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.sep-table .sep { font-family: 'IBM Plex Mono', monospace; color: var(--accent5); font-size: 0.8rem; }
+.sep-table .priority { font-family: 'IBM Plex Mono', monospace; color: var(--accent6); font-size: 0.76rem; }
+
+/* ── SEMANTIC PIPELINE ── */
+.semantic-pipeline { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; }
+.sp-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.sp-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.sp-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.sp-body h4 { font-size: 0.86rem; color: #fff; font-weight: 600; margin-bottom: 3px; }
+.sp-body p  { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+/* ── BREAKPOINT TABLE ── */
+.bp-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.82rem; }
+.bp-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 9px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.bp-table td { padding: 8px 14px; border: 1px solid var(--border); color: #94a3b8; }
+.bp-val { font-family: 'IBM Plex Mono', monospace; color: var(--accent2); font-weight: 600; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(34,211,238,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA BLOCK ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(34,211,238,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .method-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#where-chunking-fits">Where Chunking Fits</a></li>
+    <li><a href="#definition">What Is Chunking?</a></li>
+    <li><a href="#parsing-vs-chunking">Parsing vs Chunking</a></li>
+    <li><a href="#why-chunking">Why We Need Chunking</a></li>
+    <li><a href="#always-required">Is Chunking Always Required?</a></li>
+    <li><a href="#chunk-size-overlap">Chunk Size & Overlap</a></li>
+    <li class="sub"><a href="#overlap-example">Overlap — Worked Example</a></li>
+    <li class="sub"><a href="#hyperparameters">Both Are Hyperparameters</a></li>
+    <li class="sub"><a href="#size-tradeoffs">Size/Overlap Tradeoffs</a></li>
+    <li><a href="#chunking-strategies">Chunking Strategies</a></li>
+    <li><a href="#langchain-classes">LangChain Splitter Classes</a></li>
+    <li><a href="#rcts">RecursiveCharacterTextSplitter</a></li>
+    <li class="sub"><a href="#rcts-separators">Separator Priority Chain</a></li>
+    <li class="sub"><a href="#rcts-code">Code & Output</a></li>
+    <li><a href="#token-splitter">TokenTextSplitter</a></li>
+    <li class="sub"><a href="#token-code">Code & Token Example</a></li>
+    <li><a href="#content-aware">Content-Aware Chunking</a></li>
+    <li class="sub"><a href="#content-aware-code">Code</a></li>
+    <li><a href="#doc-structure">Document Structure-Based</a></li>
+    <li class="sub"><a href="#markdown-code">MarkdownHeaderSplitter Code</a></li>
+    <li><a href="#semantic-chunking">Semantic Chunking</a></li>
+    <li class="sub"><a href="#semantic-pipeline">Pipeline Diagram</a></li>
+    <li class="sub"><a href="#breakpoint">Breakpoint Percentile</a></li>
+    <li class="sub"><a href="#semantic-code">Full Code</a></li>
+    <li><a href="#beyond-text">Chunking Beyond Text</a></li>
+    <li class="sub"><a href="#image-chunking">Image Chunking</a></li>
+    <li class="sub"><a href="#table-chunking">Table Chunking</a></li>
+    <li><a href="#common-mistakes">Common Mistakes</a></li>
+    <li><a href="#interview-tips">Interview Tips</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 35</span></div>
+    <div class="hero-class-num">Class 35 · 26 July 2026</div>
+    <h1>Chunking <em>Techniques</em><br>for RAG</h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Theory: Why & When</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> LangChain Splitter Classes</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Semantic Chunking (Custom)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Content-Aware & Agentic</div>
+    </div>
+    <p class="hero-summary">
+      A comprehensive deep-dive into chunking — the most misunderstood step in the RAG pipeline. Covers: what chunking is and when it's needed, chunk size and overlap as hyperparameters, every major strategy (fixed, recursive, token, document-structure, content-aware, semantic, agentic), all LangChain splitter classes with live code demos, chunking of images and tables, common mistakes, and interview advice.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Where chunking sits in the RAG pipeline (after parsing, before embedding/vector DB)</li>
+      <li><span class="chk">✓</span> Definition: dividing large data into smaller, meaningful units (chunks)</li>
+      <li><span class="chk">✓</span> Parsing vs Chunking — two different operations</li>
+      <li><span class="chk">✓</span> 5 reasons we need chunking: LLM context limit, retrieval accuracy, cost, speed, relevance</li>
+      <li><span class="chk">✓</span> When chunking is NOT required — it's a design choice, not a compulsory step</li>
+      <li><span class="chk">✓</span> Chunk size and chunk overlap — both are hyperparameters (experimental, data-dependent)</li>
+      <li><span class="chk">✓</span> Overlap worked example: 10 words, 3-word overlap, "make useful decision" repeats</li>
+      <li><span class="chk">✓</span> Size tradeoffs: too small = loses context; too large = lower retrieval precision; too much overlap = duplication</li>
+      <li><span class="chk">✓</span> LangChain splitter classes: RecursiveCharacterTextSplitter, TokenTextSplitter, CharacterTextSplitter, MarkdownHeaderTextSplitter, HTMLHeaderTextSplitter, RecursiveJsonSplitter, Language splitters</li>
+      <li><span class="chk">✓</span> RecursiveCharacterTextSplitter deep dive — separator priority chain (\n\n → \n → . → space → char)</li>
+      <li><span class="chk">✓</span> TokenTextSplitter — splits by token count using a tokenizer (cl100k_base), not character count</li>
+      <li><span class="chk">✓</span> Content-aware chunking — custom Python logic preserving paragraphs, sections, and natural boundaries</li>
+      <li><span class="chk">✓</span> Document structure-based chunking — MarkdownHeaderTextSplitter live demo (# / ## / ###)</li>
+      <li><span class="chk">✓</span> Semantic chunking — custom pipeline: create sentence windows → embed with SentenceTransformer → compute cosine similarity → detect topic-change boundaries → finalize chunks</li>
+      <li><span class="chk">✓</span> Breakpoint percentile explained: 50 (aggressive) vs 75 (balanced, default) vs 90 (conservative)</li>
+      <li><span class="chk">✓</span> Chunking beyond text: image chunking (tile, region, detected object), table chunking (by rows, groups, categories)</li>
+      <li><span class="chk">✓</span> Common mistakes: wrong size, excessive overlap, splitting table headers, removing useful metadata</li>
+      <li><span class="chk">✓</span> Interview advice: never say "I used RecursiveCharacterTextSplitter" without explaining your data analysis first</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>Files from this class (on GitHub):</strong> <code>chunking_methods.ipynb</code> (the notebook Sunny coded in class), a chunking guide DocX (comprehensive written reference), and a supplementary IPYNB from a previous session. Data used: text from a complex PDF parsed in earlier sessions.</p>
+    </div>
+  </section>
+
+  <!-- WHERE CHUNKING FITS -->
+  <section id="where-chunking-fits">
+    <div class="section-eyebrow">02 — Pipeline Position</div>
+    <h2>Where Chunking Fits in the RAG Pipeline</h2>
+
+    <p>Sunny opened the class by drawing the RAG pipeline on the blackboard to show exactly where chunking lives:</p>
+
+    <div class="pipeline-strip">
+      <div class="ps-stage" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">Data<br><small style="color:var(--muted);">text / table / image</small></div>
+      <span class="ps-arrow">→</span>
+      <div class="ps-stage" style="background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.3); color:var(--accent5);">Parsing<br><small style="color:var(--muted);">extract content</small></div>
+      <span class="ps-arrow">→</span>
+      <div class="ps-stage" style="background:rgba(244,114,182,0.2); border-color:rgba(244,114,182,0.5); color:#f9a8d4; font-weight:700;">Chunking ← here<br><small>divide into chunks</small></div>
+      <span class="ps-arrow">→</span>
+      <div class="ps-stage" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent);">Embedding<br><small style="color:var(--muted);">vectorise chunks</small></div>
+      <span class="ps-arrow">→</span>
+      <div class="ps-stage" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">Vector DB<br><small style="color:var(--muted);">store + retrieve</small></div>
+      <span class="ps-arrow">→</span>
+      <div class="ps-stage" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">LLM</div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>Key position:</strong> Chunking always happens <strong>after parsing</strong> (extracting text from the source) and <strong>before embedding</strong>. Chunking is not embedding — it's the step that prepares text pieces to be embedded and stored individually. The order is: parse → chunk → embed → store → retrieve → generate.</p>
+    </div>
+  </section>
+
+  <!-- DEFINITION -->
+  <section id="definition">
+    <div class="section-eyebrow">03 — Definition</div>
+    <h2>What Is Chunking?</h2>
+
+    <div style="background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.22); border-radius:8px; padding:20px; margin:16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px;">Sunny's Definition (Blackboard)</div>
+      <p style="font-size:1rem; color:#fff; font-weight:600; margin-bottom:10px;">"Chunking is a process of dividing large data into smaller, meaningful units called chunks."</p>
+      <p style="font-size:0.85rem; color:#94a3b8; margin:0;">In the RAG pipeline: each chunk is embedded separately, stored separately, retrieved separately, and sent to the LLM when it is relevant.</p>
+    </div>
+  </section>
+
+  <!-- PARSING VS CHUNKING -->
+  <section id="parsing-vs-chunking">
+    <div class="section-eyebrow">04 — Clarification</div>
+    <h2>Parsing vs Chunking</h2>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.88rem; color:var(--accent4); margin-bottom:8px;">Parsing</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;"><strong style="color:#fff;">Extraction of data</strong> from a source — pulling text, tables, or images out of a PDF, DOCX, HTML, etc. The raw content is extracted first.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">Chunking</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;"><strong style="color:#fff;">Division of extracted content</strong> into smaller parts. Happens after parsing. The name says it all: you are creating "chunks" — small, small parts.</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Parsing means extraction of the data. Chunking means to divide it into the smallest, small part. The name is self-explanatory — chunks means small, small parts."
+    </div>
+  </section>
+
+  <!-- WHY CHUNKING -->
+  <section id="why-chunking">
+    <div class="section-eyebrow">05 — Rationale</div>
+    <h2>Why Do We Need Chunking?</h2>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">1</span>
+        <div><strong style="color:#fff;">LLM context window limitation.</strong> <span style="color:#94a3b8;"> LLMs can only accept a fixed number of tokens at once. They cannot process millions of tokens of a full document. Passing too much data even within the limit causes hallucination.</span></div>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">2</span>
+        <div><strong style="color:#fff;">Better retrieval accuracy.</strong> <span style="color:#94a3b8;"> Storing large blocks in the vector DB reduces retrieval precision. Smaller, focused chunks mean the similarity search finds the exact relevant passage, not a large block that happens to contain it somewhere.</span></div>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">3</span>
+        <div><strong style="color:#fff;">Lower token cost.</strong> <span style="color:#94a3b8;"> Passing only the relevant chunk (not the whole document) to the LLM dramatically reduces the number of input tokens — and therefore the API cost.</span></div>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">4</span>
+        <div><strong style="color:#fff;">Faster processing.</strong> <span style="color:#94a3b8;"> A small, targeted chunk is processed by the LLM much faster than a large document. Latency is reduced.</span></div>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">5</span>
+        <div><strong style="color:#fff;">Send only relevant information.</strong> <span style="color:#94a3b8;"> In RAG, you retrieve only the chunk that matches the question. The LLM receives focused, on-topic context — not an entire 200-page document with mostly irrelevant content.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALWAYS REQUIRED -->
+  <section id="always-required">
+    <div class="section-eyebrow">06 — Design Choice</div>
+    <h2>Is Chunking Always Required?</h2>
+
+    <div class="sunny-says">
+      "Is chunking always required? So the answer is no. Chunking is a design choice. It's not a compulsory step. Chunking is usually required whenever the document is large. But chunking may not be required in a couple of cases. Chunking is a very subjective thing. It completely depends on you — the AI engineer's decision — whether you have to do the chunking or not."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent3);">
+        <h4 style="font-size:0.88rem; color:var(--accent3); margin-bottom:8px;">✅ DO chunk when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Document is large (multi-page)</li>
+          <li>→ Content exceeds model context window</li>
+          <li>→ Different sections discuss different topics</li>
+          <li>→ Only a small section answers the query</li>
+          <li>→ Source is a long PDF, manual, or policy doc</li>
+          <li>→ Semantic retrieval accuracy is needed</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--muted);">
+        <h4 style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;">✗ Skip chunking when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Input is already short (1–2 pages)</li>
+          <li>→ Full document fits in model context</li>
+          <li>→ Retrieving metadata or structured info</li>
+          <li>→ Full document needed for the task</li>
+          <li>→ Every page equally relevant to every query</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHUNK SIZE AND OVERLAP -->
+  <section id="chunk-size-overlap">
+    <div class="section-eyebrow">07 — Key Parameters</div>
+    <h2>Chunk Size & Chunk Overlap</h2>
+
+    <h3 id="overlap-example">Overlap — Sunny's Blackboard Example</h3>
+
+    <p>Sunny wrote this example on the blackboard to explain overlap concretely:</p>
+
+    <div class="overlap-visual">
+      <div class="ov-label">Overlap Example — chunk_size=10 words, chunk_overlap=3 words</div>
+
+      <div class="ov-sentence">
+        Original text: <em style="color:var(--text);">"Artificial intelligence helps machines learn patterns and make useful decisions."</em>
+      </div>
+
+      <div class="ov-chunk">
+        <span class="ov-clabel" style="background:rgba(34,211,238,0.1); border:1px solid rgba(34,211,238,0.3); color:var(--accent);">Chunk 1</span>
+        <span class="ov-words">Artificial intelligence helps machines learn patterns and <span style="background:rgba(250,204,21,0.15); border-radius:3px; padding:1px 4px; color:var(--accent6);">make useful decisions</span></span>
+      </div>
+      <div class="ov-chunk">
+        <span class="ov-clabel" style="background:rgba(244,114,182,0.1); border:1px solid rgba(244,114,182,0.3); color:var(--accent2);">Chunk 2</span>
+        <span class="ov-words"><span style="background:rgba(250,204,21,0.15); border-radius:3px; padding:1px 4px; color:var(--accent6);">make useful decisions</span> [next sentence begins…]</span>
+      </div>
+
+      <div style="margin-top:14px; font-size:0.8rem; color:#94a3b8;">
+        The highlighted 3 words <em style="color:var(--accent6);">"make useful decisions"</em> appear in <strong style="color:#fff;">both</strong> Chunk 1 and Chunk 2. This is the overlap. It preserves the context so Chunk 2 isn't semantically orphaned from what came before.
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Why do we do this overlapping? To sustain the context of the data. Chunk 2 can have some meaning from Chunk 1. That's why we are doing this overlapping. Overlap helps to preserve the meaning when an important sentence is divided between two chunks."
+    </div>
+
+    <h3 id="hyperparameters">Both Are Hyperparameters</h3>
+    <div class="callout warn">
+      <span class="callout-icon">⚙️</span>
+      <p><strong>chunk_size and chunk_overlap are both hyperparameters.</strong> "Hyperparameter means we cannot decide the value of it. It is a subjective value — an experimental value." You choose these based on your data. There is no universally correct value. Always 300, always 500 — none of these are universal rules. First analyze the data, then define the chunk size, then evaluate whether retrieval is working.</p>
+    </div>
+
+    <h3 id="size-tradeoffs">Size/Overlap Tradeoffs</h3>
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem; color:#94a3b8; line-height:2.4;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Tradeoff Rules</div>
+      <div>Smaller chunk size → <span style="color:var(--accent3);">more chunks created</span>, higher precision, <span style="color:#f87171;">risk: loses context</span></div>
+      <div>Larger chunk size → <span style="color:var(--accent3);">fewer chunks</span>, more context, <span style="color:#f87171;">risk: lower retrieval accuracy</span></div>
+      <div>Large overlap → <span style="color:var(--accent3);">preserves more cross-chunk context</span>, <span style="color:#f87171;">risk: duplicated stored content, higher storage & token cost</span></div>
+      <div>Optimal: <span style="color:var(--accent6);">analyze your data first → set size based on meaningful unit → validate retrieval results</span></div>
+    </div>
+  </section>
+
+  <!-- CHUNKING STRATEGIES -->
+  <section id="chunking-strategies">
+    <div class="section-eyebrow">08 — The Landscape</div>
+    <h2>Chunking Strategies — Full Map</h2>
+
+    <div class="method-grid">
+      <div class="method-card" style="border-top-color:var(--accent4);">
+        <div class="mc-name" style="color:var(--accent4);">Fixed Size Chunking</div>
+        <span class="mc-class" style="background:rgba(251,146,60,0.1); color:var(--accent4); border:1px solid rgba(251,146,60,0.3);">Simplest</span>
+        <p>Every chunk is the same size regardless of content boundaries. Fast, simple, but may cut sentences mid-thought. No LangChain awareness of document structure.</p>
+      </div>
+      <div class="method-card" style="border-top-color:var(--accent5);">
+        <div class="mc-name" style="color:var(--accent5);">Recursive Character Text Splitting</div>
+        <span class="mc-class" style="background:rgba(167,139,250,0.1); color:var(--accent5); border:1px solid rgba(167,139,250,0.3);">Most Used</span>
+        <p>Tries multiple separators in priority order (\n\n → \n → . → space → char) until chunks meet the target size. Best general-purpose baseline for text documents.</p>
+      </div>
+      <div class="method-card" style="border-top-color:var(--accent);">
+        <div class="mc-name" style="color:var(--accent);">Token Text Splitting</div>
+        <span class="mc-class" style="background:rgba(34,211,238,0.1); color:var(--accent); border:1px solid rgba(34,211,238,0.3);">LLM-Aligned</span>
+        <p>Splits based on token count (using a tokenizer like cl100k_base) instead of character count. Aligns precisely with how LLMs measure input length.</p>
+      </div>
+      <div class="method-card" style="border-top-color:var(--accent3);">
+        <div class="mc-name" style="color:var(--accent3);">Document Structure-Based</div>
+        <span class="mc-class" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">Structure-Aware</span>
+        <p>Splits on structural markers: Markdown headers (#, ##, ###), HTML tags, JSON keys, or code functions. Preserves document hierarchy inside chunks.</p>
+      </div>
+      <div class="method-card" style="border-top-color:var(--accent6);">
+        <div class="mc-name" style="color:var(--accent6);">Content-Aware Chunking</div>
+        <span class="mc-class" style="background:rgba(250,204,21,0.1); color:var(--accent6); border:1px solid rgba(250,204,21,0.3);">Custom Logic</span>
+        <p>Custom Python code that understands the natural structure (paragraphs, sections, tables, lists) and preserves boundaries. Manual but precise — tailored to your specific data.</p>
+      </div>
+      <div class="method-card" style="border-top-color:var(--accent2);">
+        <div class="mc-name" style="color:var(--accent2);">Semantic Chunking</div>
+        <span class="mc-class" style="background:rgba(244,114,182,0.1); color:var(--accent2); border:1px solid rgba(244,114,182,0.3);">Meaning-Based</span>
+        <p>Embeds sentences, measures cosine distance between adjacent pairs, and places chunk boundaries where semantic distance exceeds a threshold (topic change detected).</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🎯</span>
+      <p><strong>Sunny's real-world order:</strong> In production, first start with the simplest baseline (RecursiveCharacterTextSplitter). If retrieval quality is poor, move to document structure-based chunking or content-aware logic tailored to your data. Semantic chunking is advanced — only after simpler methods fail. Never use semantic chunking first without a baseline comparison.</p>
+    </div>
+  </section>
+
+  <!-- LANGCHAIN CLASSES -->
+  <section id="langchain-classes">
+    <div class="section-eyebrow">09 — LangChain Reference</div>
+    <h2>LangChain Splitter Classes</h2>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.4; color:#94a3b8;">
+      <div style="font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">from langchain.text_splitter import …</div>
+      <div><span style="color:var(--accent5);">RecursiveCharacterTextSplitter</span>   <span style="color:var(--muted);">← most used, general text</span></div>
+      <div><span style="color:var(--accent5);">CharacterTextSplitter</span>             <span style="color:var(--muted);">← simple single-separator split</span></div>
+      <div><span style="color:var(--accent5);">TokenTextSplitter</span>                 <span style="color:var(--muted);">← token-count based</span></div>
+      <div><span style="color:var(--accent5);">MarkdownHeaderTextSplitter</span>        <span style="color:var(--muted);">← # / ## / ### structure-aware</span></div>
+      <div><span style="color:var(--accent5);">HTMLHeaderTextSplitter</span>            <span style="color:var(--muted);">← HTML tag-based</span></div>
+      <div><span style="color:var(--accent5);">RecursiveJsonSplitter</span>             <span style="color:var(--muted);">← JSON hierarchy</span></div>
+      <div><span style="color:var(--accent5);">Language</span>                          <span style="color:var(--muted);">← Python, JS, Rust code function/class splits</span></div>
+      <div><span style="color:var(--muted);">SemanticChunker</span>                    <span style="color:var(--muted);">← not directly in recent versions; use custom or AI21 API</span></div>
+    </div>
+  </section>
+
+  <!-- RCTSPLITTER -->
+  <section id="rcts">
+    <div class="section-eyebrow">10 — Practical 1</div>
+    <h2>RecursiveCharacterTextSplitter</h2>
+
+    <p>The most commonly used splitter. Its key feature: it tries separators in a priority chain, going finer-grained until it achieves the target chunk size.</p>
+
+    <h3 id="rcts-separators">Separator Priority Chain</h3>
+
+    <table class="sep-table">
+      <thead><tr><th>Priority</th><th>Separator</th><th>Meaning</th><th>When Used</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="priority">1st (highest)</td>
+          <td class="sep">\n\n</td>
+          <td>Double newline</td>
+          <td>Split at paragraph boundaries first. If paragraph ≤ chunk_size → stop here.</td>
+        </tr>
+        <tr>
+          <td class="priority">2nd</td>
+          <td class="sep">\n</td>
+          <td>Single newline</td>
+          <td>If paragraph still too large → split at line boundaries.</td>
+        </tr>
+        <tr>
+          <td class="priority">3rd</td>
+          <td class="sep">. (period)</td>
+          <td>Sentence end</td>
+          <td>If line still too large → split at sentence boundaries.</td>
+        </tr>
+        <tr>
+          <td class="priority">4th</td>
+          <td class="sep">" " (space)</td>
+          <td>Word boundary</td>
+          <td>If sentence still too large → split between words.</td>
+        </tr>
+        <tr>
+          <td class="priority">5th (fallback)</td>
+          <td class="sep">"" (empty)</td>
+          <td>Character level</td>
+          <td>Final fallback → split character by character. No natural boundary possible.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sunny-says">
+      "Recursive character text splitter splits text recursively by using multiple separators in the priority order. First it tries double-slash-n. If the paragraph is larger than 300 characters, it tries with single slash-n — split at line boundary. If the line is still too large, it uses dot — split at sentence boundary. Recursively, it is trying, until it is able to get the desired length."
+    </div>
+
+    <h3 id="rcts-code">Code & Output</h3>
+    <div class="code-block">
+      <span class="lang-label">python · RecursiveCharacterTextSplitter</span>
+      <pre><span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyPDFLoader</span>
+
+<span class="cm"># Load document</span>
+loader = <span class="cls">PyPDFLoader</span>(<span class="str">"data/document.pdf"</span>)
+pages  = loader.<span class="fn">load</span>()
+
+<span class="cm"># Define splitter</span>
+splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size    = <span class="num">300</span>,   <span class="cm"># max ~300 characters per chunk</span>
+    chunk_overlap = <span class="num">50</span>,    <span class="cm"># ~50 chars from prior chunk repeat</span>
+    length_function = <span class="fn">len</span>, <span class="cm"># measure size in characters</span>
+    add_start_index = <span class="kw">True</span> <span class="cm"># store start position in metadata</span>
+)
+
+<span class="cm"># Split documents</span>
+chunks = splitter.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"Total chunks: {len(chunks)}"</span>)          <span class="cm"># 11,107 for large PDF</span>
+<span class="fn">print</span>(f<span class="str">f"Chunk 1 length: {len(chunks[0].page_content)}"</span>)  <span class="cm"># 257 chars</span>
+<span class="fn">print</span>(f<span class="str">f"Chunk 2 length: {len(chunks[1].page_content)}"</span>)  <span class="cm"># 242 chars</span>
+
+<span class="cm"># Inspect a chunk</span>
+<span class="fn">print</span>(chunks[<span class="num">0</span>].page_content)
+<span class="fn">print</span>(chunks[<span class="num">0</span>].metadata)   <span class="cm"># {source, page, start_index}</span>
+
+<span class="cm"># ── Key notes ─────────────────────────────────────────────────────</span>
+<span class="cm"># chunk_size = 300 chars → each chunk is at most ~300 characters</span>
+<span class="cm"># chunk_overlap = 50 → 50 chars from previous chunk repeat in next</span>
+<span class="cm"># add_start_index = True → metadata stores where the chunk starts</span>
+<span class="cm"># length_function = len → size measured in character count</span>
+<span class="cm"># To measure in tokens instead: length_function = tiktoken_len (custom)</span></pre>
+    </div>
+  </section>
+
+  <!-- TOKEN SPLITTER -->
+  <section id="token-splitter">
+    <div class="section-eyebrow">11 — Practical 2</div>
+    <h2>TokenTextSplitter</h2>
+
+    <p>Splits text based on <strong>token count</strong> rather than character count. Uses a tokenizer (e.g. <code>cl100k_base</code> from OpenAI's tiktoken) to convert text to tokens, then splits at token boundaries. Critical distinction: a word is not always one token.</p>
+
+    <h3 id="token-code">Code & Token Example</h3>
+    <div class="code-block">
+      <span class="lang-label">python · TokenTextSplitter</span>
+      <pre><span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">TokenTextSplitter</span>
+
+<span class="cm"># cl100k_base = OpenAI's tokenizer (used by GPT-4, text-embedding-3-small)</span>
+<span class="cm"># encoding_name controls which tokenizer converts text → tokens</span>
+splitter = <span class="cls">TokenTextSplitter</span>(
+    encoding_name = <span class="str">"cl100k_base"</span>,
+    chunk_size    = <span class="num">100</span>,   <span class="cm"># 100 TOKENS per chunk (not 100 chars)</span>
+    chunk_overlap = <span class="num">10</span>    <span class="cm"># 10 tokens overlap</span>
+)
+
+chunks = splitter.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"Total chunks: {len(chunks)}"</span>)   <span class="cm"># 1,112 chunks (different from char-based)</span>
+<span class="fn">print</span>(f<span class="str">f"Chunk size: {len(chunks[0].page_content)} chars"</span>)  <span class="cm"># ~260 chars = 100 tokens</span>
+
+<span class="cm"># ── Token example from Sunny's blackboard ────────────────────────</span>
+<span class="cm"># Text: "AI helps machines learn from data and make better decisions for users."</span>
+<span class="cm">#</span>
+<span class="cm"># After tokenization (each word may be 1 or more tokens):</span>
+<span class="cm"># tokens = [AI, helps, machines, learn, from, data, and, make, better, ...]</span>
+<span class="cm">#</span>
+<span class="cm"># chunk_size=5, chunk_overlap=2:</span>
+<span class="cm"># Chunk 1: tokens 1–5  = [AI, helps, machines, learn, from]</span>
+<span class="cm"># Chunk 2: tokens 4–8  = [learn, from, data, and, make]  ← 2-token overlap</span>
+<span class="cm"># Chunk 3: tokens 7–11 = [and, make, better, decisions, for]</span>
+<span class="cm">#</span>
+<span class="cm"># When to use TokenTextSplitter instead of CharacterTextSplitter:</span>
+<span class="cm"># → When working with models that charge/limit by tokens (OpenAI, Anthropic)</span>
+<span class="cm"># → When you need precise token-budget control</span>
+<span class="cm"># → Note: "one token ≠ one word" — complex words like 'chunking' may be 2 tokens</span></pre>
+    </div>
+  </section>
+
+  <!-- CONTENT-AWARE -->
+  <section id="content-aware">
+    <div class="section-eyebrow">12 — Practical 3</div>
+    <h2>Content-Aware Chunking (Custom Logic)</h2>
+
+    <p>Instead of blindly splitting at a fixed character count, content-aware chunking understands the natural structure of the document (paragraphs, sections, lists) and splits at meaningful boundaries.</p>
+
+    <div class="sunny-says">
+      "Content-aware chunking splits the text by understanding its natural structure — instead of just cutting it blindly after a fixed number of characters or tokens. It tries to preserve the boundaries such as paragraphs, sentences, headings, lists, sections, or tables. It's a manual one — you write the custom logic for it."
+    </div>
+
+    <h3 id="content-aware-code">Content-Aware Chunking Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · content-aware chunking</span>
+      <pre><span class="cm">## Content-Aware Chunking — splits at paragraph boundaries
+## Custom logic: aware of document structure, not just character count</span>
+
+<span class="kw">def</span> <span class="fn">content_aware_chunking</span>(text: str, max_chars: int = <span class="num">500</span>) -> list[str]:
+    <span class="str">"""
+    Splits text by preserving paragraph structure.
+    Each paragraph that fits within max_chars becomes one chunk.
+    Paragraphs larger than max_chars are further split by sentence.
+    """</span>
+    <span class="kw">if</span> max_chars <= <span class="num">0</span>:
+        <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"max_chars must be positive"</span>)
+
+    chunks      = []
+    current     = <span class="str">""</span>
+
+    <span class="cm"># Split on paragraph boundaries (double newline)</span>
+    paragraphs = text.<span class="fn">split</span>(<span class="str">"\n\n"</span>)
+
+    <span class="kw">for</span> paragraph <span class="kw">in</span> paragraphs:
+        paragraph = paragraph.<span class="fn">strip</span>()
+        <span class="kw">if not</span> paragraph:
+            <span class="kw">continue</span>
+
+        <span class="cm"># If adding this paragraph stays within limit, accumulate</span>
+        <span class="kw">if</span> <span class="fn">len</span>(current) + <span class="fn">len</span>(paragraph) + <span class="num">2</span> <= max_chars:
+            current = (current + <span class="str">"\n\n"</span> + paragraph).<span class="fn">strip</span>()
+        <span class="kw">else</span>:
+            <span class="cm"># Save current chunk, start new one</span>
+            <span class="kw">if</span> current:
+                chunks.<span class="fn">append</span>(current)
+            <span class="cm"># If single paragraph is too large, split by sentence</span>
+            <span class="kw">if</span> <span class="fn">len</span>(paragraph) > max_chars:
+                sentences = paragraph.<span class="fn">split</span>(<span class="str">". "</span>)
+                temp = <span class="str">""</span>
+                <span class="kw">for</span> sentence <span class="kw">in</span> sentences:
+                    <span class="kw">if</span> <span class="fn">len</span>(temp) + <span class="fn">len</span>(sentence) <= max_chars:
+                        temp += sentence + <span class="str">". "</span>
+                    <span class="kw">else</span>:
+                        <span class="kw">if</span> temp: chunks.<span class="fn">append</span>(temp.<span class="fn">strip</span>())
+                        temp = sentence + <span class="str">". "</span>
+                <span class="kw">if</span> temp: chunks.<span class="fn">append</span>(temp.<span class="fn">strip</span>())
+                current = <span class="str">""</span>
+            <span class="kw">else</span>:
+                current = paragraph
+
+    <span class="kw">if</span> current:
+        chunks.<span class="fn">append</span>(current)
+
+    <span class="kw">return</span> chunks
+
+<span class="cm"># Usage</span>
+text    = <span class="str">"""Artificial intelligence enables machines to perform intelligent tasks.
+
+Machine learning is part of AI. It allows systems to learn from data.
+
+Employee leave policy: All employees are entitled to 20 days..."""</span>
+
+chunks = <span class="fn">content_aware_chunking</span>(text, max_chars=<span class="num">200</span>)
+<span class="kw">for</span> i, c <span class="kw">in</span> <span class="fn">enumerate</span>(chunks):
+    <span class="fn">print</span>(f<span class="str">f"Chunk {i+1}: {c[:80]}..."</span>)
+<span class="cm"># Output: 3 chunks — one per paragraph (AI intro, ML, Leave policy)</span>
+<span class="cm"># RecursiveCharacterTextSplitter might split mid-paragraph here</span>
+<span class="cm"># Content-aware preserves full paragraph as chunk boundary</span></pre>
+    </div>
+  </section>
+
+  <!-- DOCUMENT STRUCTURE -->
+  <section id="doc-structure">
+    <div class="section-eyebrow">13 — Practical 4</div>
+    <h2>Document Structure-Based Chunking</h2>
+
+    <p>LangChain provides built-in classes for splitting based on document format structure — Markdown headers, HTML tags, JSON keys, or code block boundaries.</p>
+
+    <h3 id="markdown-code">MarkdownHeaderTextSplitter — Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · MarkdownHeaderTextSplitter</span>
+      <pre><span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">MarkdownHeaderTextSplitter</span>
+
+<span class="cm"># Define which markdown headers become chunk boundaries</span>
+headers_to_split_on = [
+    (<span class="str">"#"</span>,   <span class="str">"H1"</span>),    <span class="cm"># # Heading → split here</span>
+    (<span class="str">"##"</span>,  <span class="str">"H2"</span>),    <span class="cm"># ## Heading → split here</span>
+    (<span class="str">"###"</span>, <span class="str">"H3"</span>),    <span class="cm"># ### Heading → split here</span>
+]
+
+splitter = <span class="cls">MarkdownHeaderTextSplitter</span>(
+    headers_to_split_on = headers_to_split_on
+)
+
+markdown_doc = <span class="str">"""
+# Introduction
+Artificial intelligence is changing the world.
+
+## Machine Learning
+ML is a subset of AI.
+
+### Supervised Learning
+In supervised learning, we use labeled data.
+
+### Unsupervised Learning
+In unsupervised learning, we find hidden patterns.
+
+## Deep Learning
+Deep learning uses neural networks with many layers.
+"""</span>
+
+chunks = splitter.<span class="fn">split_text</span>(markdown_doc)
+<span class="kw">for</span> chunk <span class="kw">in</span> chunks:
+    <span class="fn">print</span>(f<span class="str">f"Content: {chunk.page_content[:60]}..."</span>)
+    <span class="fn">print</span>(f<span class="str">f"Metadata: {chunk.metadata}"</span>)   <span class="cm"># {H1, H2, H3 hierarchy stored}</span>
+    <span class="fn">print</span>()
+
+<span class="cm"># Output: one chunk per section</span>
+<span class="cm"># Metadata carries the full header hierarchy, e.g.:</span>
+<span class="cm"># {"H1": "Introduction", "H2": "Machine Learning", "H3": "Supervised Learning"}</span>
+<span class="cm"># → Perfect for filtering: "show me only Machine Learning chunks"</span>
+
+<span class="cm"># Similar classes for other formats:</span>
+<span class="cm"># HTMLHeaderTextSplitter → splits on <h1>, <h2>, <h3> tags</span>
+<span class="cm"># RecursiveJsonSplitter  → splits JSON on key hierarchy</span>
+<span class="cm"># Language.PYTHON        → splits Python code on function/class boundaries</span></pre>
+    </div>
+  </section>
+
+  <!-- SEMANTIC CHUNKING -->
+  <section id="semantic-chunking">
+    <div class="section-eyebrow">14 — Advanced</div>
+    <h2>Semantic Chunking</h2>
+
+    <p>The most sophisticated approach. Instead of splitting on characters, tokens, or structure markers, semantic chunking detects where the <strong>topic actually changes</strong> by comparing the semantic similarity of adjacent sentences using embeddings.</p>
+
+    <h3 id="semantic-pipeline">Semantic Chunking Pipeline</h3>
+
+    <div class="semantic-pipeline">
+      <div class="sp-label">Semantic Chunking — 5-Step Pipeline (Sunny's Blackboard)</div>
+
+      <div class="sp-step">
+        <div class="sp-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">1</div>
+        <div class="sp-body"><h4>Create Sentence Window</h4><p>Split the document into individual sentences. For each sentence, build a "window" of buffer_size neighbouring sentences to create context.</p></div>
+      </div>
+      <div class="sp-step">
+        <div class="sp-num" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); color:var(--accent);">2</div>
+        <div class="sp-body"><h4>Create Local Embedding</h4><p>Embed each windowed sentence using a local SentenceTransformer model (all-MiniLM-L6-v2 or similar). No paid API required. Fallback: TF-IDF vectors.</p></div>
+      </div>
+      <div class="sp-step">
+        <div class="sp-num" style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); color:var(--accent5);">3</div>
+        <div class="sp-body"><h4>Compute Similarity & Distance</h4><p>Compute cosine similarity between adjacent sentence embeddings. Convert to distance (1 − similarity). High distance = topic likely changed.</p></div>
+      </div>
+      <div class="sp-step">
+        <div class="sp-num" style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); color:var(--accent2);">4</div>
+        <div class="sp-body"><h4>Detect Topic-Change Boundaries</h4><p>Find all pairs where distance exceeds the breakpoint percentile threshold. These are the chunk boundaries — places where the topic changes.</p></div>
+      </div>
+      <div class="sp-step">
+        <div class="sp-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">5</div>
+        <div class="sp-body"><h4>Finalise Chunks</h4><p>Group sentences between boundaries into final chunks. Each chunk discusses a coherent single topic. Return chunks with metadata.</p></div>
+      </div>
+    </div>
+
+    <h3 id="breakpoint">Breakpoint Percentile — What It Controls</h3>
+
+    <table class="bp-table">
+      <thead><tr><th>Percentile</th><th>Threshold Level</th><th>Effect</th><th>Use When</th></tr></thead>
+      <tbody>
+        <tr><td class="bp-val">50</td><td style="color:var(--accent4);">Low (aggressive)</td><td>Many breakpoints → smaller, more chunks</td><td>Document covers many distinct sub-topics</td></tr>
+        <tr><td class="bp-val">75</td><td style="color:var(--accent3);">Balanced (default)</td><td>Moderate breakpoints → medium-sized chunks</td><td>General use — good starting point</td></tr>
+        <tr><td class="bp-val">90</td><td style="color:var(--muted);">High (conservative)</td><td>Few breakpoints → larger, fewer chunks</td><td>Document stays on one topic throughout</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sunny-says">
+      "Low semantic distance means sentences discuss a similar kind of topic — keep them in the same chunk. High semantic distance means the topic has probably changed — start a new chunk. The breakpoint percentile decides how large a semantic distance must be before starting a new chunk."
+    </div>
+
+    <h3 id="semantic-code">Semantic Chunking — Full Custom Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · semantic_chunking (custom, no paid API)</span>
+      <pre><span class="cm">## Semantic Chunking — custom implementation using SentenceTransformer
+## pip install sentence-transformers scikit-learn numpy</span>
+
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> <span class="cls">SentenceTransformer</span>
+<span class="kw">from</span> sklearn.metrics.pairwise <span class="kw">import</span> <span class="fn">cosine_similarity</span>
+<span class="kw">import</span> re
+
+<span class="cm"># ── Step 1: Create sentence window ────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">create_sentence_window</span>(text: str, buffer_size: int = <span class="num">1</span>) -> list[dict]:
+    <span class="str">"""
+    Split text into sentences and create a context window around each.
+    buffer_size=1 → include 1 sentence before and 1 after each sentence.
+    """</span>
+    sentences = re.<span class="fn">split</span>(<span class="str">r'(?<=[.!?])\s+'</span>, text.strip())
+    sentences = [s.strip() <span class="kw">for</span> s <span class="kw">in</span> sentences <span class="kw">if</span> s.strip()]
+    windows   = []
+    <span class="kw">for</span> i, sentence <span class="kw">in</span> <span class="fn">enumerate</span>(sentences):
+        start  = <span class="fn">max</span>(<span class="num">0</span>, i - buffer_size)
+        end    = <span class="fn">min</span>(<span class="fn">len</span>(sentences), i + buffer_size + <span class="num">1</span>)
+        window = <span class="str">" "</span>.<span class="fn">join</span>(sentences[start:end])
+        windows.<span class="fn">append</span>({<span class="str">"sentence"</span>: sentence, <span class="str">"window"</span>: window, <span class="str">"index"</span>: i})
+    <span class="kw">return</span> windows, sentences
+
+<span class="cm"># ── Step 2: Create local embedding ───────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">create_local_embedding</span>(
+    windows: list, model_name: str = <span class="str">"all-MiniLM-L6-v2"</span>
+) -> tuple[np.ndarray, str]:
+    model      = <span class="cls">SentenceTransformer</span>(model_name)
+    window_texts = [w[<span class="str">"window"</span>] <span class="kw">for</span> w <span class="kw">in</span> windows]
+    embeddings = model.<span class="fn">encode</span>(window_texts, convert_to_numpy=<span class="kw">True</span>)
+    <span class="kw">return</span> embeddings, model_name
+
+<span class="cm"># ── Step 3+4+5: Detect boundaries and create chunks ───────────────</span>
+<span class="kw">def</span> <span class="fn">semantic_chunking</span>(
+    text:                  str,
+    breakpoint_percentile: float = <span class="num">75.0</span>,
+    buffer_size:           int   = <span class="num">1</span>,
+    model_name:            str   = <span class="str">"all-MiniLM-L6-v2"</span>
+) -> list[str]:
+    <span class="str">"""
+    Full semantic chunking pipeline:
+    sentences → windows → embed → cosine distance → breakpoints → chunks
+    """</span>
+    windows, sentences = <span class="fn">create_sentence_window</span>(text, buffer_size)
+    embeddings, _      = <span class="fn">create_local_embedding</span>(windows, model_name)
+
+    <span class="cm"># Compute cosine distance between adjacent sentence embeddings</span>
+    similarities = <span class="fn">cosine_similarity</span>(embeddings[:-<span class="num">1</span>], embeddings[<span class="num">1</span>:]).<span class="fn">diagonal</span>()
+    distances    = <span class="num">1</span> - similarities
+
+    <span class="cm"># Threshold: breakpoint_percentile of all distances</span>
+    threshold = np.<span class="fn">percentile</span>(distances, breakpoint_percentile)
+    <span class="fn">print</span>(f<span class="str">f"Embedding model: {model_name}"</span>)
+    <span class="fn">print</span>(f<span class="str">f"Distance threshold: {threshold:.3f}"</span>)
+
+    <span class="cm"># Mark breakpoints (True = new chunk starts after this sentence)</span>
+    breakpoints = [d > threshold <span class="kw">for</span> d <span class="kw">in</span> distances]
+
+    <span class="cm"># Build final chunks</span>
+    chunks, current = [], []
+    <span class="kw">for</span> i, sentence <span class="kw">in</span> <span class="fn">enumerate</span>(sentences):
+        current.<span class="fn">append</span>(sentence)
+        <span class="kw">if</span> i < <span class="fn">len</span>(breakpoints) <span class="kw">and</span> breakpoints[i]:
+            chunks.<span class="fn">append</span>(<span class="str">" "</span>.<span class="fn">join</span>(current))
+            current = []
+    <span class="kw">if</span> current:
+        chunks.<span class="fn">append</span>(<span class="str">" "</span>.<span class="fn">join</span>(current))
+
+    <span class="fn">print</span>(f<span class="str">f"Total semantic chunks: {len(chunks)}"</span>)
+    <span class="kw">return</span> chunks
+
+<span class="cm"># ── Usage ─────────────────────────────────────────────────────────</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"data/document.txt"</span>) <span class="kw">as</span> f:
+    text = f.<span class="fn">read</span>()
+
+chunks = <span class="fn">semantic_chunking</span>(
+    text                  = text,
+    breakpoint_percentile = <span class="num">75</span>,   <span class="cm"># balanced — default</span>
+    buffer_size           = <span class="num">1</span>    <span class="cm"># 1 sentence before + after for context</span>
+)
+<span class="cm"># Sunny's demo result: 709 semantic chunks from a large complex PDF</span>
+<span class="cm"># Each chunk discusses one coherent topic</span>
+<span class="cm"># Distance threshold was ~0.265 for that dataset</span></pre>
+    </div>
+  </section>
+
+  <!-- BEYOND TEXT -->
+  <section id="beyond-text">
+    <div class="section-eyebrow">15 — Advanced Use Cases</div>
+    <h2>Chunking Beyond Text</h2>
+
+    <div class="sunny-says">
+      "Chunking is not limited to text, actually. We can also divide images, tables, code, audio, video, maps — any kind of data — into smaller, meaningful chunks. The chunking boundary depends on the type of the data. But always, guys, until it is not required, don't do image or table chunking. If your single image is working fine, you're good to go."
+    </div>
+
+    <h3 id="image-chunking">Image Chunking</h3>
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:12px 0;">
+      <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">When image chunking is needed:</h4>
+      <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+        <li>→ Image is very large (full-page scanned document)</li>
+        <li>→ Small text would disappear or be unreadable after resizing the whole image</li>
+        <li>→ Tiny objects need to be detected in specific regions</li>
+        <li>→ The image contains many independent regions (floor plan, satellite image, medical scan, map)</li>
+        <li>→ Region-level retrieval is needed (retrieve the "header section" or "table area" specifically)</li>
+      </ul>
+      <h4 style="font-size:0.88rem; color:var(--accent); margin-top:10px; margin-bottom:8px;">How to divide images:</h4>
+      <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+        <li>→ Fixed tile (divide into equal grid tiles)</li>
+        <li>→ Overlapping tile (adjacent tiles share region for context)</li>
+        <li>→ Detected object (use YOLO or similar to detect regions)</li>
+        <li>→ Document layout region (header, paragraph, table, chart, footer — for scanned docs)</li>
+        <li>→ Semantic region (group visually similar areas)</li>
+      </ul>
+    </div>
+
+    <h3 id="table-chunking">Table Chunking</h3>
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:12px 0;">
+      <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;"><strong style="color:#fff;">Real-world example from Sunny:</strong> "In one project, the table was spanning 5 pages of a PDF with more than 100 rows. That kind of table could be divided into multiple chunks."</p>
+      <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">How to divide tables:</h4>
+      <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+        <li>→ By rows (every N rows becomes a chunk — always keep the header row in each chunk)</li>
+        <li>→ Overlapping rows (overlap preserves context across row boundaries)</li>
+        <li>→ By column groupings (related columns go together)</li>
+        <li>→ By category/entity (group by product type, date range, geography — if the table has a natural grouping)</li>
+      </ul>
+      <div class="callout warn" style="margin-top:12px;">
+        <span class="callout-icon">⚠️</span>
+        <p><strong>Critical mistake:</strong> Never split a table without preserving the header row. If the header row doesn't appear in each chunk, the LLM has no idea what the columns mean.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMON MISTAKES -->
+  <section id="common-mistakes">
+    <div class="section-eyebrow">16 — Watch Out</div>
+    <h2>Common Chunking Mistakes</h2>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Chunk size without evaluating retrieval.</strong> Setting chunk_size=300 then never checking whether the retrieved chunks actually answer queries correctly. Always test retrieval quality after setting chunk size.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Very small chunks.</strong> Lose context — a 30-character chunk is meaningless without surrounding sentences.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Very large chunks.</strong> Contain irrelevant information — retrieval precision drops because every "match" includes a lot of noise.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Excessive overlap.</strong> Creates duplicated stored content, inflates storage, increases token cost with repeated context.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Splitting tables without preserving the header row.</strong> The LLM can't understand column values without the header.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Splitting code in the middle of a function or class.</strong> The code loses its meaning and is unusable out of context.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Removing useful metadata.</strong> Always keep source, page number, section, and other metadata alongside the chunk. It's needed for attribution and filtering during retrieval.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Jumping to semantic chunking without baseline comparison.</strong> First test RecursiveCharacterTextSplitter. Only move to semantic if it fails. Semantic chunking is expensive and slower.</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.06); border:1px solid rgba(248,113,113,0.2); border-radius:7px; padding:14px; display:flex; gap:10px;">
+        <span style="color:#f87171; font-size:1rem; flex-shrink:0; margin-top:2px;">✗</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Assuming one strategy works for all data types.</strong> A strategy that works on PDF reports may not work on JSON logs, code repositories, or scanned invoices. Always validate per data type.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERVIEW TIPS -->
+  <section id="interview-tips">
+    <div class="section-eyebrow">17 — Career Prep</div>
+    <h2>Interview Tips</h2>
+
+    <div class="sunny-says">
+      "Whenever you are going in an interview, don't say directly: 'I have done the chunking using the recursive character text splitter.' If you are saying like that, the interviewer will not like that answer and might reject you. You need to say: 'First I analyzed the data. I found some meaningful pattern inside my data. Based on that, I wrote some rules inside my code, and then only I performed the chunking.' Otherwise you can say: 'I did semantic chunking. I understood the document structure, and based on that only I performed chunking of the data.'"
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.84rem; color:#94a3b8;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">What a Strong Interview Answer Looks Like</div>
+      <div style="margin-bottom:12px;"><span style="color:#f87171;">❌ Weak:</span> "We used RecursiveCharacterTextSplitter with chunk_size=500."</div>
+      <div style="margin-bottom:6px;"><span style="color:var(--accent3);">✅ Strong:</span></div>
+      <div style="padding-left:16px; line-height:2.2;">"First, I analyzed the data — it was a 30-page pharma report structured by sections. Each section discussed a distinct topic. So I decided to chunk by section rather than fixed character count. I wrote content-aware logic that splits on section boundaries. I then validated retrieval quality: for 20 sample queries, I checked whether the retrieved chunks contained the correct information. When some queries failed, I reduced chunk overlap and re-evaluated until retrieval accuracy reached our target."</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💼</span>
+      <p><strong>The key message:</strong> Chunking is not a recipe — it's an engineering decision. Interviewers want to see that you: (1) analyzed the data first, (2) chose a strategy based on the data structure, (3) experimented and evaluated retrieval quality, and (4) iterated until it worked. "There is no best method, guys — it is all about the experiments."</p>
+    </div>
+  </section>
+
+  <!-- Q&A -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">18 — Live Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">Can we do chunking of video and audio data as well?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — if you are processing that type of data, you can do chunking of it. For video: split by scene, time window, or detected event. For audio: split by silence gaps, speaker changes, or fixed time windows (e.g. 30-second segments). Same principle — find the natural boundary in your data, then split there. But only do this if a single clip isn't working. If you can embed a 30-second audio segment as a single unit and retrieval works, don't over-complicate it.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Sergei</div>
+      <div class="qa-question">Is HyDE a chunking technique?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">No. "HyDE is not a chunking technique — it is a retrieval technique." HyDE (Hypothetical Document Embeddings) works after chunking, during retrieval — it generates a hypothetical answer, embeds it, and uses that embedding to search the vector DB. Chunking happens at data ingestion time. HyDE happens at query time. Two completely different pipeline stages.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Bala</div>
+      <div class="qa-question">If only chunk 3 is retrieved, the LLM doesn't have the context from chunks 1 and 2. How will it give a complete answer?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">The LLM only receives the retrieved chunk because that chunk is what's relevant to the query. If the user query matched chunk 3, it means chunk 3 contains the answer. The whole point of RAG is precision — don't send everything, send only the relevant part. If you need more context (e.g. surrounding sections), that's where retrieval strategies like Parent Document Retriever or Sentence Window Retriever help — they retrieve a small chunk for matching but return a larger parent context to the LLM. This was covered in Class 36.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">Which chunking method is the best one to use?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">"There is no best method — there is no best method, actually. All the things are experimental over here. Chunking of the data is all about the experiments — it's a subjective thing to the data. If I would give you one name and you are happy with that, and tomorrow you are pissed off with that method — that is not a correct thing. If you are getting hallucination after doing the chunking, then you'll have to rework. That's why you are the AI engineer — you are driving everything from research, from POCs, and then you are building it for production."</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">19 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 35 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is the difference between parsing and chunking? When does each happen in the RAG pipeline?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Parsing = extraction of content from a source (pulling text, tables, images out of a PDF, DOCX, etc.). Chunking = division of extracted content into smaller, meaningful units. Parsing comes first — you can't chunk what you haven't extracted. In the RAG pipeline: Data → Parsing → Chunking → Embedding → Vector DB → Retrieval → LLM. Chunking always sits between parsing and embedding. "Parsing means extraction of the data. Chunking means to divide it into the smallest, small part."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Why are chunk_size and chunk_overlap called "hyperparameters"? What's the correct approach to choosing their values?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">They are called hyperparameters because their optimal values cannot be determined theoretically — they must be discovered experimentally for each dataset. There is no universally correct value (not always 300, not always 500). The correct approach: (1) Analyze your data — understand its structure, how long meaningful sections are, whether there are natural boundaries. (2) Set initial values based on that analysis. (3) Evaluate retrieval quality — did the retrieved chunks contain the correct answers to test queries? (4) Adjust and iterate until retrieval meets your quality bar. Chunk size controls maximum content per chunk. Overlap controls how many characters repeat between adjacent chunks to preserve cross-boundary context.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. Explain the RecursiveCharacterTextSplitter separator priority chain and why it's called "recursive."</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">The RCTS tries separators in this priority order: (1) \n\n (paragraph) → (2) \n (line) → (3) . (sentence) → (4) space (word) → (5) "" (character). It first tries to split at double newlines (paragraph boundaries). If the resulting piece is still larger than chunk_size, it recursively tries the next separator — moving finer and finer until the chunk is small enough. It's "recursive" because it applies the same chunking logic recursively at each level of granularity. It tries to keep text at natural boundaries as long as those boundaries produce chunks small enough. Final fallback is character-by-character splitting. This makes it better than a simple fixed-size split because it preserves natural text structure wherever possible.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is semantic chunking and how does the breakpoint_percentile parameter control it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Semantic chunking detects where the topic changes by measuring semantic similarity between adjacent sentences using embeddings. Pipeline: (1) Split into sentences + create windows, (2) Embed with SentenceTransformer, (3) Compute cosine distance between adjacent pairs, (4) Find pairs where distance exceeds a threshold = topic-change boundaries, (5) Group sentences between boundaries into chunks. breakpoint_percentile controls the threshold: 50th percentile = aggressive splitting (many breakpoints, smaller chunks, used when document covers many distinct sub-topics). 75th percentile = balanced (default). 90th percentile = conservative (few breakpoints, larger chunks, used when document stays on one topic). Low semantic distance = same topic → keep in one chunk. High semantic distance = topic changed → start new chunk. Note: LangChain's SemanticChunker class was removed from recent versions; use the custom implementation or AI21 API alternative.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What is content-aware chunking and when would you choose it over RecursiveCharacterTextSplitter?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Content-aware chunking uses custom Python logic that understands the natural structure of the specific document — instead of blindly splitting at character counts. It preserves boundaries like paragraphs, sections, headings, lists, tables. It's "aware" of what the content is. Example: a document with clearly separated paragraphs → split at double newlines first; only split further if a paragraph exceeds max_chars, using sentence boundaries as a secondary split. Choose content-aware over RCTS when: your data has consistent, identifiable structure (e.g. pharma reports always split into section 1, 2, 3); when you need precise boundary control that RCTS doesn't provide; when retrieval quality with RCTS is poor and you know your data structure. Sunny's real project: "We had a pharma report with 30+ pages and multiple sections. We decided to chunk based on section. Not blindly applying any technique — we analyzed the data first."</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 35 · Chunking Techniques for RAG · 26 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

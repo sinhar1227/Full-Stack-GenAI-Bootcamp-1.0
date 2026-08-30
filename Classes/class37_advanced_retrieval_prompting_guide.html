@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0081)file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Class 37 — Advanced Retrieval &amp; Prompting | GenAI Bootcamp</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./class37_advanced_retrieval_prompting_guide_files/css2" rel="stylesheet">
+<title>Class 37 — Advanced Retrieval & Prompting | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:          #07090f;
@@ -158,37 +158,37 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
 </head>
 <body>
 
-<div id="progress-bar" style="width: 97.4366%;"></div>
+<div id="progress-bar"></div>
 
 <nav>
   <h2>On This Page</h2>
   <div class="nav-section">Part 1 — Retrieval</div>
   <ul>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#overview" class="">Overview</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#retrieval-map" class="">Full Retrieval Map</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#hyde" class="">HyDE</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#multi-query" class="">Multi-Query Retriever</a></li>
-    <li class="sub"><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#hyde-vs-mq">HyDE vs Multi-Query</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#parent-doc" class="">Parent Document Retriever</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#sentence-window">Sentence Window Retriever</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#rrf-deep" class="">RRF Deep Dive</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#mmr-formula" class="">MMR Formula</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#contextual-compression" class="">Contextual Compression</a></li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#retrieval-map">Full Retrieval Map</a></li>
+    <li><a href="#hyde">HyDE</a></li>
+    <li><a href="#multi-query">Multi-Query Retriever</a></li>
+    <li class="sub"><a href="#hyde-vs-mq">HyDE vs Multi-Query</a></li>
+    <li><a href="#parent-doc">Parent Document Retriever</a></li>
+    <li><a href="#sentence-window">Sentence Window Retriever</a></li>
+    <li><a href="#rrf-deep">RRF Deep Dive</a></li>
+    <li><a href="#mmr-formula">MMR Formula</a></li>
+    <li><a href="#contextual-compression">Contextual Compression</a></li>
   </ul>
   <div class="nav-section">Part 2 — Prompting</div>
   <ul>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#prompt-intro" class="">Prompting Chapter</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#prompt-anatomy" class="">Prompt Anatomy</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#shot-techniques" class="">Zero/One/Few Shot</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#cot" class="">Chain of Thought</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#jinja-prompting" class="">Jinja Conditional Prompting</a></li>
-    <li class="sub"><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#jinja-code">Jinja Code</a></li>
-    <li class="sub"><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#chat-prompt-jinja">ChatPromptTemplate + Jinja</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#prompt-management" class="">Prompt Management</a></li>
-    <li class="sub"><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#json-prompts">JSON File Storage</a></li>
-    <li class="sub"><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#langsmith-hub">LangSmith Hub</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#project-preview" class="">Project Preview</a></li>
-    <li><a href="file:///C:/Users/SinhaR/Downloads/class37_advanced_retrieval_prompting_guide.html#quiz" class="active">Self-Check Quiz</a></li>
+    <li><a href="#prompt-intro">Prompting Chapter</a></li>
+    <li><a href="#prompt-anatomy">Prompt Anatomy</a></li>
+    <li><a href="#shot-techniques">Zero/One/Few Shot</a></li>
+    <li><a href="#cot">Chain of Thought</a></li>
+    <li><a href="#jinja-prompting">Jinja Conditional Prompting</a></li>
+    <li class="sub"><a href="#jinja-code">Jinja Code</a></li>
+    <li class="sub"><a href="#chat-prompt-jinja">ChatPromptTemplate + Jinja</a></li>
+    <li><a href="#prompt-management">Prompt Management</a></li>
+    <li class="sub"><a href="#json-prompts">JSON File Storage</a></li>
+    <li class="sub"><a href="#langsmith-hub">LangSmith Hub</a></li>
+    <li><a href="#project-preview">Project Preview</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
   </ul>
 </nav>
 
@@ -198,7 +198,7 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
   <div class="hero">
     <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 37</span></div>
     <div class="hero-class-num">Class 37 · 08 August 2026</div>
-    <h1>Advanced Retrieval<br><em>&amp; Prompting</em></h1>
+    <h1>Advanced Retrieval<br><em>& Prompting</em></h1>
     <div class="hero-meta">
       <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> HyDE · Multi-Query · Parent Doc</div>
       <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> MMR Formula Deep Dive</div>
@@ -287,26 +287,26 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
     <p><strong>HyDE</strong> is a query transformation technique. Instead of embedding the raw user query and searching, HyDE first asks the LLM to generate a hypothetical answer to the question, then embeds that hypothetical answer and uses it to search the vector database.</p>
 
     <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:24px; margin:16px 0;">
-      <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:16px;">HyDE — Step by Step</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:16px;">HyDE — Step by Step</div>
       <div style="display:flex; flex-direction:column; gap:10px; font-size:0.84rem;">
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">1</span>
+          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">1</span>
           <div style="color:#94a3b8;">User asks: <em style="color:var(--text);">"How does Llama 2 improve safety?"</em></div>
         </div>
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">2</span>
+          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">2</span>
           <div style="color:#94a3b8;">Pass query to LLM → LLM generates a <strong style="color:var(--accent4);">hypothetical answer</strong> (not the final answer — a placeholder that looks like what a real document might say)</div>
         </div>
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">3</span>
+          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">3</span>
           <div style="color:#94a3b8;"><strong style="color:var(--text);">Embed the hypothetical answer</strong> (not the original query) into a dense vector</div>
         </div>
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">4</span>
+          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">4</span>
           <div style="color:#94a3b8;">Use that hypothetical answer embedding to search the vector database → retrieve real matching documents</div>
         </div>
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">5</span>
+          <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">5</span>
           <div style="color:#94a3b8;">Pass retrieved real documents + original question to LLM → final answer</div>
         </div>
       </div>
@@ -331,10 +331,10 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
 
     <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
       <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px;">
-        <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Multi-Query Example</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Multi-Query Example</div>
         <div style="font-size:0.82rem; color:#94a3b8; margin-bottom:10px;"><strong style="color:var(--text);">Original query:</strong> "How does Llama 2 improve safety?"</div>
         <div style="font-size:0.82rem; color:#94a3b8; margin-bottom:8px;"><strong style="color:var(--accent4);">LLM generates multiple versions:</strong></div>
-        <div style="padding-left:16px; font-size:0.8rem; color:#94a3b8; line-height:2.2; font-family:&#39;IBM Plex Mono&#39;,monospace;">
+        <div style="padding-left:16px; font-size:0.8rem; color:#94a3b8; line-height:2.2; font-family:'IBM Plex Mono',monospace;">
           → "What safety measures are implemented in Llama 2?"<br>
           → "How was Llama 2 trained to reduce harmful outputs?"<br>
           → "What RLHF techniques did Meta use for Llama 2 safety alignment?"<br>
@@ -376,7 +376,7 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
   <!-- PARENT DOC + SENTENCE WINDOW -->
   <section id="parent-doc">
     <div class="section-eyebrow" style="color:var(--accent);">05 — Retrieval Mechanisms</div>
-    <h2>Parent Document &amp; Sentence Window Retrievers</h2>
+    <h2>Parent Document & Sentence Window Retrievers</h2>
 
     <div class="technique-grid">
       <div class="tech-card" style="border-top-color:var(--accent);">
@@ -418,10 +418,10 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
     </div>
 
     <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem; color:#94a3b8;">
-      <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">RRF Worked Example</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">RRF Worked Example</div>
       <div style="margin-bottom:10px;">BM25 ranking: <span style="color:var(--accent2);">Doc A</span> (#1), Doc B (#2), Doc C (#3)</div>
       <div style="margin-bottom:14px;">Dense ranking: <span style="color:var(--accent2);">Doc E</span> (#1), Doc C (#2), <span style="color:var(--accent2);">Doc A</span> (#3)</div>
-      <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.78rem; line-height:2.4;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem; line-height:2.4;">
         RRF(Doc A) = 1/(60+1) + 1/(60+3) = 0.0164 + 0.0159 = <span style="color:var(--accent6);">0.0323</span><br>
         RRF(Doc C) = 1/(60+3) + 1/(60+2) = 0.0159 + 0.0161 = <span style="color:var(--accent4);">0.0320</span><br>
         RRF(Doc E) = 1/(60+1) = <span style="color:var(--muted);">0.0164</span> (only in one list)<br>
@@ -451,11 +451,11 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
     </div>
 
     <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.82rem; color:#94a3b8;">
-      <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">MMR Worked Example (Sunny's Blackboard — λ=0.5, k=2, fetchK=5)</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">MMR Worked Example (Sunny's Blackboard — λ=0.5, k=2, fetchK=5)</div>
       <div style="margin-bottom:8px;">Candidates (fetch_k=5): Doc A(0.95), Doc B(0.90), Doc C(0.85), Doc D(0.80), Doc E(0.72)</div>
       <div style="margin-bottom:12px;"><strong style="color:#fff;">Step 1:</strong> Select Doc A (highest relevance, no prior selected). S = {Doc A}</div>
       <div style="margin-bottom:8px;"><strong style="color:#fff;">Step 2:</strong> Compute MMR for remaining — with similarity to Doc A already factored in:</div>
-      <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
         sim(B, DocA) = 0.88 → MMR(B) = 0.5×0.90 − 0.5×0.88 = <span style="color:var(--muted);">0.01</span><br>
         sim(C, DocA) = 0.70 → MMR(C) = 0.5×0.85 − 0.5×0.70 = <span style="color:var(--muted);">0.075</span><br>
         sim(E, DocA) = 0.40 → MMR(E) = 0.5×0.72 − 0.5×0.40 = <span style="color:var(--accent6); font-weight:600;">0.16</span> ← winner
@@ -508,7 +508,7 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
       "Prompting is a very easy chapter. But how we are going to manage the prompt — that is an important one. How I approach prompts in terms of managing them in real time — I will discuss all those things. Prompt versioning, prompt management — that is important. In whatever way I have managed the prompt in real time, I will discuss all those things."
     </div>
 
-    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.76rem; line-height:2.2;">
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
       <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Prompting Chapter Topics (Class 37 + Coming)</div>
       <div style="color:var(--accent3);">✓ Covered today:</div>
       <div style="padding-left:20px; color:#94a3b8;">Prompt anatomy · Zero/One/Few-shot · CoT · Jinja templating · Prompt management</div>
@@ -564,19 +564,19 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
           <td class="ptype">Zero-Shot</td>
           <td>Give the LLM only the task instruction — no examples. Trust the model's training.</td>
           <td>Simple, well-understood tasks where the LLM already knows the format</td>
-          <td style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.74rem;">"Classify this email as spam or not spam."</td>
+          <td style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem;">"Classify this email as spam or not spam."</td>
         </tr>
         <tr>
           <td class="ptype">One-Shot</td>
           <td>Give the LLM one example of input and expected output before the real task.</td>
           <td>When the output format is non-standard and one example clarifies it</td>
-          <td style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.74rem;">"Email: 'Win $1000!' → spam<br>Email: '{email}' → ?"</td>
+          <td style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem;">"Email: 'Win $1000!' → spam<br>Email: '{email}' → ?"</td>
         </tr>
         <tr>
           <td class="ptype">Few-Shot</td>
           <td>Give 3–5+ examples before the real task. The model learns from the pattern.</td>
           <td>Complex tasks, specialised output formats, domain-specific reasoning</td>
-          <td style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.74rem;">3–5 input/output pairs, then the real input</td>
+          <td style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem;">3–5 input/output pairs, then the real input</td>
         </tr>
       </tbody>
     </table>
@@ -592,12 +592,12 @@ footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
       <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px;">
         <h4 style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;">Standard prompt</h4>
-        <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.76rem; color:#94a3b8;">"Is this drug interaction dangerous? Answer: Yes/No"</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.76rem; color:#94a3b8;">"Is this drug interaction dangerous? Answer: Yes/No"</div>
         <div style="font-size:0.74rem; color:var(--muted); margin-top:8px;">LLM guesses. No reasoning trail. Harder to debug errors.</div>
       </div>
       <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:16px;">
         <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">Chain of Thought prompt</h4>
-        <div style="font-family:&#39;IBM Plex Mono&#39;,monospace; font-size:0.76rem; color:#94a3b8;">"Is this drug interaction dangerous? Let's think step by step."</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.76rem; color:#94a3b8;">"Is this drug interaction dangerous? Let's think step by step."</div>
         <div style="font-size:0.74rem; color:var(--accent2); margin-top:8px;">LLM reasons: mechanism → risk level → conclusion. Auditable. More accurate.</div>
       </div>
     </div>
@@ -911,7 +911,7 @@ multimodal_rag_project/
 </main>
 
 <footer>
-  <span>Class 37 · Advanced Retrieval &amp; Prompting · 08 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <span>Class 37 · Advanced Retrieval & Prompting · 08 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
   <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
 </footer>
 
@@ -934,6 +934,5 @@ multimodal_rag_project/
   }, { threshold: 0.2 });
   sections.forEach(s => obs.observe(s));
 </script>
-
-
-</body></html>
+</body>
+</html>
