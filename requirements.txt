@@ -37,3 +37,6 @@ langchain_chroma
 pinecone
 langchain_pinecone
 langchain_qdrant
+langgraph-checkpoint-postgres 
+"psycopg[binary,pool]"
+pydantic
