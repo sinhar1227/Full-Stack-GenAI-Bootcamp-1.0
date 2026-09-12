@@ -1,0 +1,16 @@
+[
+    {"id": "fc_e5e06a46-9526-4752-9de6-724528d06c91", "function": {"arguments": {
+                "a": 25,
+                "b": 15
+            }, "name": "add"
+        }, "type": "function"
+    }
+]
+}, response_metadata={"token_usage": {"completion_tokens": 145, "prompt_tokens": 315, "total_tokens": 460, "completion_time": 0.169148408, "completion_tokens_details": {"reasoning_tokens": 119
+    }, "prompt_time": 0.015302164, "prompt_tokens_details": None, "queue_time": 0.27621465, "total_time": 0.184450572
+}, "model_name": "openai/gpt-oss-20b", "system_fingerprint": "fp_8d13edce1d", "service_tier": "on_demand", "finish_reason": "tool_calls", "logprobs": None, "model_provider": "groq"
+}, id="lc_run--01a06299-5365-71a1-a2db-c4f7adec234c-0", tool_calls=[
+{"name": "add", "args": {"a": 25, "b": 15
+    }, "id": "fc_e5e06a46-9526-4752-9de6-724528d06c91", "type": "tool_call"
+}
+]
