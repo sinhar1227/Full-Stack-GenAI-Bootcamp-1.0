@@ -109,3 +109,12 @@ ALL OFFLINE TESTS PASSED
 - Long-term memory is persistent because it is stored in SQLite.
 - Short-term and semantic memory are in-process demo stores.
 - In production, replace these demo stores with Redis/Postgres/pgvector/Qdrant/Pinecone/etc.
+
+| Component                        | Kya store hota hai                          | DB options                                                                         |
+| -------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Short-term memory**            | Recent chat/session messages                | **Redis**, PostgreSQL, DynamoDB, MongoDB                                           |
+| **Long-term memory**             | User facts, preferences, profile, decisions | **PostgreSQL**, MongoDB, DynamoDB, MySQL, SQLite                                   |
+| **Semantic memory**              | Previous interactions + embeddings          | **pgvector**, Qdrant, Pinecone, Weaviate, Milvus, Chroma, OpenSearch               |
+| **RAG knowledge base**           | Document chunks + embeddings                | **pgvector**, Qdrant, Pinecone, Weaviate, Milvus, OpenSearch, Elasticsearch, FAISS |
+| **Conversation history / audit** | Full chat logs                              | PostgreSQL, MongoDB, DynamoDB, S3                                                  |
+| **Metadata**                     | document_id, user_id, source, timestamps    | PostgreSQL, MongoDB, DynamoDB                                                      |
