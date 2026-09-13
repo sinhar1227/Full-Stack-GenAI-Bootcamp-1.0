@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 44 — Memory Management | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #818cf8;   /* indigo — memory */
+  --accent2:     #22d3ee;   /* cyan — checkpointer */
+  --accent3:     #4ade80;   /* green — short-term */
+  --accent4:     #f472b6;   /* pink — long-term */
+  --accent5:     #fb923c;   /* orange — sliding window */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(129,140,248,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(129,140,248,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(129,140,248,0.05); border: 1px solid rgba(129,140,248,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 44):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.violet { background: rgba(129,140,248,0.07); border: 1px solid rgba(129,140,248,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.violet p { color: #a5b4fc; }
+.callout.pink p   { color: #f9a8d4; }
+
+/* ── MEMORY TYPE VISUAL ── */
+.mem-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.mem-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; border-top: 3px solid; }
+.mem-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+.mem-card ul { list-style: none; font-size: 0.81rem; color: #94a3b8; line-height: 2.1; }
+
+/* ── SLIDING WINDOW VISUAL ── */
+.sliding-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 22px; margin: 16px 0; }
+.sv-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+.sv-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.sv-msg { padding: 5px 10px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; border: 1px solid; }
+.sv-bracket { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--accent5); margin: 0 4px; }
+
+/* ── SUMMARY VISUAL ── */
+.summary-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 22px; margin: 16px 0; }
+.sv2-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+.sv2-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 0.82rem; }
+.sv2-tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; padding: 3px 8px; border-radius: 3px; flex-shrink: 0; margin-top: 2px; min-width: 90px; text-align: center; }
+.sv2-text { color: #94a3b8; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(129,140,248,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(129,140,248,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .mem-compare { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#what-is-memory">What Is Memory?</a></li>
+    <li><a href="#why-memory">Why We Need Memory</a></li>
+    <li><a href="#short-vs-long">Short-Term vs Long-Term</a></li>
+    <li><a href="#legacy-classes">Legacy LangChain Classes</a></li>
+    <li><a href="#buffer-memory">Buffer Memory (Concept)</a></li>
+    <li><a href="#sliding-window">Sliding Window Memory</a></li>
+    <li class="sub"><a href="#sw-concept">Concept & Worked Example</a></li>
+    <li class="sub"><a href="#sw-code">Code</a></li>
+    <li><a href="#summary-memory">Summary + Recent Memory</a></li>
+    <li class="sub"><a href="#sm-concept">Concept & Blackboard</a></li>
+    <li class="sub"><a href="#sm-code">Code</a></li>
+    <li class="sub"><a href="#sm-create-summary">create_summary() Logic</a></li>
+    <li><a href="#compress-memory">compress_memory() Method</a></li>
+    <li><a href="#llm-stateless">LLM Statelessness</a></li>
+    <li><a href="#which-strategy">Which Strategy When?</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 44</span></div>
+    <div class="hero-class-num">Class 44 · 6 September 2026</div>
+    <h1>Memory<br><em>Management</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Definitions & Why Memory</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Short-Term vs Long-Term</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Sliding Window Memory</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Summary + Recent Memory</div>
+    </div>
+    <p class="hero-summary">
+      A ground-up re-teaching of memory management in AI applications. Starts from first principles (what is memory, why LLMs are stateless), covers the legacy LangChain memory classes, then builds two practical custom Python implementations from scratch: Sliding Window Memory (pass last N messages) and Summary + Recent Memory (LLM-generated summary of old messages + last N live messages). File: <code>memorymanagement.ipynb</code>.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Two definitions of memory — mechanism for retaining conversation history; ability to store, retrieve, and reuse prior interaction</li>
+      <li><span class="chk">✓</span> LLM is inherently stateless — without explicit memory, each API call has no knowledge of prior messages</li>
+      <li><span class="chk">✓</span> ChatGPT (application) vs GPT (model) — application layers manage memory; raw API does not</li>
+      <li><span class="chk">✓</span> 6 reasons to use memory management: continuity, follow-up questions, personalisation, long-running agents, avoid repeated answers, token cost control</li>
+      <li><span class="chk">✓</span> Short-term memory (within session/thread) vs Long-term memory (across sessions/threads)</li>
+      <li><span class="chk">✓</span> Legacy LangChain memory classes: ConversationBufferMemory, ConversationWindowMemory, ConversationTokenBufferMemory, ConversationSummaryMemory, ConversationSummaryBufferMemory, ConversationEntityMemory</li>
+      <li><span class="chk">✓</span> These are deprecated in recent LangChain/LangGraph — understand the concept; implement custom logic</li>
+      <li><span class="chk">✓</span> Method 1 — Buffer Memory: pass the entire conversation history on every call</li>
+      <li><span class="chk">✓</span> Problem with buffer memory: context window explosion, rising cost and latency</li>
+      <li><span class="chk">✓</span> Method 2 — Sliding Window Memory: store full history; pass only last N messages to LLM</li>
+      <li><span class="chk">✓</span> Sliding window worked example (Python slicing: memory[-6:]) with live demo</li>
+      <li><span class="chk">✓</span> Problem with pure sliding window: old messages are dropped; LLM forgets early context</li>
+      <li><span class="chk">✓</span> Method 3 — Summary + Recent Memory: LLM generates a rolling summary of old messages; pass summary + last N messages on each call</li>
+      <li><span class="chk">✓</span> compress_memory(): triggers summarisation when conversation exceeds max_recent_messages threshold</li>
+      <li><span class="chk">✓</span> create_summary(): builds cumulative summary using previous summary + old messages via LLM</li>
+      <li><span class="chk">✓</span> max_recent_messages is a hyperparameter — chosen by analysing user behaviour and conversation patterns</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>Notebook:</strong> <code>memory_management/memorymanagement.ipynb</code> in the bootcamp GitHub repo. Sunny built all code live from scratch, then pushed to GitHub partway through the session. Uses Groq (free) or any LangChain-compatible LLM.</p>
+    </div>
+  </section>
+
+  <!-- WHAT IS MEMORY -->
+  <section id="what-is-memory">
+    <div class="section-eyebrow">02 — Definitions</div>
+    <h2>What Is Memory?</h2>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(129,140,248,0.3); border-radius:8px; padding:18px; border-left:4px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Definition 1</div>
+        <p style="font-size:0.9rem; color:#fff; margin:0;">"Memory is a <strong>mechanism</strong> that allows AI applications to retain and reuse information from previous interactions."</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(129,140,248,0.3); border-radius:8px; padding:18px; border-left:4px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Definition 2</div>
+        <p style="font-size:0.9rem; color:#fff; margin:0;">"Memory in AI is the <strong>ability</strong> of an application to store, retrieve, and reuse information from previous interactions, so the system can maintain context and provide more consistent, personalised responses."</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Memory is nothing, basically. It is just a conversation history. So, the LLM is looking into that conversation history, and based on that only it is going to reply. LLM is usually stateless by itself. If the previous context is not provided with each new call, the model does not remember the earlier conversation."
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">🖥️</span>
+      <p><strong>Application vs Model:</strong> ChatGPT (the application, owned by OpenAI) manages memory for you — it stores conversation history and feeds it back to the GPT model on each turn. GPT itself (the raw model) is stateless. Similarly, Claude.ai (Anthropic's application) manages memory; the Claude model itself has no inherent memory. When you call the API directly, you are responsible for managing conversation history. This distinction matters for building your own Agentic applications.</p>
+    </div>
+  </section>
+
+  <!-- WHY MEMORY -->
+  <section id="why-memory">
+    <div class="section-eyebrow">03 — Motivation</div>
+    <h2>Why We Need Memory Management</h2>
+
+    <div style="display:flex; flex-direction:column; gap:8px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">1.</span>
+        <span><strong style="color:#fff;">Maintain conversation continuity</strong> — follow-up questions reference prior context ("what did I just say?").</span>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">2.</span>
+        <span><strong style="color:#fff;">Handle follow-up questions</strong> — "compare it with what I mentioned earlier" requires memory of earlier turns.</span>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">3.</span>
+        <span><strong style="color:#fff;">Personalise responses</strong> — remember user preferences and past facts about the user across the conversation.</span>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">4.</span>
+        <span><strong style="color:#fff;">Support long-running Agentic workflows</strong> — agents need to know what they have already done across multiple steps.</span>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">5.</span>
+        <span><strong style="color:#fff;">Avoid repeated questions</strong> — don't re-generate the same answer on repeated asks; retrieve from memory instead.</span>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:7px; padding:12px 16px; display:flex; gap:10px; font-size:0.875rem; color:#94a3b8;">
+        <span style="color:var(--accent); flex-shrink:0; font-weight:700;">6.</span>
+        <span><strong style="color:#fff;">Reduce token cost</strong> — controlled context = fewer tokens per call = lower API cost and lower latency.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHORT vs LONG TERM -->
+  <section id="short-vs-long">
+    <div class="section-eyebrow">04 — Two Types</div>
+    <h2>Short-Term vs Long-Term Memory</h2>
+
+    <div class="mem-compare">
+      <div class="mem-card" style="border-top-color:var(--accent3);">
+        <h4 style="color:var(--accent3);">Short-Term Memory</h4>
+        <ul>
+          <li>→ Recent messages in the current session</li>
+          <li>→ Within a single conversation thread</li>
+          <li>→ Lost when the session ends (unless persisted)</li>
+          <li>→ LangGraph: Checkpointer (within one thread)</li>
+          <li>→ Purpose: continuity within one chat</li>
+        </ul>
+      </div>
+      <div class="mem-card" style="border-top-color:var(--accent4);">
+        <h4 style="color:var(--accent4);">Long-Term Memory</h4>
+        <ul>
+          <li>→ Information retained across multiple conversations</li>
+          <li>→ Across different sessions and threads</li>
+          <li>→ User preferences, past facts, past interactions</li>
+          <li>→ LangGraph: Store (cross-thread, per-user)</li>
+          <li>→ Purpose: personalisation over time</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">📌</span>
+      <p><strong>Key note:</strong> If you don't persist messages anywhere — whether short-term or long-term — they will be lost when the session ends. The distinction is: short-term uses a checkpointer (saves within one thread); long-term uses a store (saves across threads, keyed by user ID). Both are covered in depth in Class 45.</p>
+    </div>
+  </section>
+
+  <!-- LEGACY CLASSES -->
+  <section id="legacy-classes">
+    <div class="section-eyebrow">05 — Legacy Reference</div>
+    <h2>Legacy LangChain Memory Classes</h2>
+
+    <p>These classes were available in earlier versions of LangChain. They are largely deprecated in recent versions of LangChain/LangGraph. Understanding the concept behind each is more valuable than memorising the API.</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.4; color:#94a3b8;">
+      <div style="font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">from langchain.memory import …</div>
+      <div><span style="color:var(--accent);">ConversationBufferMemory</span>          <span style="color:var(--muted);">← stores full conversation history, passes all of it to LLM</span></div>
+      <div><span style="color:var(--accent);">ConversationWindowMemory</span>           <span style="color:var(--muted);">← keeps last K turns only (sliding window)</span></div>
+      <div><span style="color:var(--accent);">ConversationTokenBufferMemory</span>      <span style="color:var(--muted);">← limits by token count, not turn count</span></div>
+      <div><span style="color:var(--accent);">ConversationSummaryMemory</span>          <span style="color:var(--muted);">← LLM generates running summary; passes summary to LLM</span></div>
+      <div><span style="color:var(--accent);">ConversationSummaryBufferMemory</span>    <span style="color:var(--muted);">← summary of old + recent buffer (best of both)</span></div>
+      <div><span style="color:var(--accent);">ConversationEntityMemory</span>           <span style="color:var(--muted);">← extracts and stores named entities across conversation</span></div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Status in today's LangGraph:</strong> "In the earlier version, these classes were there. In the recent version, basically, you will not be able to find them. Instead, in LangGraph, we have the checkpointer and the store. So we'll understand the concept behind these particular classes, and implement them as custom code — that skill transfers everywhere." Sunny demonstrated YouTube videos exist on these legacy classes if you want to explore further.</p>
+    </div>
+  </section>
+
+  <!-- BUFFER MEMORY -->
+  <section id="buffer-memory">
+    <div class="section-eyebrow">06 — Strategy 1</div>
+    <h2>Buffer Memory — Full History (and Its Problem)</h2>
+
+    <p>The simplest approach: store every message in a list and pass the entire list to the LLM on every call. This works for short conversations but quickly becomes expensive and slow.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · buffer memory (naive)</span>
+      <pre><span class="cm"># Naive buffer memory — pass EVERYTHING to the LLM every turn</span>
+<span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+memory = []   <span class="cm"># global list — accumulates ALL messages</span>
+
+<span class="kw">def</span> <span class="fn">chat</span>(user_input: str) -> str:
+    <span class="cm"># Add user message to history</span>
+    memory.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input})
+    <span class="cm"># Pass ENTIRE memory to LLM on every call</span>
+    response = llm.<span class="fn">invoke</span>(memory)
+    ai_reply = response.content
+    <span class="cm"># Add AI response to history</span>
+    memory.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: ai_reply})
+    <span class="kw">return</span> ai_reply
+
+<span class="cm"># ❌ Problem: after 100 messages, every call sends 100 messages to the LLM.
+# → Context window overflows
+# → API cost grows linearly with conversation length
+# → Latency increases
+# → LLM may hallucinate on very long contexts ("lost in the middle" problem)</span></pre>
+    </div>
+  </section>
+
+  <!-- SLIDING WINDOW -->
+  <section id="sliding-window">
+    <div class="section-eyebrow">07 — Strategy 2</div>
+    <h2>Sliding Window Memory</h2>
+
+    <h3 id="sw-concept">Concept & Worked Example</h3>
+    <p>Store the full conversation history, but only pass the last N messages to the LLM on each call. Older messages are kept in the list (for your records / future archiving) but not sent to the LLM.</p>
+
+    <div class="sunny-says">
+      "Sliding window memory means we still store the complete conversation. But we are just going to be pass the recent message to the LLM. The stored history can be larger, but the active LLM context should be controlled. If the conversation is going to be very, very long, then ChatGPT might not remember what I asked in the first question — that's because they are just giving some last conversation to the model. That is called the sliding window memory."
+    </div>
+
+    <div class="sliding-visual">
+      <div class="sv-label">Sliding Window — memory size=10, max_recent=6</div>
+
+      <div class="sv-row">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--muted); min-width:120px;">Full history:</span>
+        <div class="sv-msg" style="background:rgba(100,116,139,0.1); border-color:rgba(100,116,139,0.3); color:var(--muted);">M1</div>
+        <div class="sv-msg" style="background:rgba(100,116,139,0.1); border-color:rgba(100,116,139,0.3); color:var(--muted);">M2</div>
+        <div class="sv-msg" style="background:rgba(100,116,139,0.1); border-color:rgba(100,116,139,0.3); color:var(--muted);">M3</div>
+        <div class="sv-msg" style="background:rgba(100,116,139,0.1); border-color:rgba(100,116,139,0.3); color:var(--muted);">M4</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M5</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M6</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M7</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M8</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M9</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.4); color:var(--accent5);">M10</div>
+      </div>
+
+      <div class="sv-row">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--muted); min-width:120px;">Sent to LLM:</span>
+        <span style="font-size:0.76rem; color:var(--muted); font-style:italic;">M1–M4 dropped</span>
+        <span class="sv-bracket">→</span>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M5</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M6</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M7</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M8</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M9</div>
+        <div class="sv-msg" style="background:rgba(251,146,60,0.2); border-color:rgba(251,146,60,0.6); color:var(--accent5); font-weight:700;">M10</div>
+      </div>
+
+      <div style="margin-top:12px; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:#94a3b8;">
+        Python slice: <span style="color:var(--accent5);">memory[-6:]</span>  → last 6 messages only → fixed context size
+      </div>
+    </div>
+
+    <h3 id="sw-code">Sliding Window Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · sliding window memory</span>
+      <pre><span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> <span class="cls">HumanMessage</span>, <span class="cls">AIMessage</span>, <span class="cls">SystemMessage</span>
+
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+
+memory = []             <span class="cm"># full conversation history (every message)</span>
+MAX_CONTEXT_MESSAGES = <span class="num">6</span>  <span class="cm"># hyperparameter: number of recent messages to send to LLM</span>
+                         <span class="cm"># Decide this by analysing your users' conversation patterns</span>
+
+<span class="kw">def</span> <span class="fn">chat</span>(user_input: str) -> str:
+    <span class="cm"># 1. Store user message in full history</span>
+    memory.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input})
+
+    <span class="cm"># 2. Build recent context — last N messages only</span>
+    recent_context = memory[-MAX_CONTEXT_MESSAGES:]  <span class="cm"># Python list slicing</span>
+
+    <span class="cm"># 3. Call LLM with RECENT context only, not full history</span>
+    response = llm.<span class="fn">invoke</span>(recent_context)
+    ai_reply  = response.content
+
+    <span class="cm"># 4. Store AI reply in full history</span>
+    memory.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: ai_reply})
+
+    <span class="kw">return</span> ai_reply
+
+<span class="kw">def</span> <span class="fn">run_chat_loop</span>():
+    <span class="fn">print</span>(<span class="str">"Chat started. Type 'exit' or 'quit' to stop."</span>)
+    <span class="kw">while</span> <span class="kw">True</span>:
+        user_input = <span class="fn">input</span>(<span class="str">"You: "</span>).<span class="fn">strip</span>()
+        <span class="kw">if</span> user_input.<span class="fn">lower</span>() <span class="kw">in</span> [<span class="str">"exit"</span>, <span class="str">"quit"</span>]:
+            <span class="fn">print</span>(<span class="str">"Ending chat."</span>)
+            <span class="kw">break</span>
+        <span class="kw">if not</span> user_input:
+            <span class="kw">continue</span>
+        response = <span class="fn">chat</span>(user_input)
+        <span class="fn">print</span>(f<span class="str">f"AI: {response}"</span>)
+        <span class="fn">print</span>(f<span class="str">f"[Full stored messages: {len(memory)}]"</span>)
+        <span class="fn">print</span>(f<span class="str">f"[Messages sent to LLM this turn: {len(memory[-MAX_CONTEXT_MESSAGES:])}]"</span>)
+
+<span class="fn">run_chat_loop</span>()
+
+<span class="cm"># ── Sunny's live demo observations ───────────────────────────────
+# After 14 total messages (full history), still only 6 sent to LLM.
+# When asked "do you remember my name?" after name was mentioned in
+# message 1–2 (now outside the window), LLM could not recall it.
+# → Demonstrates loss of early context — the trade-off of this approach.</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Sliding window trade-off:</strong> If the user asks about something mentioned only in an early message that has fallen outside the window, the LLM will not remember it. If M1 and M6 discuss completely different topics, dropping M1 loses that context entirely. This is the limitation that motivates the next strategy: Summary + Recent Memory.</p>
+    </div>
+  </section>
+
+  <!-- SUMMARY MEMORY -->
+  <section id="summary-memory">
+    <div class="section-eyebrow">08 — Strategy 3 (Best)</div>
+    <h2>Summary + Recent Memory</h2>
+
+    <h3 id="sm-concept">Concept & Blackboard Diagram</h3>
+
+    <p>The most effective approach. Instead of losing old messages, an LLM-generated rolling summary captures their essence. Every LLM call receives: (1) the running summary of old messages, and (2) the last N messages verbatim.</p>
+
+    <div class="summary-visual">
+      <div class="sv2-label">Summary + Recent Memory — Full History=10, max_recent=6</div>
+
+      <div class="sv2-row">
+        <span class="sv2-tag" style="background:rgba(100,116,139,0.15); border:1px solid rgba(100,116,139,0.3); color:var(--muted);">Old messages</span>
+        <span class="sv2-text">Q1, Q2, Q3, Q4 → fed to LLM to generate a <strong style="color:#fff;">running summary</strong></span>
+      </div>
+      <div class="sv2-row">
+        <span class="sv2-tag" style="background:rgba(244,114,182,0.1); border:1px solid rgba(244,114,182,0.3); color:var(--accent4);">Summary</span>
+        <span class="sv2-text">"User is named Sunny, loves Python and AI, working on Agentic project…"</span>
+      </div>
+      <div class="sv2-row">
+        <span class="sv2-tag" style="background:rgba(251,146,60,0.1); border:1px solid rgba(251,146,60,0.3); color:var(--accent5);">Recent msgs</span>
+        <span class="sv2-text">Q5, Q6, Q7, Q8, Q9, Q10 (last 6 verbatim)</span>
+      </div>
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+        <div style="font-size:0.82rem; color:#94a3b8;"><strong style="color:#fff;">Sent to LLM every call:</strong></div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--accent4); margin-top:6px;">[SystemMessage(content=summary)] + [recent_messages[-6:]]</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Summary plus recent messages — so we can keep the summary of all the messages, of the entire history. And we can basically provide some recent messages also. The benefit of this particular strategy: the summary carries the essence of old messages without the full token cost. The recent messages carry the immediate context verbatim. Together they give the LLM both depth and recency."
+    </div>
+
+    <h3 id="sm-code">Summary + Recent Memory — Full Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · summary + recent memory</span>
+      <pre><span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+
+<span class="cm"># ── Global state ──────────────────────────────────────────────────</span>
+summary_memory      = []   <span class="cm"># last N messages (recent context for LLM)</span>
+conversation_summary = <span class="str">""</span>  <span class="cm"># rolling LLM-generated summary of old messages</span>
+full_history        = []   <span class="cm"># complete conversation record (for audit/display)</span>
+MAX_RECENT_MESSAGES = <span class="num">6</span>   <span class="cm"># hyperparameter — analyze user behavior to tune</span>
+
+<span class="cm"># ── Create or update the rolling summary ─────────────────────────</span>
+<span class="kw">def</span> <span class="fn">create_summary</span>(old_summary: str, old_messages: list) -> str:
+    <span class="str">"""
+    Uses the LLM to generate a concise summary of old messages.
+    Builds on the previous summary (cumulative).
+    """</span>
+    <span class="kw">if not</span> old_messages:
+        <span class="kw">return</span> old_summary
+
+    <span class="cm"># Convert old messages list to readable text</span>
+    conversation_text = <span class="str">""</span>
+    <span class="kw">for</span> msg <span class="kw">in</span> old_messages:
+        role    = msg[<span class="str">"role"</span>].<span class="fn">capitalize</span>()
+        content = msg[<span class="str">"content"</span>]
+        conversation_text += f<span class="str">f"{role}: {content}\n"</span>
+
+    <span class="cm"># Build the summarisation prompt</span>
+    summary_prompt = f<span class="str">f"""You are a conversation summariser.
+Previous Summary: {old_summary if old_summary else "No previous summary available."}
+
+New Conversation to Summarise:
+{conversation_text}
+
+Task: Create a concise, updated summary that incorporates both the previous summary 
+and the new conversation. Preserve all important facts, user preferences, and context.
+Keep it under 200 words. Return ONLY the updated summary."""</span>
+
+    response = llm.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: summary_prompt}])
+    <span class="kw">return</span> response.content
+
+<span class="cm"># ── Compress memory when it exceeds the limit ─────────────────────</span>
+<span class="kw">def</span> <span class="fn">compress_memory</span>():
+    <span class="str">"""
+    Called when summary_memory exceeds MAX_RECENT_MESSAGES.
+    Splits into old_messages (to summarise) and recent_messages (to keep verbatim).
+    """</span>
+    <span class="kw">global</span> summary_memory, conversation_summary
+
+    <span class="kw">if</span> <span class="fn">len</span>(summary_memory) <= MAX_RECENT_MESSAGES:
+        <span class="kw">return</span>   <span class="cm"># nothing to compress yet</span>
+
+    <span class="cm"># Separate old messages from recent ones</span>
+    old_messages    = summary_memory[:-MAX_RECENT_MESSAGES]   <span class="cm"># everything before the window</span>
+    recent_messages = summary_memory[-MAX_RECENT_MESSAGES:]   <span class="cm"># last N messages</span>
+
+    <span class="cm"># Summarise old messages using LLM</span>
+    conversation_summary = <span class="fn">create_summary</span>(conversation_summary, old_messages)
+
+    <span class="cm"># Replace summary_memory with only the recent messages</span>
+    summary_memory = recent_messages
+
+<span class="cm"># ── Main chat function ────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">chat</span>(user_input: str) -> str:
+    <span class="str">"""Process user input with Summary + Recent Memory approach."""</span>
+    <span class="kw">global</span> summary_memory, full_history, conversation_summary
+
+    <span class="cm"># 1. Create user message</span>
+    user_message = {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input}
+
+    <span class="cm"># 2. Add to both tracking lists</span>
+    summary_memory.<span class="fn">append</span>(user_message)
+    full_history.<span class="fn">append</span>(user_message)
+
+    <span class="cm"># 3. Build message list for LLM</span>
+    <span class="cm"># System message injects the running summary</span>
+    system_content = f<span class="str">f"""Previous Conversation Summary:
+{conversation_summary if conversation_summary else "No previous summary available."}
+
+You are a helpful assistant. Use the summary above for context about earlier in our conversation."""</span>
+
+    messages_for_llm = [{<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: system_content}] + summary_memory
+
+    <span class="cm"># 4. Get LLM response</span>
+    response = llm.<span class="fn">invoke</span>(messages_for_llm)
+    ai_reply  = response.content
+
+    <span class="cm"># 5. Store AI reply</span>
+    assistant_message = {<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: ai_reply}
+    summary_memory.<span class="fn">append</span>(assistant_message)
+    full_history.<span class="fn">append</span>(assistant_message)
+
+    <span class="cm"># 6. Compress memory if it's grown too large</span>
+    <span class="fn">compress_memory</span>()
+
+    <span class="kw">return</span> ai_reply
+
+<span class="cm"># ── Chat loop ─────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">run_chat_loop</span>():
+    <span class="fn">print</span>(<span class="str">"Chat with Summary Memory. Type 'exit' to quit."</span>)
+    <span class="kw">while</span> <span class="kw">True</span>:
+        user_input = <span class="fn">input</span>(<span class="str">"You: "</span>).<span class="fn">strip</span>()
+        <span class="kw">if</span> user_input.<span class="fn">lower</span>() <span class="kw">in</span> [<span class="str">"exit"</span>, <span class="str">"quit"</span>]:
+            <span class="kw">break</span>
+        <span class="kw">if not</span> user_input:
+            <span class="kw">continue</span>
+        response = <span class="fn">chat</span>(user_input)
+        <span class="fn">print</span>(f<span class="str">f"AI: {response}\n"</span>)
+        <span class="fn">print</span>(f<span class="str">f"[Full history: {len(full_history)} msgs | Recent window: {len(summary_memory)} msgs]"</span>)
+        <span class="fn">print</span>(f<span class="str">f"[Current summary: {conversation_summary[:100]}...]"</span> <span class="kw">if</span> conversation_summary <span class="kw">else</span> <span class="str">"[No summary yet]"</span>)
+
+<span class="fn">run_chat_loop</span>()</pre>
+    </div>
+
+    <h3 id="sm-create-summary">How create_summary() Works — Sunny's Blackboard</h3>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.84rem; color:#94a3b8; line-height:2.2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Summary generation — incremental approach</div>
+      <div style="margin-bottom:8px;"><strong style="color:#fff;">Turn 1–6:</strong> All fit in recent window. No summary needed yet.</div>
+      <div style="margin-bottom:8px;"><strong style="color:#fff;">Turn 7 (exceeds 6):</strong> Q1 becomes "old message". <code style="background:rgba(255,255,255,0.05); padding:2px 6px;">create_summary("", [Q1])</code> → first summary generated.</div>
+      <div style="margin-bottom:8px;"><strong style="color:#fff;">Turn 8:</strong> Q2 becomes "old message". <code style="background:rgba(255,255,255,0.05); padding:2px 6px;">create_summary(prev_summary, [Q2])</code> → summary updated to include Q2.</div>
+      <div><strong style="color:#fff;">Each subsequent turn:</strong> Old summary is passed alongside newly-old messages → LLM generates an enriched cumulative summary. The summary grows in depth but NOT in length (prompt instructs ≤ 200 words).</div>
+    </div>
+  </section>
+
+  <!-- COMPRESS MEMORY -->
+  <section id="compress-memory">
+    <div class="section-eyebrow">09 — Key Method</div>
+    <h2>compress_memory() — When It Fires</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · compress_memory() logic explained</span>
+      <pre><span class="cm"># compress_memory() fires AFTER every chat() call.
+# It only does work when len(summary_memory) > MAX_RECENT_MESSAGES.
+
+# Example walkthrough (MAX_RECENT_MESSAGES = 6):
+
+# After turn 6:  summary_memory has 12 messages (6 user + 6 AI)
+#                len(12) > 6 → compress!
+#                old_messages = summary_memory[:-6]  → first 6 messages
+#                recent_messages = summary_memory[-6:] → last 6 messages
+#                → LLM summarises old_messages
+#                → summary_memory is replaced with recent_messages only
+
+# After turn 7:  summary_memory grows to 8 (6 recent + 2 new)
+#                len(8) > 6 → compress again
+#                Oldest 2 messages get summarised and added to summary
+
+# Key insight:
+# full_history  = ALWAYS grows — every message saved
+# summary_memory = BOUNDED — never exceeds ~2×MAX_RECENT_MESSAGES
+# conversation_summary = updated by LLM each compression cycle
+
+<span class="cm"># Why global variable for conversation_summary?
+# → needs to be accessible across both chat() and compress_memory() calls
+# → "global" keyword makes a Python variable accessible across functions
+# → in production: replace with class state (self.summary) for cleanliness</span></pre>
+    </div>
+  </section>
+
+  <!-- LLM STATELESSNESS -->
+  <section id="llm-stateless">
+    <div class="section-eyebrow">10 — Core Concept</div>
+    <h2>LLM Statelessness — Why This Matters</h2>
+
+    <div class="code-block">
+      <span class="lang-label">text · stateless vs stateful example</span>
+      <pre><span class="cm">── Without memory (stateless) ────────────────────────────────────</span>
+User: My name is Sunny.
+AI:   Nice to meet you, Sunny!
+
+User: What is my name?          ← new API call, no context provided
+AI:   I don't have access to your name. Please tell me.
+
+<span class="cm">── With memory (context provided) ───────────────────────────────</span>
+User: My name is Sunny.
+AI:   Nice to meet you, Sunny!
+
+<span class="cm"># memory now contains both messages above</span>
+User: What is my name?
+AI:   Your name is Sunny!        ← LLM sees prior context and answers correctly
+
+<span class="cm">── Second example ────────────────────────────────────────────────</span>
+User: I am working on Agentic AI.
+AI:   That's exciting!
+
+<span class="cm"># later...</span>
+User: What project am I working on?
+AI:   You mentioned you are working on Agentic AI.  ← memory recalled correctly</span></pre>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">💡</span>
+      <p><strong>max_recent_messages is a hyperparameter.</strong> "This number basically depends on the multiple analysis. As an AI developer, you will have to analyze that particular application, the behavior of the user, how user is asking the question, how many messages user is writing inside a single thread — after analyzing all those parameters only, you are going to decide this particular parameter. As of now, I've just written a random number [6], but it depends on the multiple analysis."</p>
+    </div>
+  </section>
+
+  <!-- WHICH STRATEGY WHEN -->
+  <section id="which-strategy">
+    <div class="section-eyebrow">11 — Decision Guide</div>
+    <h2>Which Memory Strategy for Which Use Case?</h2>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-size:0.84rem; color:#94a3b8; line-height:2.4;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Memory Strategy Selection</div>
+      <div><strong style="color:var(--accent5);">Buffer Memory</strong> — short conversations only (&lt;10 messages), testing, POC. Not for production.</div>
+      <div><strong style="color:var(--accent);">Sliding Window</strong> — conversations where only recent context matters (real-time Q&A, customer support). Risk: old facts forgotten.</div>
+      <div><strong style="color:var(--accent4);">Summary + Recent (recommended)</strong> — long conversations where history matters (personal assistants, coaching bots, long-running Agentic workflows). Best balance of context depth and token cost.</div>
+      <div style="margin-top:8px; color:var(--muted);">Note: All three are custom Python implementations. In LangGraph, the Checkpointer + InMemoryStore pattern (Class 45) provides the same capabilities natively.</div>
+    </div>
+  </section>
+
+  <!-- Q&A -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">12 — Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Kumar</div>
+      <div class="qa-question">If the session ends, do the messages get lost?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — if you are not persisting those messages anywhere, they will be lost. Whether it's short-term memory or long-term memory, if you're not storing to a database, they exist only in Python memory (RAM) for the duration of the process. When the process ends, they are gone. That's why in the next class (Class 45) we discuss LangGraph's checkpointer with SQLite — persisting the conversation to disk so it survives restarts.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Sathish Kumar</div>
+      <div class="qa-question">How do you decide the value of max_context_messages? Is there a formula?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">There is no formula — it is a hyperparameter. "This number completely depends on the user application. As an AI developer, you will have to analyze that particular application, the behavior of the user — how user is asking the question, how many messages user is writing inside a single chat thread. After analyzing all those parameters only, you decide this particular parameter. As of now I've just written 6 as a random value for demonstration."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Bala</div>
+      <div class="qa-question">Should each user message be counted as one "message" in the memory list, or should a full user+AI exchange be one unit?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">In the demo, each individual message (user or AI) is one unit in the list. So one conversation turn = 2 messages (1 user + 1 AI). You can write custom logic to group them as pairs (one conversation turn = one unit) — both approaches are valid depending on how you want to count. The important thing is consistency: pick one convention and apply it everywhere in your code.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">Can we store the conversation history permanently (cold history / archive)?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — you can store as much history as your database capacity allows. Some history can be "recent history" (actively used by the LLM), some can be "cold history" (archived, not passed to the LLM but available for retrieval). You can maintain the conversational history with summary + recent messages for active use, while capturing the entire history in a separate database table for archiving. How much to archive depends on your storage costs and compliance requirements.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">13 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 44 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. Why is an LLM described as "stateless"? How does memory address this?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">An LLM is stateless because each API call is independent — the model has no inherent memory of previous calls. If you call the API twice, the second call knows nothing about the first unless you explicitly include that history in the new request. Memory addresses this by maintaining a conversation history list in your application code. On each new turn you pass the history (all or some of it) alongside the new user message, so the LLM has the context of prior exchanges and can answer follow-up questions, maintain persona, and build on earlier statements.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is the difference between sliding window memory and summary + recent memory? What problem does each solve, and what problem does each introduce?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Sliding window: store full history, pass only last N messages to LLM. Solves: context window overflow and token cost. Introduces: loss of early context — if user mentioned their name in message 1 and you're now at message 20 with window=6, the LLM has forgotten the name. Summary + Recent: LLM generates a running cumulative summary of old messages; pass [summary as system message] + [last N messages] to LLM. Solves: loss of early context (captured in summary). Introduces: extra LLM call cost for summary generation; summary may lose fine-grained details; slightly more complex implementation. Summary + Recent is Sunny's recommended production approach for long conversations.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. When does compress_memory() fire, and what does it do?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">compress_memory() fires after every chat() call. If len(summary_memory) ≤ MAX_RECENT_MESSAGES: nothing happens. If len(summary_memory) > MAX_RECENT_MESSAGES: it splits summary_memory into old_messages (everything except the last N) and recent_messages (last N). It calls create_summary(old_summary, old_messages) to generate an updated LLM summary that incorporates the old messages. Then it replaces summary_memory with just the recent_messages. After compression: summary_memory always contains ≤ MAX_RECENT_MESSAGES messages; full_history always contains everything. The conversation_summary grows richer over time but stays bounded in length (prompt constrains it to ≤ 200 words).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is the role of the global conversation_summary variable, and why did Sunny use the Python global keyword?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">conversation_summary is the LLM-generated rolling summary of all old messages — the "long-term" component of the Summary + Recent Memory strategy. It starts as an empty string and grows incrementally each time compress_memory() fires. The global keyword in Python makes a variable defined at module level accessible and modifiable from inside a function. Without it, assigning to conversation_summary inside compress_memory() would create a new local variable, not update the module-level one. Sunny used global for simplicity in the demo; in production code this would be a class attribute (self.conversation_summary) which is cleaner and avoids the global keyword entirely.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 44 · Memory Management · 6 September 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

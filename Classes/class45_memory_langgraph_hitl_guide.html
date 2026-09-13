@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 45 — Memory in LangGraph + HITL | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #818cf8;   /* indigo — memory/LangGraph */
+  --accent2:     #22d3ee;   /* cyan — checkpointer */
+  --accent3:     #4ade80;   /* green — short-term */
+  --accent4:     #f472b6;   /* pink — long-term store */
+  --accent5:     #fb923c;   /* orange — thread/user-id */
+  --accent6:     #facc15;   /* yellow — HITL */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent6)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(129,140,248,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(129,140,248,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent6) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(129,140,248,0.05); border: 1px solid rgba(129,140,248,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 45):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.violet { background: rgba(129,140,248,0.07); border: 1px solid rgba(129,140,248,0.22); }
+.callout.yellow { background: rgba(250,204,21,0.07);  border: 1px solid rgba(250,204,21,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.violet p { color: #a5b4fc; }
+.callout.yellow p { color: var(--accent6); }
+.callout.pink p   { color: #f9a8d4; }
+
+/* ── THREAD DIAGRAM ── */
+.thread-diagram { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 16px 0; }
+.td-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.td-user { background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.3); border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; }
+.td-user-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--accent5); margin-bottom: 8px; }
+.td-threads { display: flex; gap: 8px; flex-wrap: wrap; }
+.td-thread { background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); border-radius: 5px; padding: 8px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--accent2); }
+.td-summary { margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; line-height:2.0; }
+
+/* ── MEMORY ARCHITECTURE TABLE ── */
+.mem-arch { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
+.mem-arch th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.mem-arch td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.mem-arch tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+/* ── GRAPH VISUAL ── */
+.graph-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.gv-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+.gv-nodes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.gv-node { padding: 8px 14px; border-radius: 6px; border: 1px solid; text-align: center; }
+.gv-arrow { color: var(--muted); }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(129,140,248,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(129,140,248,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#class44-recap">Class 44 Recap</a></li>
+    <li><a href="#memory-in-rag">Memory in RAG Systems</a></li>
+    <li class="sub"><a href="#rag-pipeline">RAG Pipeline Recap</a></li>
+    <li class="sub"><a href="#simple-rag-memory">Simple Memory in RAG</a></li>
+    <li class="sub"><a href="#advanced-rag-memory">Advanced (OOP) RAG Memory</a></li>
+    <li class="sub"><a href="#rag-memory-code">RAGAssistant + ConversationMemory Code</a></li>
+    <li><a href="#langgraph-memory">LangGraph Memory Architecture</a></li>
+    <li class="sub"><a href="#thread-user-id">thread_id & user_id</a></li>
+    <li class="sub"><a href="#checkpointer">Checkpointer (Short-Term)</a></li>
+    <li class="sub"><a href="#store">Store (Long-Term)</a></li>
+    <li class="sub"><a href="#langgraph-graph">Memory Graph Pattern</a></li>
+    <li class="sub"><a href="#langgraph-code">Full Graph Code</a></li>
+    <li><a href="#langmem">LangMem Module</a></li>
+    <li><a href="#sqlite-persistence">SQLite Persistence</a></li>
+    <li><a href="#database-options">Database Options</a></li>
+    <li><a href="#assignment">Memory-Augmented RAG Assignment</a></li>
+    <li><a href="#human-in-loop">Human-in-the-Loop (Preview)</a></li>
+    <li><a href="#next-class">What's Next</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 45</span></div>
+    <div class="hero-class-num">Class 45 · 12 September 2026</div>
+    <h1>Memory in <em>LangGraph</em><br>+ Human-in-the-Loop</h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Memory in RAG Systems</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Checkpointer (Short-Term)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Store (Long-Term)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent6)"></span> Human-in-the-Loop (intro)</div>
+    </div>
+    <p class="hero-summary">
+      Continues Class 44's memory concepts into LangGraph and RAG. Covers: memory in a RAG pipeline (OOP classes: RAGAssistant + ConversationMemory), LangGraph checkpointer for short-term (thread-scoped) memory, InMemoryStore/SQLiteStore for long-term (user-scoped, cross-thread) memory, thread_id and user_id patterns, LangMem module, SQLite persistence, and a preview of Human-in-the-Loop (HITL) using interrupt_before. Includes the Memory-Augmented RAG assignment.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Revision of Class 44 Summary + Recent Memory — blackboard walkthrough of the M1–M16 example table</li>
+      <li><span class="chk">✓</span> Memory in RAG: two approaches — Simple (pass full history) and Advanced (Summary + Recent, OOP design)</li>
+      <li><span class="chk">✓</span> RAGAssistant class: takes model, retriever, max_recent_messages; wraps full RAG pipeline</li>
+      <li><span class="chk">✓</span> ConversationMemory class: handles summary + recent logic independently from RAG logic</li>
+      <li><span class="chk">✓</span> RAG pipeline recap: Data Ingestion → Retrieval → Generation. Memory adds context to Generation step.</li>
+      <li><span class="chk">✓</span> LangGraph thread_id concept: one user_id can have multiple thread_ids (like ChatGPT's "New Chat" button)</li>
+      <li><span class="chk">✓</span> LangGraph Checkpointer: short-term memory within one thread. MemorySaver (in-memory) or SqliteSaver (persistent)</li>
+      <li><span class="chk">✓</span> LangGraph Store: long-term memory across threads, keyed by user_id. InMemoryStore or custom SQLiteLongTermMemory</li>
+      <li><span class="chk">✓</span> Memory graph pattern: START → chatbot node → save_memory node → END; compiled with both checkpointer and store</li>
+      <li><span class="chk">✓</span> LangMem module: createMemoryStorageManager class — provides memory.save, .add, .get, .search methods. Alternative to writing custom classes.</li>
+      <li><span class="chk">✓</span> SQLite persistence for both short-term (checkpoint.db) and long-term (longterm.db) memory</li>
+      <li><span class="chk">✓</span> Database recommendations: short-term → Redis or SQLite; long-term → Postgres or SQLite; semantic → vector DB</li>
+      <li><span class="chk">✓</span> Memory-Augmented RAG Assignment: production-ready system with 4 memory types</li>
+      <li><span class="chk">✓</span> Human-in-the-Loop preview: interrupt_before / interrupt_after in compile() to pause graph for human approval</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>Files in GitHub (class 45/):</strong> <code>memorymanagement.ipynb</code> (updated with RAG memory + LangGraph memory), <code>human_loop.ipynb</code> (HITL preview), and <code>memory_augmented_rag/</code> (assignment folder with full starter code).</p>
+    </div>
+  </section>
+
+  <!-- CLASS 44 RECAP -->
+  <section id="class44-recap">
+    <div class="section-eyebrow">02 — Revision</div>
+    <h2>Class 44 Recap — Summary + Recent Memory</h2>
+
+    <p>Sunny opened Class 45 by walking through the summary memory table on the blackboard one more time, because it was confusing for several students.</p>
+
+    <div style="overflow-x:auto; margin:16px 0;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.82rem; font-family:'IBM Plex Mono',monospace;">
+        <thead>
+          <tr>
+            <th style="background:var(--card); padding:10px 14px; border:1px solid var(--border); color:var(--text); text-align:left;">After turn</th>
+            <th style="background:var(--card); padding:10px 14px; border:1px solid var(--border); color:var(--text); text-align:left;">Full history</th>
+            <th style="background:var(--card); padding:10px 14px; border:1px solid var(--border); color:var(--accent4); text-align:left;">Summarised (old msgs)</th>
+            <th style="background:var(--card); padding:10px 14px; border:1px solid var(--border); color:var(--accent5); text-align:left;">Recent window</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">6</td><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">M1–M12</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent4);">None (< threshold)</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent5);">M1–M12 (all)</td></tr>
+          <tr style="background:rgba(255,255,255,0.02);"><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">7</td><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">M1–M14</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent4);">M1–M2 → summary₁</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent5);">M3–M14</td></tr>
+          <tr><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">8</td><td style="padding:8px 14px; border:1px solid var(--border); color:#94a3b8;">M1–M16</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent4);">M1–M4 → summary₂ (builds on summary₁)</td><td style="padding:8px 14px; border:1px solid var(--border); color:var(--accent5);">M5–M16 (last 12 msgs = 6 pairs)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">💡</span>
+      <p><strong>Key clarification from Sunny:</strong> "Up to 6 messages [the threshold], there will not be any sort of summary because everything is already there inside the recent memory. After 6 messages only, the actual summary is going to be built." The summary threshold is MAX_RECENT_MESSAGES — not a fixed number of characters or a fixed number of turns.</p>
+    </div>
+  </section>
+
+  <!-- MEMORY IN RAG -->
+  <section id="memory-in-rag">
+    <div class="section-eyebrow">03 — Application</div>
+    <h2>Memory in RAG Systems</h2>
+
+    <h3 id="rag-pipeline">RAG Pipeline Recap</h3>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:16px 20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.72rem;">
+      <div style="padding:8px 12px; border-radius:5px; border:1px solid rgba(251,146,60,0.3); background:rgba(251,146,60,0.08); color:var(--accent5);">Data Ingestion</div>
+      <span style="color:var(--muted);">→</span>
+      <div style="padding:8px 12px; border-radius:5px; border:1px solid rgba(34,211,238,0.3); background:rgba(34,211,238,0.08); color:var(--accent2);">Retrieval</div>
+      <span style="color:var(--muted);">→</span>
+      <div style="padding:8px 12px; border-radius:5px; border:1px solid rgba(74,222,128,0.3); background:rgba(74,222,128,0.1); color:var(--accent3); font-weight:700;">Generation ← memory goes here</div>
+    </div>
+
+    <p>Memory is added to the <strong>generation</strong> step. The retrieval step finds relevant documents from the vector DB; the generation step combines those documents with the conversation history to produce a contextually aware answer.</p>
+
+    <h3 id="simple-rag-memory">Approach 1 — Simple Memory in RAG</h3>
+    <p>Pass the full conversation history to the LLM alongside retrieved documents. Works for short sessions; same problem as buffer memory (grows without bound).</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · simple RAG memory</span>
+      <pre><span class="kw">def</span> <span class="fn">generate_answer</span>(query: str, retrieved_docs: list, memory: list) -> str:
+    <span class="str">"""RAG generation with simple (full) memory."""</span>
+    <span class="cm"># Build memory text from full history</span>
+    memory_text = <span class="str">""</span>
+    <span class="kw">for</span> msg <span class="kw">in</span> memory:
+        role    = msg[<span class="str">"role"</span>].<span class="fn">capitalize</span>()
+        content = msg[<span class="str">"content"</span>]
+        memory_text += f<span class="str">f"{role}: {content}\n"</span>
+    <span class="kw">if not</span> memory_text:
+        memory_text = <span class="str">"No previous conversation."</span>
+
+    <span class="cm"># Build document context</span>
+    doc_text = <span class="str">" ".join</span>(retrieved_docs) <span class="kw">if</span> retrieved_docs <span class="kw">else</span> <span class="str">"No relevant documents found."</span>
+
+    <span class="cm"># Prompt: history + retrieved context + current query</span>
+    prompt = f<span class="str">f"""Previous Conversation:
+{memory_text}
+
+Retrieved Context from Knowledge Base:
+{doc_text}
+
+Current Question: {query}
+
+Answer based on both the conversation history and the retrieved context."""</span>
+
+    response = llm.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}])
+    <span class="kw">return</span> response.content</pre>
+    </div>
+
+    <h3 id="advanced-rag-memory">Approach 2 — Advanced RAG Memory (OOP Classes)</h3>
+
+    <div class="sunny-says">
+      "For the memory management only, we have created a specific class. The previous solution, basically, it is based on classes and objects. This is one of the ways for designing a system inside Python — it is called Object-Oriented Programming. RAGAssistant handles the RAG pipeline; ConversationMemory handles the summary + recent memory logic. They are decoupled — you can swap either one independently."
+    </div>
+
+    <h3 id="rag-memory-code">RAGAssistant + ConversationMemory — Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · OOP RAG memory design</span>
+      <pre><span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain_community.embeddings <span class="kw">import</span> <span class="cls">HuggingFaceEmbeddings</span>
+<span class="kw">from</span> langchain_core.documents <span class="kw">import</span> <span class="cls">Document</span>
+
+<span class="cm"># ── ConversationMemory class — decoupled memory handler ────────────</span>
+<span class="kw">class</span> <span class="cls">ConversationMemory</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, model, max_recent_messages: int = <span class="num">6</span>):
+        self.model               = model
+        self.max_recent_messages = max_recent_messages
+        self.memory              = []   <span class="cm"># recent window</span>
+        self.summary             = <span class="str">""</span>  <span class="cm"># rolling summary</span>
+        self.full_history        = []   <span class="cm"># complete record</span>
+
+    <span class="kw">def</span> <span class="fn">add_message</span>(self, role: str, content: str):
+        <span class="kw">"""Append a message to both memory and full history."""</span>
+        msg = {<span class="str">"role"</span>: role, <span class="str">"content"</span>: content}
+        self.memory.<span class="fn">append</span>(msg)
+        self.full_history.<span class="fn">append</span>(msg)
+
+    <span class="kw">def</span> <span class="fn">get_context</span>(self) -> str:
+        <span class="kw">"""Return the summary + recent messages as a formatted string."""</span>
+        context = <span class="str">""</span>
+        <span class="kw">if</span> self.summary:
+            context += f<span class="str">f"[Conversation Summary]: {self.summary}\n\n"</span>
+        <span class="kw">for</span> msg <span class="kw">in</span> self.memory:
+            context += f<span class="str">f"{msg['role'].capitalize()}: {msg['content']}\n"</span>
+        <span class="kw">return</span> context <span class="kw">or</span> <span class="str">"No previous conversation."</span>
+
+    <span class="kw">def</span> <span class="fn">_create_summary</span>(self, old_messages: list) -> str:
+        <span class="kw">if not</span> old_messages:
+            <span class="kw">return</span> self.summary
+        conv_text = <span class="str">"\n"</span>.<span class="fn">join</span>(f<span class="str">f"{m['role']}: {m['content']}"</span> <span class="kw">for</span> m <span class="kw">in</span> old_messages)
+        prompt = f<span class="str">f"""Update the conversation summary.
+Previous Summary: {self.summary or "None."}
+New Conversation: {conv_text}
+Write an updated concise summary (max 200 words). Return ONLY the summary."""</span>
+        response = self.model.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}])
+        <span class="kw">return</span> response.content
+
+    <span class="kw">def</span> <span class="fn">compress</span>(self):
+        <span class="kw">"""Compress if recent window exceeds threshold."""</span>
+        <span class="kw">if</span> <span class="fn">len</span>(self.memory) <= self.max_recent_messages:
+            <span class="kw">return</span>
+        old      = self.memory[:-self.max_recent_messages]
+        self.memory   = self.memory[-self.max_recent_messages:]
+        self.summary  = self._create_summary(old)
+
+<span class="cm"># ── RAGAssistant class — full RAG pipeline with memory ────────────</span>
+<span class="kw">class</span> <span class="cls">RAGAssistant</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, model, retriever, max_recent_messages: int = <span class="num">6</span>):
+        self.model      = model
+        self.retriever  = retriever
+        self.conv_memory = <span class="cls">ConversationMemory</span>(model, max_recent_messages)
+
+    <span class="kw">def</span> <span class="fn">chat</span>(self, user_query: str) -> str:
+        <span class="cm"># 1. Add user message to memory</span>
+        self.conv_memory.<span class="fn">add_message</span>(<span class="str">"user"</span>, user_query)
+
+        <span class="cm"># 2. Rewrite query using conversation context (standalone query)</span>
+        context  = self.conv_memory.<span class="fn">get_context</span>()
+        standalone_prompt = f<span class="str">f"""Given this conversation:
+{context}
+
+Rewrite the latest user question as a standalone question 
+that doesn't need the conversation context to make sense.
+Return ONLY the rewritten question."""</span>
+        standalone = self.model.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: standalone_prompt}]).content
+
+        <span class="cm"># 3. Retrieve relevant documents</span>
+        docs = self.retriever.<span class="fn">invoke</span>(standalone)
+        doc_text = <span class="str">" ".join</span>(d.page_content <span class="kw">for</span> d <span class="kw">in</span> docs) <span class="kw">if</span> docs <span class="kw">else</span> <span class="str">"No relevant documents."</span>
+
+        <span class="cm"># 4. Generate answer using memory + retrieved docs</span>
+        gen_prompt = f<span class="str">f"""Conversation History:
+{context}
+
+Retrieved Knowledge Base Context:
+{doc_text}
+
+Current Question: {user_query}
+Answer using both the conversation history and the retrieved context."""</span>
+        answer = self.model.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: gen_prompt}]).content
+
+        <span class="cm"># 5. Add AI answer to memory and compress if needed</span>
+        self.conv_memory.<span class="fn">add_message</span>(<span class="str">"assistant"</span>, answer)
+        self.conv_memory.<span class="fn">compress</span>()
+
+        <span class="kw">return</span> answer
+
+<span class="cm"># ── Usage ─────────────────────────────────────────────────────────</span>
+llm       = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+embedding = <span class="cls">HuggingFaceEmbeddings</span>(model_name=<span class="str">"all-MiniLM-L6-v2"</span>)
+texts     = [<span class="str">"Employees receive 20 annual leaves..."</span>, <span class="str">"Probation period is 3 months..."</span>]
+vdb       = <span class="cls">FAISS</span>.<span class="fn">from_texts</span>(texts, embedding)
+retriever = vdb.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">3</span>})
+
+assistant = <span class="cls">RAGAssistant</span>(llm, retriever, max_recent_messages=<span class="num">6</span>)
+<span class="fn">print</span>(assistant.<span class="fn">chat</span>(<span class="str">"How many annual leaves do employees receive?"</span>))
+<span class="fn">print</span>(assistant.<span class="fn">chat</span>(<span class="str">"And what are the carry-forward rules?"</span>))  <span class="cm"># uses memory</span>
+<span class="fn">print</span>(assistant.<span class="fn">chat</span>(<span class="str">"After completing probation, what benefits become available?"</span>))</pre>
+    </div>
+  </section>
+
+  <!-- LANGGRAPH MEMORY ARCHITECTURE -->
+  <section id="langgraph-memory">
+    <div class="section-eyebrow">04 — LangGraph Native</div>
+    <h2>LangGraph Memory Architecture</h2>
+
+    <h3 id="thread-user-id">thread_id and user_id — The ChatGPT Analogy</h3>
+
+    <div class="sunny-says">
+      "Let's suppose I have logged into ChatGPT with my user ID — let's say Sunny123. Now, in the sidebar, you will see 'New Chat.' Whenever I click on New Chat, a new thread opens. So, with every new chat, a new thread is associated. So, with Sunny123 user, multiple threads could be associated. Thread 1 I am discussing about LangGraph, Thread 2 I am discussing about fitness, Thread 3 I am discussing about career transition. This is all with respect to one user."
+    </div>
+
+    <div class="thread-diagram">
+      <div class="td-label">user_id / thread_id Architecture</div>
+      <div class="td-user">
+        <div class="td-user-label">user_id = "sunny123"</div>
+        <div class="td-threads">
+          <div class="td-thread">thread_id: "t1"<br><small style="color:var(--muted);">"Tell me about LangGraph"</small></div>
+          <div class="td-thread">thread_id: "t2"<br><small style="color:var(--muted);">"Fitness goals for Oct"</small></div>
+          <div class="td-thread">thread_id: "t3"<br><small style="color:var(--muted);">"Career transition plan"</small></div>
+        </div>
+      </div>
+      <div class="td-summary">
+        <div><span style="color:var(--accent3);">Short-term memory (Checkpointer)</span> = scoped to ONE specific thread_id</div>
+        <div><span style="color:var(--accent4);">Long-term memory (Store)</span> = scoped to user_id → shared across ALL threads</div>
+      </div>
+    </div>
+
+    <h3 id="checkpointer">Checkpointer — Short-Term Memory</h3>
+    <p>The Checkpointer saves graph state at the end of every node execution within a single thread. It gives the agent memory of the current conversation session. Two implementations:</p>
+
+    <table class="mem-arch">
+      <thead><tr><th>Class</th><th>Import</th><th>Storage</th><th>Persistence</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:'IBM Plex Mono',monospace; color:var(--accent2);">MemorySaver</td><td style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">langgraph.checkpoint.memory</td><td>In RAM</td><td>❌ Lost on restart</td></tr>
+        <tr><td style="font-family:'IBM Plex Mono',monospace; color:var(--accent2);">SqliteSaver</td><td style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">langgraph.checkpoint.sqlite</td><td>SQLite file</td><td>✅ Survives restarts</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="store">Store — Long-Term Memory</h3>
+    <p>The Store persists information keyed by user_id, accessible across all of that user's threads. Two implementations:</p>
+
+    <table class="mem-arch">
+      <thead><tr><th>Class</th><th>Import</th><th>Storage</th><th>Persistence</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:'IBM Plex Mono',monospace; color:var(--accent4);">InMemoryStore</td><td style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">langgraph.store.memory</td><td>In RAM</td><td>❌ Lost on restart</td></tr>
+        <tr><td style="font-family:'IBM Plex Mono',monospace; color:var(--accent4);">SQLiteLongTermMemory</td><td style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">(custom class)</td><td>SQLite file</td><td>✅ Survives restarts</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="langgraph-graph">Memory Graph Pattern — START → chatbot → save_memory → END</h3>
+
+    <div class="graph-visual">
+      <div class="gv-label">LangGraph Memory Graph Architecture</div>
+      <div class="gv-nodes">
+        <div class="gv-node" style="background:rgba(250,204,21,0.1); border-color:rgba(250,204,21,0.3); color:var(--accent6);">START</div>
+        <span class="gv-arrow">→</span>
+        <div class="gv-node" style="background:rgba(34,211,238,0.1); border-color:rgba(34,211,238,0.3); color:var(--accent2);">chatbot<br><small style="color:var(--muted);">LLM + retrieves long-term memory</small></div>
+        <span class="gv-arrow">→</span>
+        <div class="gv-node" style="background:rgba(244,114,182,0.1); border-color:rgba(244,114,182,0.3); color:var(--accent4);">save_memory<br><small style="color:var(--muted);">extracts & saves to store</small></div>
+        <span class="gv-arrow">→</span>
+        <div class="gv-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent3);">END</div>
+      </div>
+    </div>
+
+    <h3 id="langgraph-code">Full LangGraph Memory Graph Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · LangGraph memory graph</span>
+      <pre><span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">MessagesState</span>, <span class="cls">START</span>, <span class="cls">END</span>
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> <span class="cls">MemorySaver</span>
+<span class="kw">from</span> langgraph.store.memory <span class="kw">import</span> <span class="cls">InMemoryStore</span>
+<span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+<span class="kw">from</span> pydantic <span class="kw">import</span> <span class="cls">BaseModel</span>, <span class="cls">Field</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Annotated</span>, <span class="cls">List</span>
+<span class="kw">import</span> uuid
+
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>)
+
+<span class="cm"># ── Short-term memory: MemorySaver (in-memory checkpointer) ───────</span>
+checkpointer = <span class="cls">MemorySaver</span>()
+<span class="cm"># For persistence: from langgraph.checkpoint.sqlite import SqliteSaver
+# import sqlite3
+# conn = sqlite3.connect("checkpoint.db", check_same_thread=False)
+# checkpointer = SqliteSaver(conn)</span>
+
+<span class="cm"># ── Long-term memory: InMemoryStore ───────────────────────────────</span>
+store = <span class="cls">InMemoryStore</span>()
+<span class="cm"># For persistence: custom SQLiteLongTermMemory class (see below)</span>
+
+<span class="cm"># ── Pydantic schema for extracted memory ─────────────────────────</span>
+<span class="kw">class</span> <span class="cls">Memory</span>(<span class="cls">BaseModel</span>):
+    memory: <span class="cls">List</span>[str] = <span class="cls">Field</span>(
+        default_factory=<span class="fn">list</span>,
+        description=<span class="str">"List of important facts to remember about the user"</span>
+    )
+
+memory_extractor = llm.<span class="fn">with_structured_output</span>(<span class="cls">Memory</span>)
+
+<span class="cm"># ── Helper: extract memories from message ─────────────────────────</span>
+<span class="kw">def</span> <span class="fn">extract_memory</span>(user_message: str) -> <span class="cls">Memory</span>:
+    prompt = f<span class="str">f"""Extract important facts to remember from this message.
+User: {user_message}
+Extract: name, preferences, goals, context, any important facts.
+Return as a list of strings."""</span>
+    <span class="kw">return</span> memory_extractor.<span class="fn">invoke</span>([{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}])
+
+<span class="cm"># ── Node 1: Chatbot node ─────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">chatbot</span>(state: <span class="cls">MessagesState</span>, config: dict, *, store) -> dict:
+    <span class="str">"""Chat with long-term memory retrieval."""</span>
+    user_id = config[<span class="str">"configurable"</span>].<span class="fn">get</span>(<span class="str">"user_id"</span>, <span class="str">"default_user"</span>)
+
+    <span class="cm"># Retrieve user's long-term memory from store</span>
+    memories = store.<span class="fn">search</span>((<span class="str">"memory"</span>, user_id))
+    memory_context = <span class="str">""</span>
+    <span class="kw">if</span> memories:
+        memory_context = <span class="str">"Known about user:\n"</span> + <span class="str">"\n"</span>.<span class="fn">join</span>(
+            f<span class="str">f"- {m.value['fact']}"</span> <span class="kw">for</span> m <span class="kw">in</span> memories
+        )
+
+    messages = state[<span class="str">"messages"</span>]
+    full_msgs = []
+    <span class="kw">if</span> memory_context:
+        <span class="kw">from</span> langchain_core.messages <span class="kw">import</span> <span class="cls">SystemMessage</span>
+        full_msgs.<span class="fn">append</span>(<span class="cls">SystemMessage</span>(content=memory_context))
+    full_msgs.<span class="fn">extend</span>(messages)
+
+    response = llm.<span class="fn">invoke</span>(full_msgs)
+    <span class="kw">return</span> {<span class="str">"messages"</span>: [response]}
+
+<span class="cm"># ── Node 2: Save memory node ──────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">save_memory</span>(state: <span class="cls">MessagesState</span>, config: dict, *, store) -> dict:
+    <span class="str">"""Extract facts from latest user message and save to long-term store."""</span>
+    user_id      = config[<span class="str">"configurable"</span>].<span class="fn">get</span>(<span class="str">"user_id"</span>, <span class="str">"default_user"</span>)
+    messages     = state[<span class="str">"messages"</span>]
+    last_human   = [m <span class="kw">for</span> m <span class="kw">in</span> messages <span class="kw">if</span> m.type == <span class="str">"human"</span>]
+
+    <span class="kw">if not</span> last_human:
+        <span class="kw">return</span> {}
+
+    extracted = <span class="fn">extract_memory</span>(last_human[-<span class="num">1</span>].content)
+    <span class="kw">for</span> fact <span class="kw">in</span> extracted.memory:
+        <span class="cm"># store.put(namespace, key, value)</span>
+        store.<span class="fn">put</span>(
+            namespace = (<span class="str">"memory"</span>, user_id),       <span class="cm"># keyed by user_id</span>
+            key       = str(<span class="fn">uuid.uuid4</span>()),
+            value     = {<span class="str">"fact"</span>: fact}
+        )
+    <span class="kw">return</span> {}
+
+<span class="cm"># ── Build graph ───────────────────────────────────────────────────</span>
+builder = <span class="cls">StateGraph</span>(<span class="cls">MessagesState</span>)
+builder.<span class="fn">add_node</span>(<span class="str">"chatbot"</span>,    chatbot)
+builder.<span class="fn">add_node</span>(<span class="str">"save_memory"</span>, save_memory)
+builder.<span class="fn">add_edge</span>(<span class="cls">START</span>,        <span class="str">"chatbot"</span>)
+builder.<span class="fn">add_edge</span>(<span class="str">"chatbot"</span>,   <span class="str">"save_memory"</span>)
+builder.<span class="fn">add_edge</span>(<span class="str">"save_memory"</span>, <span class="cls">END</span>)
+
+<span class="cm"># Compile with BOTH checkpointer (short-term) and store (long-term)</span>
+graph = builder.<span class="fn">compile</span>(checkpointer=checkpointer, store=store)
+
+<span class="cm"># ── Test with two threads for same user ──────────────────────────</span>
+user_id = <span class="str">"sunny123"</span>
+
+<span class="cm"># Thread 1: introduce name and interest</span>
+config1  = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"t1"</span>, <span class="str">"user_id"</span>: user_id}}
+result1  = graph.<span class="fn">invoke</span>({<span class="str">"messages"</span>: [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"My name is Sunny."</span>}]}, config1)
+<span class="fn">print</span>(result1[<span class="str">"messages"</span>][-<span class="num">1</span>].content)
+
+<span class="cm"># Thread 2 (NEW THREAD — simulates "New Chat"): long-term memory carries over</span>
+config2  = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"t2"</span>, <span class="str">"user_id"</span>: user_id}}
+result2  = graph.<span class="fn">invoke</span>({<span class="str">"messages"</span>: [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"What is my name?"</span>}]}, config2)
+<span class="fn">print</span>(result2[<span class="str">"messages"</span>][-<span class="num">1</span>].content)
+<span class="cm"># → "Your name is Sunny." — because long-term store carries the fact across threads</span>
+
+<span class="cm"># Short-term memory check within same thread:
+# result in t2 does NOT know what Sunny said in t1 short-term
+# But LONG-term store (keyed by user_id) carries the name fact across both threads</span></pre>
+    </div>
+  </section>
+
+  <!-- LANGMEM -->
+  <section id="langmem">
+    <div class="section-eyebrow">05 — Alternative Approach</div>
+    <h2>LangMem Module — Alternative to Custom Classes</h2>
+
+    <div class="sunny-says">
+      "From the LangMem module, what we are going to be import over here? We are going to be import createMemoryStorageManager. Using this particular class, basically, we are managing the memory. Someone has already written this class, and we are using that class. But if you will check our previous RAG code, there we built the class from scratch. This is the difference — import vs build. Both is fine."
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · LangMem module usage</span>
+      <pre><span class="cm"># LangMem is LangGraph's built-in memory management utility
+# pip install langmem</span>
+
+<span class="kw">from</span> langmem <span class="kw">import</span> <span class="cls">create_memory_store_manager</span>
+
+<span class="cm"># Initialize memory manager</span>
+memory_manager = <span class="fn">create_memory_store_manager</span>(
+    model       = <span class="str">"groq/llama-3.1-8b-instant"</span>,
+    user_id     = user_id,
+    instructions = <span class="str">"Extract key facts about the user to remember long-term."</span>
+)
+
+<span class="cm"># Available methods on memory_manager:</span>
+<span class="cm"># memory_manager.invoke({"messages": messages})  → extract + update memories</span>
+<span class="cm"># memory_manager.add("user:city", "Bangalore")   → manually add a fact</span>
+<span class="cm"># memory_manager.get("user:city")                → retrieve a specific fact</span>
+<span class="cm"># memory_manager.search(user_id, query, limit=5)  → semantic search over memories</span>
+
+<span class="cm"># In the chatbot node:
+def chatbot(state, config, *, store):
+    user_id = config["configurable"]["user_id"]
+    user_query = state["messages"][-1].content
+    
+    # Retrieve semantically relevant memories
+    memories = store.search(("memory", user_id), query=user_query, limit=5)
+    context  = "\n".join(m.value["fact"] for m in memories)
+    
+    # Build and invoke LLM with memory context
+    ...
+    
+    # Update memory using memory_manager
+    memory_manager.invoke({"messages": state["messages"]})
+    return {"messages": [response]}</span>
+
+<span class="cm"># LangMem vs Custom Classes:
+# LangMem  → faster to implement; managed by LangGraph team
+# Custom   → more control; harder; doesn't rely on external package updates</span></pre>
+    </div>
+  </section>
+
+  <!-- SQLITE PERSISTENCE -->
+  <section id="sqlite-persistence">
+    <div class="section-eyebrow">06 — Persistence</div>
+    <h2>SQLite Persistence for Memory</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · SQLite persistence for both memory types</span>
+      <pre><span class="kw">import</span> sqlite3
+<span class="kw">from</span> langgraph.checkpoint.sqlite <span class="kw">import</span> <span class="cls">SqliteSaver</span>
+
+<span class="cm"># ── Short-term memory: SqliteSaver checkpointer ───────────────────</span>
+<span class="cm"># Creates checkpoint.db in current directory</span>
+conn_checkpoint = sqlite3.<span class="fn">connect</span>(<span class="str">"checkpoint.db"</span>, check_same_thread=<span class="kw">False</span>)
+checkpointer    = <span class="cls">SqliteSaver</span>(conn_checkpoint)
+
+<span class="cm"># ── Long-term memory: custom SQLiteLongTermMemory ─────────────────</span>
+<span class="kw">class</span> <span class="cls">SQLiteLongTermMemory</span>:
+    <span class="str">"""Persistent long-term memory using SQLite database."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, db_path: str = <span class="str">"longterm.db"</span>):
+        self.conn = sqlite3.<span class="fn">connect</span>(db_path, check_same_thread=<span class="kw">False</span>)
+        self._create_table()
+
+    <span class="kw">def</span> <span class="fn">_create_table</span>(self):
+        self.conn.<span class="fn">execute</span>(<span class="str">"""
+            CREATE TABLE IF NOT EXISTS memories (
+                id        TEXT PRIMARY KEY,
+                user_id   TEXT NOT NULL,
+                fact      TEXT NOT NULL,
+                created   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )"""</span>)
+        self.conn.<span class="fn">commit</span>()
+
+    <span class="kw">def</span> <span class="fn">save_memory</span>(self, user_id: str, fact: str):
+        <span class="kw">import</span> uuid
+        self.conn.<span class="fn">execute</span>(
+            <span class="str">"INSERT INTO memories (id, user_id, fact) VALUES (?, ?, ?)"</span>,
+            (str(<span class="fn">uuid.uuid4</span>()), user_id, fact)
+        )
+        self.conn.<span class="fn">commit</span>()
+
+    <span class="kw">def</span> <span class="fn">get_memories</span>(self, user_id: str, limit: int = <span class="num">5</span>) -> list[str]:
+        cursor = self.conn.<span class="fn">execute</span>(
+            <span class="str">"SELECT fact FROM memories WHERE user_id=? ORDER BY created DESC LIMIT ?"</span>,
+            (user_id, limit)
+        )
+        <span class="kw">return</span> [row[<span class="num">0</span>] <span class="kw">for</span> row <span class="kw">in</span> cursor.<span class="fn">fetchall</span>()]
+
+    <span class="kw">def</span> <span class="fn">add_memory</span>(self, user_id: str, fact: str):
+        self.<span class="fn">save_memory</span>(user_id, fact)
+
+<span class="cm"># Usage:
+# lt_memory = SQLiteLongTermMemory("longterm.db")
+# lt_memory.add_memory("sunny123", "User's name is Sunny")
+# lt_memory.get_memories("sunny123")   → ["User's name is Sunny"]
+#
+# Compile graph with BOTH:
+# graph = builder.compile(checkpointer=checkpointer, store=lt_memory)</span></pre>
+    </div>
+  </section>
+
+  <!-- DATABASE OPTIONS -->
+  <section id="database-options">
+    <div class="section-eyebrow">07 — Production DB Choices</div>
+    <h2>Database Options per Memory Type</h2>
+
+    <table class="mem-arch">
+      <thead><tr><th>Memory Type</th><th>Recommended DB</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--accent3); font-weight:600;">Short-term (Checkpointer)</td>
+          <td style="font-family:'IBM Plex Mono',monospace; color:var(--accent2);">Redis or SQLite</td>
+          <td>Fast, low-latency reads. Redis for high-throughput production; SQLite for development and lower-traffic apps.</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent4); font-weight:600;">Long-term (Store)</td>
+          <td style="font-family:'IBM Plex Mono',monospace; color:var(--accent2);">Postgres or SQLite</td>
+          <td>Persistent relational storage keyed by user_id. Postgres for production scale; SQLite for development.</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent); font-weight:600;">Semantic Memory</td>
+          <td style="font-family:'IBM Plex Mono',monospace; color:var(--accent2);">Vector Database</td>
+          <td>Find memories by semantic similarity to the current query. Qdrant, Chroma, Pinecone, FAISS. Used in the Memory-Augmented RAG assignment.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ASSIGNMENT -->
+  <section id="assignment">
+    <div class="section-eyebrow">08 — Assignment</div>
+    <h2>Memory-Augmented RAG Assignment</h2>
+
+    <div class="sunny-says">
+      "Memory Augmented Rack Assignment — so this is going to be a production-ready memory management code. Actually, in one of my real-time projects, I have implemented this entire architecture. So as it is, I am providing to you. You can make it scalable. I kept the different, different file, so that I can explain you in a different way — from the simplest logic to the typical one. Whatever way I have implemented a memory in my real time, here I have given you the glimpse of that, so this will help you a lot."
+    </div>
+
+    <div style="background:var(--card); border:1px solid rgba(129,140,248,0.3); border-radius:10px; padding:22px; margin:16px 0;">
+      <h4 style="font-size:0.92rem; color:var(--accent); margin-bottom:12px;">Assignment: Memory-Augmented RAG System</h4>
+      <div style="font-size:0.85rem; color:#94a3b8; line-height:2.2;">
+        <div><strong style="color:#fff;">Target architecture — 4 memory types combined:</strong></div>
+        <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;">
+          <div style="background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:5px; padding:8px 12px; font-size:0.8rem; color:var(--accent3);">Short-term Memory<br><small>session context</small></div>
+          <div style="background:rgba(244,114,182,0.08); border:1px solid rgba(244,114,182,0.2); border-radius:5px; padding:8px 12px; font-size:0.8rem; color:var(--accent4);">Long-term Memory<br><small>user facts across sessions</small></div>
+          <div style="background:rgba(129,140,248,0.08); border:1px solid rgba(129,140,248,0.2); border-radius:5px; padding:8px 12px; font-size:0.8rem; color:var(--accent);">Semantic Memory<br><small>vector DB for memory retrieval</small></div>
+          <div style="background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:5px; padding:8px 12px; font-size:0.8rem; color:var(--accent2);">RAG Knowledge Base<br><small>domain document retrieval</small></div>
+        </div>
+        <div style="margin-top:14px;"><strong style="color:#fff;">Databases suggested:</strong> Short-term → SQLite/Redis; Long-term → SQLite/Postgres; Semantic → vector DB (Qdrant/FAISS); RAG → same or separate vector DB</div>
+        <div style="margin-top:6px;"><strong style="color:#fff;">Starter code:</strong> <code style="font-family:'IBM Plex Mono',monospace; font-size:0.76rem;">class45/memory_augmented_rag/</code> folder on GitHub</div>
+        <div style="margin-top:6px;"><strong style="color:#fff;">Inspired by:</strong> Sunny's actual real-time production implementation</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HUMAN IN THE LOOP -->
+  <section id="human-in-loop">
+    <div class="section-eyebrow">09 — New Topic (Preview)</div>
+    <h2>Human-in-the-Loop (HITL)</h2>
+
+    <p>Introduced briefly at the end of Class 45. The full walkthrough is scheduled for the next class (Class 46). Code in: <code>class45/human_loop.ipynb</code>.</p>
+
+    <div class="callout yellow">
+      <span class="callout-icon">🧑‍💻</span>
+      <p><strong>What is HITL?</strong> Human-in-the-Loop means pausing a LangGraph workflow at a specific node to require human approval or input before continuing. This is critical in production Agentic systems where certain actions are irreversible (e.g. sending an email, executing a database write, making an API call with side effects). The human inspects the state, approves or rejects, then the graph continues.</p>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · Human-in-the-Loop preview</span>
+      <pre><span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">MessagesState</span>, <span class="cls">START</span>, <span class="cls">END</span>
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> <span class="cls">MemorySaver</span>
+
+<span class="kw">def</span> <span class="fn">draft_action</span>(state): ...   <span class="cm"># prepares a potentially risky action</span>
+<span class="kw">def</span> <span class="fn">execute_action</span>(state): ... <span class="cm"># actually executes the risky action</span>
+
+builder = <span class="cls">StateGraph</span>(<span class="cls">MessagesState</span>)
+builder.<span class="fn">add_node</span>(<span class="str">"draft"</span>,   draft_action)
+builder.<span class="fn">add_node</span>(<span class="str">"execute"</span>, execute_action)
+builder.<span class="fn">add_edge</span>(<span class="cls">START</span>,     <span class="str">"draft"</span>)
+builder.<span class="fn">add_edge</span>(<span class="str">"draft"</span>,  <span class="str">"execute"</span>)
+builder.<span class="fn">add_edge</span>(<span class="str">"execute"</span>, <span class="cls">END</span>)
+
+checkpointer = <span class="cls">MemorySaver</span>()
+
+<span class="cm"># interrupt_before tells LangGraph to PAUSE before "execute" runs
+# and wait for a human to approve via graph.update_state() before continuing</span>
+graph = builder.<span class="fn">compile</span>(
+    checkpointer      = checkpointer,
+    interrupt_before  = [<span class="str">"execute"</span>]   <span class="cm"># ← pause before execute node</span>
+    <span class="cm"># interrupt_after = ["draft"]    ← alternatively: pause after draft completes</span>
+)
+
+config = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: <span class="str">"approval_thread"</span>}}
+
+<span class="cm"># Step 1: Run graph → pauses before "execute"</span>
+state = graph.<span class="fn">invoke</span>({<span class="str">"messages"</span>: [...]}, config)
+<span class="fn">print</span>(<span class="str">"Graph paused. Review state:"</span>, state)
+
+<span class="cm"># Step 2: Human inspects state, approves
+# In a real app, this could be a UI button click, Slack message, etc.</span>
+human_approval = <span class="fn">input</span>(<span class="str">"Approve? (yes/no): "</span>)
+
+<span class="cm"># Step 3: Resume if approved</span>
+<span class="kw">if</span> human_approval.<span class="fn">lower</span>() == <span class="str">"yes"</span>:
+    graph.<span class="fn">invoke</span>(<span class="kw">None</span>, config)   <span class="cm"># pass None to resume from where it stopped</span>
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">"Action cancelled by human."</span>)
+
+<span class="cm"># Key facts about HITL:
+# - interrupt_before = ["node_name"] pauses BEFORE that node runs
+# - interrupt_after  = ["node_name"] pauses AFTER that node runs
+# - Graph state is saved by checkpointer at the pause point
+# - graph.invoke(None, config) continues from the exact checkpoint
+# - Full walkthrough: Class 46</span></pre>
+    </div>
+  </section>
+
+  <!-- NEXT CLASS -->
+  <section id="next-class">
+    <div class="section-eyebrow">10 — Roadmap</div>
+    <h2>What's Next</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(250,204,21,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent6);">
+        <h4 style="font-size:0.84rem; color:var(--accent6); margin-bottom:6px;">Class 46</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Full Human-in-the-Loop walkthrough. Parallel workflows and other LangGraph orchestration patterns.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.84rem; color:var(--accent4); margin-bottom:6px;">Class 47 (19–20 Sep)</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Multi-Agentic systems — supervisor pattern, hierarchical agents, inter-agent communication.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.84rem; color:var(--accent2); margin-bottom:6px;">Coming soon</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Evaluation, Guardrails, MCP, A2A Protocol → then end-to-end projects with full deployment (target: Oct/Nov 2026).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Q&A HIGHLIGHTS -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">11 — Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Bala</div>
+      <div class="qa-question">In production, how do you handle 1 million messages in long-term memory? You can't just set limit=5.</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">At that scale, you'll have a separate team dedicated to memory management infrastructure. The architecture scales: instead of InMemoryStore, use a distributed database (Postgres, Redis cluster) that can handle billions of records. For retrieval, use semantic search over a vector database so you don't retrieve by recency alone but by relevance to the current query. "You will understand the solution once you look at the architecture — limit and all, you can decide just by understanding the solution." For production RAG memory at scale, the Memory-Augmented RAG assignment shows the pattern.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">What is semantic memory?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Semantic memory is memory that you retrieve not by ID or recency but by semantic relevance to the current query. You store memories as embeddings in a vector database. When a new question comes in, you embed the question and retrieve the most semantically similar memories — facts the user told you in the past that are relevant to the current topic. "It's like based on the retrieval context, actually. So around to that, also, we can build the memory." This is one of the 4 memory types in the Memory-Augmented RAG assignment.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">How does LangGraph's checkpointer relate to what we implemented manually in Class 44?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">They achieve the same goal — maintaining conversation context within a session — but the checkpointer is built into LangGraph and works automatically. In Class 44, you had to manually: (1) append messages to a list, (2) pass the recent slice to the LLM, (3) update the global list. With LangGraph's MemorySaver checkpointer, this is handled for you: the MessagesState accumulates all messages, and the checkpointer saves the full state after every node. The thread_id configuration key tells LangGraph which conversation's state to restore on the next call. The add_messages reducer in MessagesState is the equivalent of your manual append logic.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Vikas</div>
+      <div class="qa-question">Why is the Groq API taking 1–2 minutes to respond in my RAG system?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Groq should respond in a fraction of a second or at most 10–15 seconds, not 1–2 minutes. The bottleneck is almost certainly not the LLM API but the retrieval step. Debug by: (1) manually pass a prompt directly to the Groq LLM and check if it responds fast → if yes, the LLM is fine. (2) Manually run the retriever step and measure how long it takes → that's where the delay is. Likely you're running a local Llama model via Ollama in the retrieval or embedding step, which is slow on 12GB RAM. Switch to Qdrant Cloud (free tier) + Groq API to eliminate local model overhead entirely.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">12 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 45 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. In LangGraph, what is the difference between a Checkpointer and a Store? What type of memory does each handle?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Checkpointer handles short-term memory — it saves the graph state (including all messages) after every node execution, scoped to a specific thread_id. If you call graph.invoke() again with the same thread_id, the checkpointer restores the prior state so the conversation continues seamlessly. Examples: MemorySaver (in-memory, lost on restart), SqliteSaver (SQLite file, persists). Store handles long-term memory — it stores arbitrary key-value facts keyed by user_id, accessible across all threads for that user. When a user starts a new conversation (new thread_id), the store still holds facts from prior sessions. Examples: InMemoryStore (lost on restart), custom SQLiteLongTermMemory. The graph is compiled with both: builder.compile(checkpointer=checkpointer, store=store). Sunny's one-liner: "Checkpointer = thread-specific (short-term). Store = user-specific, cross-thread (long-term)."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Explain the thread_id / user_id relationship using the ChatGPT analogy. What is "long-term memory" in this context?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Analogy: ChatGPT user "Sunny123" has one user_id (Sunny123). Every time Sunny clicks "New Chat" in the sidebar, a new thread_id is created (t1, t2, t3...). Short-term memory (checkpointer) is scoped to ONE thread — in thread t1, the LLM remembers everything said in that chat. In thread t2 (new chat), the short-term memory is fresh — the LLM has no idea what was said in t1. Long-term memory (store) is scoped to the user_id and shared across ALL threads for that user. If Sunny told the system his name in t1, the store saved "user is named Sunny" under the key (memory, sunny123). When Sunny opens t2 and asks "what is my name?", the chatbot node retrieves from the store using user_id and correctly answers "Sunny" — even though t2 has no message history from t1.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is Human-in-the-Loop in LangGraph, and how does interrupt_before work?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Human-in-the-Loop (HITL) is a mechanism to pause a LangGraph workflow at a specified node, allowing a human to review the graph state, approve or reject the planned action, and then decide whether to continue. It's critical for actions with side effects (sending emails, database writes, calling external APIs). interrupt_before=["node_name"] tells LangGraph to pause BEFORE the named node runs. The graph saves its current state via the checkpointer. When graph.invoke() is called and hits the interrupt: execution pauses and returns the current state. A human (or a UI) inspects the state. If approved: graph.invoke(None, config) resumes from the exact checkpoint — the interrupted node now runs. If rejected: the human can modify the state with graph.update_state() or simply not resume. interrupt_after=["node_name"] pauses AFTER the node completes. Full walkthrough scheduled for Class 46.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What are the 4 memory types in the Memory-Augmented RAG Assignment? What database is recommended for each?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">(1) Short-term memory — session context within one conversation. Database: Redis (production) or SQLite (development). Implementation: LangGraph checkpointer. (2) Long-term memory — user facts persisted across sessions, keyed by user_id. Database: Postgres (production) or SQLite (development). Implementation: LangGraph store / SQLiteLongTermMemory. (3) Semantic memory — facts retrieved by semantic similarity to the current query using embeddings. Database: vector database (Qdrant, Chroma, FAISS, Pinecone). Implementation: embed facts and store in vector DB; query by similarity at retrieval time. (4) RAG knowledge base — domain documents for answering queries. Database: vector database. Implementation: the standard RAG pipeline (ingest → embed → store → retrieve → generate). All 4 are combined in the assignment to build a production-ready Agentic RAG system inspired by Sunny's real-time project.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 45 · Memory in LangGraph + Human-in-the-Loop · 12 September 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
