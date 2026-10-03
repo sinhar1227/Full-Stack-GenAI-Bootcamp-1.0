@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 39 — Multimodal RAG Project | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #22d3ee;   /* cyan — RAG / retrieval */
+  --accent2:     #f472b6;   /* pink — project */
+  --accent3:     #4ade80;   /* green — success */
+  --accent4:     #fb923c;   /* orange — parsing */
+  --accent5:     #a78bfa;   /* violet — generation */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent4), var(--accent), var(--accent5)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(244,114,182,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent2); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent2); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent4) 0%, var(--accent) 40%, var(--accent5) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent2); padding-left: 18px; }
+
+.sunny-says { background: rgba(244,114,182,0.05); border: 1px solid rgba(244,114,182,0.2); border-left: 4px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 39):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent2); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent2); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── PROJECT PIPELINE ── */
+.pipeline { display: flex; gap: 0; margin: 20px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.pl-stage { flex: 1; padding: 18px 14px; text-align: center; border-right: 1px solid var(--border); }
+.pl-stage:last-child { border-right: none; }
+.pl-stage .ps-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.pl-stage .ps-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; margin-bottom: 4px; }
+.pl-stage .ps-file { font-size: 0.7rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── PROJECT STRUCTURE ── */
+.project-tree { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; line-height: 2.1; }
+.pt-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+.pt-root { color: var(--accent2); font-weight: 700; }
+.pt-dir  { color: var(--accent); }
+.pt-file { color: #94a3b8; }
+.pt-note { color: var(--muted); font-size: 0.7rem; }
+
+/* ── CLASS BREAKDOWN TABLE ── */
+.class-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.class-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.class-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.class-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.class-table .cname { font-family: 'IBM Plex Mono', monospace; color: var(--accent4); font-weight: 600; font-size: 0.76rem; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(244,114,182,0.1); border: 1px solid var(--accent2); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent2); }
+details[open] summary { color: var(--accent2); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(244,114,182,0.04); border-left: 2px solid var(--accent2); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent2); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .pipeline { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#session-context">Session Context</a></li>
+    <li><a href="#why-project">Notebook → Production</a></li>
+    <li><a href="#project-pipeline">4-Stage Pipeline</a></li>
+    <li><a href="#project-structure">Project Structure</a></li>
+    <li><a href="#env-config">API Keys & Config</a></li>
+    <li><a href="#parsing-class">Parsing Module</a></li>
+    <li class="sub"><a href="#parsing-methods">Methods Overview</a></li>
+    <li class="sub"><a href="#parsing-master">parse() Master Method</a></li>
+    <li class="sub"><a href="#parsing-code">Code Skeleton</a></li>
+    <li><a href="#ingestion-class">Ingestion Module</a></li>
+    <li class="sub"><a href="#ingestion-methods">Methods & Flow</a></li>
+    <li class="sub"><a href="#ingestion-code">Code Skeleton</a></li>
+    <li><a href="#retrieval-class">Retrieval Module</a></li>
+    <li class="sub"><a href="#retrieval-code">Code Skeleton</a></li>
+    <li><a href="#generation-class">Generation Module</a></li>
+    <li class="sub"><a href="#generation-code">Code Skeleton</a></li>
+    <li><a href="#prompt-library">Prompt Library</a></li>
+    <li><a href="#logger-exception">Logger & Exceptions</a></li>
+    <li><a href="#ui-streamlit">Streamlit UI</a></li>
+    <li><a href="#decoupled-pipeline">Decoupled Pipeline</a></li>
+    <li><a href="#live-demo">Live Demo Walkthrough</a></li>
+    <li><a href="#assignment">Assignment</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 39</span></div>
+    <div class="hero-class-num">Class 39 · 17 August 2026</div>
+    <h1>Multimodal RAG<br><em>End-to-End Project</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> ComplexPDFParser</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Qdrant Ingestion</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Multimodal Generation</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Streamlit UI + Assignment</div>
+    </div>
+    <p class="hero-summary">
+      The capstone RAG project class. Sunny converts everything learned in the RAG module (parsing, chunking, embedding, retrieval, generation) from notebook experiments into a production-grade modular Python project — with custom logger, custom exceptions, prompt library, Qdrant vector database, and a Streamlit UI. Ends with a Multimodal RAG assignment (deadline 29 August 2026).
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Why notebooks can't be deployed to production — and how to convert them to a modular Python project</li>
+      <li><span class="chk">✓</span> The 4-stage RAG pipeline recap: Parsing → Ingestion (chunking + embedding + vector DB) → Retrieval → Generation</li>
+      <li><span class="chk">✓</span> Full project folder structure: src/, prompt_library/, logger/, exception/, ui/, config, .env.example</li>
+      <li><span class="chk">✓</span> API keys required: OpenAI (paid ~$5–$10), Qdrant (free cloud tier), Tesseract path</li>
+      <li><span class="chk">✓</span> ComplexPDFParser class: 8 methods — validate, create output dirs, configure Tesseract, OCR, extract text+images, extract tables, create LangChain docs, save JSON, save output, parse() master</li>
+      <li><span class="chk">✓</span> DocumentIngestion class: validate config, ensure collection, generate doc IDs, create points, split, prepare docs, ingest PDF master method</li>
+      <li><span class="chk">✓</span> MultimodalQdrantRetriever class: load vector store, build filter, retrieve with score, LangChain retriever</li>
+      <li><span class="chk">✓</span> MultimodalRAGGenerator class: model config, image-to-data-URL, prepare context, build messages, extract response, generate() master</li>
+      <li><span class="chk">✓</span> Prompt library (prompt.py): system prompt, user prompt, retrieve image evidence prompt, chat suggest prompt, smoke test query, format methods</li>
+      <li><span class="chk">✓</span> Custom logger (structlog): timestamped log files + console output</li>
+      <li><span class="chk">✓</span> Custom exceptions: DocumentPortalException hierarchy</li>
+      <li><span class="chk">✓</span> Streamlit UI: upload PDF → parse → ingest to Qdrant → chat panel with model config</li>
+      <li><span class="chk">✓</span> Live demo: parse Llama 2 research paper (72 pages), index into Qdrant, chat with it</li>
+      <li><span class="chk">✓</span> Decoupled pipeline design principle: parsing/ingestion separate from retrieval/generation</li>
+      <li><span class="chk">✓</span> Assignment: production-grade Multimodal RAG — deadline 29 August 2026</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>GitHub:</strong> Full project code at <code>sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0</code> — look for the Multimodal RAG project folder. Assignment PDF also pushed to the same repo. Class was first session after Independence Day holiday (15 Aug).</p>
+    </div>
+  </section>
+
+  <!-- SESSION CONTEXT -->
+  <section id="session-context">
+    <div class="section-eyebrow">02 — Context</div>
+    <h2>Session Context</h2>
+
+    <div class="sunny-says">
+      "Now, guys, let's discuss one project around the RAG. And then after, we'll move to the Agentic syllabus. So one project, let's try to complete it inside the RAG itself. By end of this month, guys, from next class onwards, we are going to be start with the Agentic system. So, this is our first step towards the end-to-end project, and then from now onwards, all the end-to-end solution is going to be started."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Course Status at Class 39</div>
+      <div style="color:var(--accent3);">✓ Completed: ~40 classes — Fundamentals, Fine-Tuning, RAG (all modules)</div>
+      <div style="color:var(--accent2); margin-top:8px;">→ Class 39: RAG capstone project</div>
+      <div style="color:var(--muted); margin-top:6px;">→ Next (Class 40+): Agentic AI — agents, tools, memory, MCP, evaluation, guardrails</div>
+      <div style="color:var(--muted); margin-top:6px;">→ End (Oct 2026): 3–4 end-to-end projects with deployment</div>
+    </div>
+  </section>
+
+  <!-- WHY PROJECT -->
+  <section id="why-project">
+    <div class="section-eyebrow">03 — Key Insight</div>
+    <h2>Notebook → Production: Why It Matters</h2>
+
+    <div class="sunny-says">
+      "Whenever we are working in a real time, this notebook solution does not work. We'll have to create the end-to-end working product. We cannot deploy this notebook solution for the enterprises, for our client as a product — we cannot deploy the notebook. So for that, we'll have to convert this notebook experiment into the end-to-end project. We'll have to convert our entire code into the Pythonic script. There will have to follow the low-level designing. We'll have to redesign our system using the classes, object, and function, and then only we can productionize that system."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px; opacity:0.75;">
+        <h4 style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;">Notebook (Experiment)</h4>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Sequential cells, interactive</li>
+          <li>→ No modular structure</li>
+          <li>→ No error handling / logging</li>
+          <li>→ Cannot be deployed as a service</li>
+          <li>→ OK for learning & POC</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">Production Project (This Class)</h4>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Classes + methods + OOP</li>
+          <li>→ Modular: parsing, ingestion, retrieval, generation</li>
+          <li>→ Custom logger + custom exceptions</li>
+          <li>→ Deployable FastAPI / Streamlit app</li>
+          <li>→ Resume-ready, client-ready</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECT PIPELINE -->
+  <section id="project-pipeline">
+    <div class="section-eyebrow">04 — Architecture</div>
+    <h2>4-Stage Pipeline</h2>
+
+    <div class="pipeline">
+      <div class="pl-stage" style="background:rgba(251,146,60,0.05);">
+        <div class="ps-icon">📄</div>
+        <div class="ps-name" style="color:var(--accent4);">1. Parsing</div>
+        <div class="ps-file">parsing.py</div>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:6px;">PDF → text + tables + images via PyMuPDF + pytesseract + camelot</div>
+      </div>
+      <div class="pl-stage" style="background:rgba(34,211,238,0.05);">
+        <div class="ps-icon">🗄️</div>
+        <div class="ps-name" style="color:var(--accent);">2. Ingestion</div>
+        <div class="ps-file">ingestion.py</div>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:6px;">Chunk → Embed (OpenAI) → Store in Qdrant vector DB</div>
+      </div>
+      <div class="pl-stage" style="background:rgba(167,139,250,0.05);">
+        <div class="ps-icon">🔍</div>
+        <div class="ps-name" style="color:var(--accent5);">3. Retrieval</div>
+        <div class="ps-file">retrieval.py</div>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:6px;">User query → vector search → top-k chunks with scores</div>
+      </div>
+      <div class="pl-stage" style="background:rgba(74,222,128,0.05);">
+        <div class="ps-icon">💬</div>
+        <div class="ps-name" style="color:var(--accent3);">4. Generation</div>
+        <div class="ps-file">generation.py</div>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:6px;">Context + prompt → OpenAI GPT → grounded answer</div>
+      </div>
+    </div>
+
+    <p>Between stages 1 and 2: chunking and embedding happen. The entire pipeline maps directly to the RAG chapters covered in Classes 29–38.</p>
+  </section>
+
+  <!-- PROJECT STRUCTURE -->
+  <section id="project-structure">
+    <div class="section-eyebrow">05 — File Layout</div>
+    <h2>Project Folder Structure</h2>
+
+    <div class="project-tree">
+      <div class="pt-label">multimodal_rag_project/ (Full Structure)</div>
+      <div class="pt-root">multimodal_rag_project/</div>
+      <div style="padding-left:20px; line-height:2.2;">
+        <div><span class="pt-dir">src/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">__init__.py</span></div>
+          <div><span class="pt-file">parsing.py</span>      <span class="pt-note">  ← ComplexPDFParser class</span></div>
+          <div><span class="pt-file">ingestion.py</span>    <span class="pt-note">  ← DocumentIngestion class (Qdrant)</span></div>
+          <div><span class="pt-file">retrieval.py</span>    <span class="pt-note">  ← MultimodalQdrantRetriever class</span></div>
+          <div><span class="pt-file">generation.py</span>   <span class="pt-note">  ← MultimodalRAGGenerator class</span></div>
+        </div>
+        <div><span class="pt-dir">prompt_library/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">__init__.py</span></div>
+          <div><span class="pt-file">prompt.py</span>       <span class="pt-note">  ← all prompt templates + format methods</span></div>
+        </div>
+        <div><span class="pt-dir">logger/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">__init__.py</span></div>
+          <div><span class="pt-file">custom_logger.py</span> <span class="pt-note"> ← structlog, timestamped log files</span></div>
+        </div>
+        <div><span class="pt-dir">exception/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">__init__.py</span></div>
+          <div><span class="pt-file">custom_exception.py</span> <span class="pt-note"> ← DocumentPortalException hierarchy</span></div>
+        </div>
+        <div><span class="pt-dir">ui/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">streamlit_ui.py</span> <span class="pt-note">  ← Streamlit web UI (upload, parse, chat)</span></div>
+        </div>
+        <div><span class="pt-dir">logs/</span>  <span class="pt-note">← auto-created at runtime, one file per run</span></div>
+        <div><span class="pt-dir">data/</span></div>
+        <div style="padding-left:20px;">
+          <div><span class="pt-file">uploads/</span>        <span class="pt-note">  ← user-uploaded PDFs</span></div>
+          <div><span class="pt-file">parsed/</span>         <span class="pt-note">  ← OCR output, JSON records</span></div>
+        </div>
+        <div><span class="pt-file">app.py</span>            <span class="pt-note">  ← FastAPI or main entry point</span></div>
+        <div><span class="pt-file">config.yaml</span>       <span class="pt-note">  ← model names, chunk sizes, embedding dims</span></div>
+        <div><span class="pt-file">.env</span>              <span class="pt-note">  ← API keys (gitignored)</span></div>
+        <div><span class="pt-file">.env.example</span>      <span class="pt-note">  ← template showing required key names</span></div>
+        <div><span class="pt-file">requirements.txt</span></div>
+        <div><span class="pt-file">setup.py</span>          <span class="pt-note">  ← package install for cross-module imports</span></div>
+        <div><span class="pt-file">README.md</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENV + CONFIG -->
+  <section id="env-config">
+    <div class="section-eyebrow">06 — Configuration</div>
+    <h2>API Keys & Configuration</h2>
+
+    <div class="code-block">
+      <span class="lang-label">.env.example</span>
+      <pre><span class="cm"># REQUIRED for this project</span>
+OPENAI_API_KEY=your_openai_key_here          <span class="cm"># Paid (~$5–$10 for practice)</span>
+QDRANT_API_KEY=your_qdrant_cloud_key         <span class="cm"># Free tier available</span>
+QDRANT_CLUSTER_ENDPOINT=https://xxx.qdrant.io
+
+<span class="cm"># OPTIONAL — not needed for base project</span>
+GOOGLE_API_KEY=                              <span class="cm"># if using Gemini</span>
+GROQ_API_KEY=                               <span class="cm"># if using Groq free LLM</span>
+ANTHROPIC_API_KEY=                          <span class="cm"># if using Claude</span>
+HUGGINGFACE_API_KEY=                        <span class="cm"># if using HuggingFace models</span>
+
+<span class="cm"># CONFIG (can also go in config.yaml)</span>
+QDRANT_COLLECTION_NAME=rag_documents
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+OPENAI_EMBEDDING_DIMENSION=1536
+TESSERACT_PATH=/usr/bin/tesseract            <span class="cm"># Linux path; adjust for Windows/Mac</span>
+OPENAI_CHAT_MODEL=gpt-4.1-mini</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">💰</span>
+      <p><strong>Cost note from Sunny:</strong> "Except OpenAI, everything is free. OpenAI I spent about $5 to $10 for my practice purpose. You can also use Groq as a free alternative for the generation model — just change the model initialization. OpenAI is primarily needed for the embedding model (text-embedding-3-small)."</p>
+    </div>
+  </section>
+
+  <!-- PARSING CLASS -->
+  <section id="parsing-class">
+    <div class="section-eyebrow">07 — Module 1</div>
+    <h2>ComplexPDFParser — parsing.py</h2>
+
+    <h3 id="parsing-methods">All Methods at a Glance</h3>
+
+    <table class="class-table">
+      <thead><tr><th>Method</th><th>Type</th><th>What it Does</th></tr></thead>
+      <tbody>
+        <tr><td class="cname">__init__(pdf_path, output_dir)</td><td style="color:#94a3b8; font-size:0.8rem;">init</td><td>Sets paths, initialises page_record, image_record, table_record, langchain_document lists</td></tr>
+        <tr><td class="cname">_validate_pdf()</td><td style="color:var(--muted); font-size:0.8rem;">private</td><td>Checks the PDF file exists and is readable. Raises ParseException if not.</td></tr>
+        <tr><td class="cname">_create_output_directories()</td><td style="color:var(--muted); font-size:0.8rem;">private</td><td>Creates output folder structure for pages, images, tables</td></tr>
+        <tr><td class="cname">_configure_tesseract()</td><td style="color:var(--muted); font-size:0.8rem;">private</td><td>Sets Tesseract OCR path from .env / config</td></tr>
+        <tr><td class="cname">_run_ocr_on_images(images)</td><td style="color:var(--muted); font-size:0.8rem;">private</td><td>Runs pytesseract OCR on extracted page images → returns text</td></tr>
+        <tr><td class="cname">extract_text_and_images()</td><td style="color:#94a3b8; font-size:0.8rem;">public</td><td>Uses PyMuPDF (fitz) to extract native text + render pages as images</td></tr>
+        <tr><td class="cname">extract_table()</td><td style="color:#94a3b8; font-size:0.8rem;">public</td><td>Uses camelot to extract tables from PDF pages → DataFrame</td></tr>
+        <tr><td class="cname">create_langchain_document()</td><td style="color:#94a3b8; font-size:0.8rem;">public</td><td>Converts parsed content into LangChain Document objects with metadata</td></tr>
+        <tr><td class="cname">_save_json(data, path)</td><td style="color:var(--muted); font-size:0.8rem;">private</td><td>Saves page_record, image_record, table_record as JSON files</td></tr>
+        <tr><td class="cname">save_output()</td><td style="color:#94a3b8; font-size:0.8rem;">public</td><td>Orchestrates saving all parsed outputs to disk</td></tr>
+        <tr><td class="cname">parse()</td><td style="color:var(--accent2); font-size:0.8rem; font-weight:700;">MASTER</td><td>Orchestrates all steps: validate → extract text+images → extract tables → create LangChain docs → save output → return result</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="parsing-master">parse() — The Master Method</h3>
+    <div class="sunny-says">
+      "If you will look into the parse method, you will get everything. So, we are logging all the things, then we are extracting the text and images, then we are extracting the tables, then we are creating a Langchain document, then we are saving the output. That's it — as simple as that. Inside, this function, I'm going to be orchestrate all these functions."
+    </div>
+
+    <h3 id="parsing-code">parsing.py — Skeleton</h3>
+    <div class="code-block">
+      <span class="lang-label">python · parsing.py</span>
+      <pre><span class="cm">## src/parsing.py — ComplexPDFParser class skeleton</span>
+
+<span class="kw">import</span> os, json, logging
+<span class="kw">import</span> fitz                             <span class="cm"># PyMuPDF — text + image extraction</span>
+<span class="kw">import</span> camelot                          <span class="cm"># table extraction from PDFs</span>
+<span class="kw">import</span> pytesseract                      <span class="cm"># OCR for scanned images</span>
+<span class="kw">from</span> PIL <span class="kw">import</span> <span class="cls">Image</span>
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+<span class="kw">from</span> pathlib <span class="kw">import</span> <span class="cls">Path</span>
+<span class="kw">from</span> logger.custom_logger <span class="kw">import</span> <span class="fn">setup_logger</span>
+<span class="kw">from</span> exception.custom_exception <span class="kw">import</span> <span class="cls">DocumentPortalException</span>
+
+logger = <span class="fn">setup_logger</span>(log_file=<span class="str">"logs/parsing.log"</span>)
+
+<span class="kw">class</span> <span class="cls">ComplexPDFParser</span>:
+    <span class="str">"""Parses complex PDFs: extracts text, images, and tables."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, pdf_path: str, output_dir: str = <span class="str">"./data/parsed"</span>):
+        self.pdf_path        = pdf_path
+        self.output_dir      = output_dir
+        self.image_dir       = os.path.<span class="fn">join</span>(output_dir, <span class="str">"images"</span>)
+        self.page_image_dir  = os.path.<span class="fn">join</span>(output_dir, <span class="str">"page_images"</span>)
+        self.render_scale    = <span class="num">2.0</span>         <span class="cm"># rendering DPI multiplier</span>
+        self.page_record     = []            <span class="cm"># text content per page</span>
+        self.image_record    = []            <span class="cm"># embedded images with OCR text</span>
+        self.table_record    = []            <span class="cm"># extracted table data</span>
+        self.langchain_docs  = []            <span class="cm"># LangChain Document objects</span>
+        logger.<span class="fn">info</span>(<span class="str">"Parser initialised"</span>, pdf=pdf_path)
+
+    <span class="kw">def</span> <span class="fn">_validate_pdf</span>(self) -> <span class="kw">None</span>:
+        <span class="str">"""Check the PDF file exists and is a valid PDF."""</span>
+        <span class="kw">if not</span> os.path.<span class="fn">exists</span>(self.pdf_path):
+            <span class="kw">raise</span> <span class="cls">DocumentPortalException</span>(f<span class="str">f"PDF not found: {self.pdf_path}"</span>)
+        <span class="kw">if not</span> self.pdf_path.lower().<span class="fn">endswith</span>(<span class="str">".pdf"</span>):
+            <span class="kw">raise</span> <span class="cls">DocumentPortalException</span>(<span class="str">"File must be a .pdf"</span>)
+        logger.<span class="fn">info</span>(<span class="str">"PDF validated"</span>)
+
+    <span class="kw">def</span> <span class="fn">_create_output_directories</span>(self) -> <span class="kw">None</span>:
+        <span class="kw">for</span> dir_path <span class="kw">in</span> [self.output_dir, self.image_dir, self.page_image_dir]:
+            <span class="cls">Path</span>(dir_path).<span class="fn">mkdir</span>(parents=<span class="kw">True</span>, exist_ok=<span class="kw">True</span>)
+
+    <span class="kw">def</span> <span class="fn">_configure_tesseract</span>(self) -> <span class="kw">None</span>:
+        tesseract_path = os.<span class="fn">getenv</span>(<span class="str">"TESSERACT_PATH"</span>, <span class="str">"/usr/bin/tesseract"</span>)
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+    <span class="kw">def</span> <span class="fn">_run_ocr_on_images</span>(self, image_path: str) -> str:
+        <span class="str">"""Run Tesseract OCR on an image file → return extracted text."""</span>
+        <span class="kw">try</span>:
+            img = <span class="cls">Image</span>.<span class="fn">open</span>(image_path)
+            <span class="kw">return</span> pytesseract.<span class="fn">image_to_string</span>(img)
+        <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+            logger.<span class="fn">warning</span>(<span class="str">"OCR failed"</span>, image=image_path, error=<span class="fn">str</span>(e))
+            <span class="kw">return</span> <span class="str">""</span>
+
+    <span class="kw">def</span> <span class="fn">extract_text_and_images</span>(self) -> <span class="kw">None</span>:
+        <span class="str">"""Extract native PDF text and render pages as images."""</span>
+        doc = fitz.<span class="fn">open</span>(self.pdf_path)
+        <span class="kw">for</span> page_num, page <span class="kw">in</span> <span class="fn">enumerate</span>(doc):
+            text = page.<span class="fn">get_text</span>()
+            <span class="cm"># Render page as high-res image</span>
+            mat    = fitz.<span class="fn">Matrix</span>(self.render_scale, self.render_scale)
+            pixmap = page.<span class="fn">get_pixmap</span>(matrix=mat)
+            img_path = os.path.<span class="fn">join</span>(self.page_image_dir, f<span class="str">f"page_{page_num+1}.png"</span>)
+            pixmap.<span class="fn">save</span>(img_path)
+            <span class="cm"># OCR the rendered page image for scanned PDFs</span>
+            ocr_text = self.<span class="fn">_run_ocr_on_images</span>(img_path)
+            self.page_record.<span class="fn">append</span>({
+                <span class="str">"page_number"</span>: page_num + <span class="num">1</span>,
+                <span class="str">"native_text"</span>: text,
+                <span class="str">"ocr_text"</span>: ocr_text,
+                <span class="str">"page_image"</span>: img_path
+            })
+        doc.<span class="fn">close</span>()
+        logger.<span class="fn">info</span>(<span class="str">"Text and images extracted"</span>, pages=<span class="fn">len</span>(self.page_record))
+
+    <span class="kw">def</span> <span class="fn">extract_table</span>(self) -> <span class="kw">None</span>:
+        <span class="str">"""Extract tables using camelot."""</span>
+        <span class="kw">try</span>:
+            tables = camelot.<span class="fn">read_pdf</span>(self.pdf_path, pages=<span class="str">"all"</span>, flavor=<span class="str">"stream"</span>)
+            <span class="kw">for</span> i, table <span class="kw">in</span> <span class="fn">enumerate</span>(tables):
+                self.table_record.<span class="fn">append</span>({
+                    <span class="str">"table_index"</span>: i,
+                    <span class="str">"page"</span>:        table.page,
+                    <span class="str">"data"</span>:        table.df.<span class="fn">to_dict</span>()
+                })
+            logger.<span class="fn">info</span>(<span class="str">"Tables extracted"</span>, count=<span class="fn">len</span>(self.table_record))
+        <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+            logger.<span class="fn">warning</span>(<span class="str">"Table extraction failed"</span>, error=<span class="fn">str</span>(e))
+
+    <span class="kw">def</span> <span class="fn">create_langchain_document</span>(self) -> <span class="kw">None</span>:
+        <span class="str">"""Convert page_record into LangChain Document objects."""</span>
+        <span class="kw">for</span> page <span class="kw">in</span> self.page_record:
+            content = page[<span class="str">"native_text"</span>] <span class="kw">or</span> page[<span class="str">"ocr_text"</span>]
+            <span class="kw">if</span> content.strip():
+                self.langchain_docs.<span class="fn">append</span>(<span class="cls">Document</span>(
+                    page_content = content,
+                    metadata     = {
+                        <span class="str">"source"</span>:      os.path.<span class="fn">basename</span>(self.pdf_path),
+                        <span class="str">"page_number"</span>: page[<span class="str">"page_number"</span>],
+                        <span class="str">"page_image"</span>:  page[<span class="str">"page_image"</span>]
+                    }
+                ))
+
+    <span class="kw">def</span> <span class="fn">_save_json</span>(self, data: list, filename: str) -> <span class="kw">None</span>:
+        path = os.path.<span class="fn">join</span>(self.output_dir, filename)
+        <span class="kw">with</span> <span class="fn">open</span>(path, <span class="str">"w"</span>) <span class="kw">as</span> f:
+            json.<span class="fn">dump</span>(data, f, indent=<span class="num">2</span>, default=str)
+
+    <span class="kw">def</span> <span class="fn">save_output</span>(self) -> <span class="kw">None</span>:
+        self.<span class="fn">_save_json</span>(self.page_record,  <span class="str">"page_record.json"</span>)
+        self.<span class="fn">_save_json</span>(self.image_record, <span class="str">"image_record.json"</span>)
+        self.<span class="fn">_save_json</span>(self.table_record, <span class="str">"table_record.json"</span>)
+        logger.<span class="fn">info</span>(<span class="str">"Output saved to disk"</span>)
+
+    <span class="kw">def</span> <span class="fn">parse</span>(self) -> dict:
+        <span class="str">"""Master method — orchestrates the full parsing pipeline."""</span>
+        <span class="kw">try</span>:
+            logger.<span class="fn">info</span>(<span class="str">"Starting PDF parse"</span>, pdf=self.pdf_path)
+            self.<span class="fn">_validate_pdf</span>()
+            self.<span class="fn">_create_output_directories</span>()
+            self.<span class="fn">_configure_tesseract</span>()
+            self.<span class="fn">extract_text_and_images</span>()
+            self.<span class="fn">extract_table</span>()
+            self.<span class="fn">create_langchain_document</span>()
+            self.<span class="fn">save_output</span>()
+            logger.<span class="fn">info</span>(<span class="str">"Parse complete"</span>,
+                         pages=<span class="fn">len</span>(self.page_record),
+                         tables=<span class="fn">len</span>(self.table_record),
+                         docs=<span class="fn">len</span>(self.langchain_docs))
+            <span class="kw">return</span> {
+                <span class="str">"langchain_documents"</span>: self.langchain_docs,
+                <span class="str">"page_record"</span>:         self.page_record,
+                <span class="str">"table_record"</span>:        self.table_record,
+                <span class="str">"image_record"</span>:        self.image_record
+            }
+        <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+            logger.<span class="fn">error</span>(<span class="str">"Parse failed"</span>, error=<span class="fn">str</span>(e))
+            <span class="kw">raise</span> <span class="cls">DocumentPortalException</span>(f<span class="str">f"Parsing failed: {e}"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- INGESTION CLASS -->
+  <section id="ingestion-class">
+    <div class="section-eyebrow">08 — Module 2</div>
+    <h2>DocumentIngestion — ingestion.py</h2>
+
+    <h3 id="ingestion-methods">Methods Overview</h3>
+
+    <table class="class-table">
+      <thead><tr><th>Method</th><th>What it Does</th></tr></thead>
+      <tbody>
+        <tr><td class="cname">__init__(...)</td><td>Stores collection name, embedding model/dims, Qdrant URL/key, batch size. Validates config. Initialises splitter, embedding model, Qdrant client, vector store.</td></tr>
+        <tr><td class="cname">_validate_configuration()</td><td>Checks all required env vars are set. Raises exception if Qdrant key or endpoint missing.</td></tr>
+        <tr><td class="cname">_ensure_collection()</td><td>Creates the Qdrant collection if it doesn't exist already.</td></tr>
+        <tr><td class="cname">_generate_document_id(doc)</td><td>Creates a unique ID for each chunk (deterministic hash of content + page).</td></tr>
+        <tr><td class="cname">_create_point(doc, doc_id)</td><td>Creates a Qdrant point from LangChain Document (embedding vector + payload).</td></tr>
+        <tr><td class="cname">_split(documents)</td><td>Applies RecursiveCharacterTextSplitter — chunking the LangChain documents.</td></tr>
+        <tr><td class="cname">_prepare_documents(chunks)</td><td>Assigns IDs, creates points for batch ingestion into Qdrant.</td></tr>
+        <tr><td class="cname">_delete_existing(doc_ids)</td><td>Optional: deletes existing vectors with same IDs before reinserting (for updates).</td></tr>
+        <tr><td class="cname">ingest_pdf(pdf_path, ...)</td><td><strong>MASTER:</strong> parse → split → embed → ingest to Qdrant. Logs every step.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="ingestion-code">ingestion.py — Key Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · ingestion.py (key sections)</span>
+      <pre><span class="cm">## src/ingestion.py — DocumentIngestion class (skeleton)</span>
+
+<span class="kw">import</span> os, hashlib
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">from</span> langchain_qdrant <span class="kw">import</span> <span class="cls">QdrantVectorStore</span>
+<span class="kw">from</span> qdrant_client <span class="kw">import</span> <span class="cls">QdrantClient</span>
+<span class="kw">from</span> qdrant_client.models <span class="kw">import</span> <span class="cls">Distance</span>, <span class="cls">VectorParams</span>
+<span class="kw">from</span> src.parsing <span class="kw">import</span> <span class="cls">ComplexPDFParser</span>
+<span class="kw">from</span> logger.custom_logger <span class="kw">import</span> <span class="fn">setup_logger</span>
+<span class="kw">from</span> exception.custom_exception <span class="kw">import</span> <span class="cls">DocumentPortalException</span>
+
+logger = <span class="fn">setup_logger</span>(log_file=<span class="str">"logs/ingestion.log"</span>)
+
+<span class="kw">class</span> <span class="cls">DocumentIngestion</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        self,
+        collection_name:     str   = <span class="kw">None</span>,
+        embedding_model:     str   = <span class="str">"text-embedding-3-small"</span>,
+        embedding_dimension: int   = <span class="num">1536</span>,
+        batch_size:          int   = <span class="num">64</span>
+    ):
+        self.collection_name    = collection_name <span class="kw">or</span> os.<span class="fn">getenv</span>(<span class="str">"QDRANT_COLLECTION_NAME"</span>, <span class="str">"rag_documents"</span>)
+        self.embedding_model    = embedding_model
+        self.embedding_dimension= embedding_dimension
+        self.batch_size         = batch_size
+        self.<span class="fn">_validate_configuration</span>()
+
+        self.text_splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(
+            chunk_size    = <span class="num">1000</span>,
+            chunk_overlap = <span class="num">200</span>
+        )
+        self.embedding = <span class="cls">OpenAIEmbeddings</span>(model=self.embedding_model)
+        self.client    = <span class="cls">QdrantClient</span>(
+            url    = os.<span class="fn">getenv</span>(<span class="str">"QDRANT_CLUSTER_ENDPOINT"</span>),
+            api_key= os.<span class="fn">getenv</span>(<span class="str">"QDRANT_API_KEY"</span>)
+        )
+        self.<span class="fn">_ensure_collection</span>()
+        self.vector_store = <span class="cls">QdrantVectorStore</span>(
+            client          = self.client,
+            collection_name = self.collection_name,
+            embedding       = self.embedding
+        )
+        logger.<span class="fn">info</span>(<span class="str">"Ingestion class initialised"</span>, collection=self.collection_name)
+
+    <span class="kw">def</span> <span class="fn">_ensure_collection</span>(self):
+        existing = [c.name <span class="kw">for</span> c <span class="kw">in</span> self.client.get_collections().collections]
+        <span class="kw">if</span> self.collection_name <span class="kw">not in</span> existing:
+            self.client.<span class="fn">create_collection</span>(
+                collection_name = self.collection_name,
+                vectors_config  = <span class="cls">VectorParams</span>(size=self.embedding_dimension, distance=<span class="cls">Distance</span>.COSINE)
+            )
+            logger.<span class="fn">info</span>(<span class="str">"Collection created"</span>, name=self.collection_name)
+
+    <span class="kw">def</span> <span class="fn">ingest_pdf</span>(self, pdf_path: str) -> dict:
+        <span class="str">"""Master method: parse → split → embed → ingest to Qdrant."""</span>
+        <span class="kw">try</span>:
+            logger.<span class="fn">info</span>(<span class="str">"Starting PDF ingestion"</span>, pdf=pdf_path)
+            <span class="cm"># 1. Parse</span>
+            parser       = <span class="cls">ComplexPDFParser</span>(pdf_path=pdf_path)
+            parsed       = parser.<span class="fn">parse</span>()
+            documents    = parsed[<span class="str">"langchain_documents"</span>]
+            <span class="cm"># 2. Split (chunk)</span>
+            chunks       = self.text_splitter.<span class="fn">split_documents</span>(documents)
+            logger.<span class="fn">info</span>(<span class="str">"Chunks created"</span>, count=<span class="fn">len</span>(chunks))
+            <span class="cm"># 3. Embed + store in Qdrant</span>
+            self.vector_store.<span class="fn">add_documents</span>(chunks, batch_size=self.batch_size)
+            logger.<span class="fn">info</span>(<span class="str">"Ingestion complete"</span>, chunks_stored=<span class="fn">len</span>(chunks))
+            <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"success"</span>, <span class="str">"chunks_stored"</span>: <span class="fn">len</span>(chunks)}
+        <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+            logger.<span class="fn">error</span>(<span class="str">"Ingestion failed"</span>, error=<span class="fn">str</span>(e))
+            <span class="kw">raise</span> <span class="cls">DocumentPortalException</span>(f<span class="str">f"Ingestion failed: {e}"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- RETRIEVAL CLASS -->
+  <section id="retrieval-class">
+    <div class="section-eyebrow">09 — Module 3</div>
+    <h2>MultimodalQdrantRetriever — retrieval.py</h2>
+
+    <h3 id="retrieval-code">retrieval.py — Key Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · retrieval.py (key sections)</span>
+      <pre><span class="cm">## src/retrieval.py — MultimodalQdrantRetriever class</span>
+
+<span class="kw">class</span> <span class="cls">MultimodalQdrantRetriever</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, collection_name: str = <span class="kw">None</span>, ...):
+        <span class="cm"># Same Qdrant client setup as Ingestion</span>
+        <span class="cm"># Load vector store (not create — it already exists)</span>
+        self.vector_store = <span class="cls">QdrantVectorStore</span>(
+            client=self.client,
+            collection_name=self.collection_name,
+            embedding=self.embedding
+        )
+
+    <span class="kw">def</span> <span class="fn">_build_filter</span>(self, query: str) -> <span class="kw">None</span>:
+        <span class="cm"># Optional: build metadata filter from query context</span>
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">retrieve</span>(self, query: str, k: int = <span class="num">5</span>) -> list:
+        <span class="str">"""Retrieve top-k relevant documents from Qdrant."""</span>
+        query_filter = self.<span class="fn">_build_filter</span>(query)
+        results      = self.vector_store.<span class="fn">similarity_search</span>(query, k=k)
+        logger.<span class="fn">info</span>(<span class="str">"Retrieval complete"</span>, query=query[:50], results=<span class="fn">len</span>(results))
+        <span class="kw">return</span> results
+
+    <span class="kw">def</span> <span class="fn">retrieve_with_score</span>(self, query: str, k: int = <span class="num">5</span>) -> list:
+        <span class="str">"""Retrieve with similarity scores for debugging / thresholding."""</span>
+        results = self.vector_store.<span class="fn">similarity_search_with_score</span>(query, k=k)
+        <span class="kw">for</span> doc, score <span class="kw">in</span> results:
+            logger.<span class="fn">debug</span>(<span class="str">"Retrieved doc"</span>, score=<span class="fn">round</span>(score, <span class="num">4</span>), page=doc.metadata.get(<span class="str">"page_number"</span>))
+        <span class="kw">return</span> results
+
+    <span class="kw">def</span> <span class="fn">as_langchain_retriever</span>(self, search_type=<span class="str">"similarity"</span>, k=<span class="num">5</span>):
+        <span class="str">"""Return a LangChain-compatible retriever object."""</span>
+        search_kwargs = {<span class="str">"k"</span>: k}
+        <span class="cm"># Add MMR params if search_type == "mmr"</span>
+        <span class="kw">if</span> search_type == <span class="str">"mmr"</span>:
+            search_kwargs.<span class="fn">update</span>({<span class="str">"fetch_k"</span>: <span class="num">20</span>, <span class="str">"lambda_mult"</span>: <span class="num">0.5</span>})
+        <span class="kw">return</span> self.vector_store.<span class="fn">as_retriever</span>(
+            search_type   = search_type,
+            search_kwargs = search_kwargs
+        )</pre>
+    </div>
+  </section>
+
+  <!-- GENERATION CLASS -->
+  <section id="generation-class">
+    <div class="section-eyebrow">10 — Module 4</div>
+    <h2>MultimodalRAGGenerator — generation.py</h2>
+
+    <h3 id="generation-code">generation.py — Key Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · generation.py (key sections)</span>
+      <pre><span class="cm">## src/generation.py — MultimodalRAGGenerator class</span>
+
+<span class="kw">import</span> base64
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">ChatOpenAI</span>
+<span class="kw">from</span> prompt_library.prompt <span class="kw">import</span> (
+    <span class="cls">MULTIMODAL_RAG_SYSTEM_PROMPT</span>, <span class="cls">MULTIMODAL_RAG_USER_PROMPT</span>,
+    <span class="fn">format_multimodal_rag_user_prompt</span>, <span class="fn">format_retrieve_image_evidence_prompt</span>
+)
+<span class="kw">from</span> src.retrieval <span class="kw">import</span> <span class="cls">MultimodalQdrantRetriever</span>
+
+<span class="kw">class</span> <span class="cls">MultimodalRAGGenerator</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        self,
+        collection_name: str,
+        model_name:      str   = <span class="str">"gpt-4.1-mini"</span>,
+        temperature:     float = <span class="num">0.2</span>,
+        max_images:      int   = <span class="num">3</span>,
+        max_context_chars:int  = <span class="num">10000</span>
+    ):
+        self.max_images       = max_images
+        self.max_context_chars= max_context_chars
+        self.retriever        = <span class="cls">MultimodalQdrantRetriever</span>(collection_name=collection_name)
+        self.llm              = <span class="cls">ChatOpenAI</span>(model=model_name, temperature=temperature)
+
+    <span class="kw">def</span> <span class="fn">_image_to_data_url</span>(self, image_path: str) -> str:
+        <span class="str">"""Convert image file → base64 data URL for multimodal LLM input."""</span>
+        <span class="kw">with</span> <span class="fn">open</span>(image_path, <span class="str">"rb"</span>) <span class="kw">as</span> f:
+            b64 = base64.<span class="fn">b64encode</span>(f.<span class="fn">read</span>()).<span class="fn">decode</span>(<span class="str">"utf-8"</span>)
+        <span class="kw">return</span> f<span class="str">f"data:image/png;base64,{b64}"</span>
+
+    <span class="kw">def</span> <span class="fn">_prepare_context</span>(self, retrieved_docs: list) -> str:
+        <span class="str">"""Combine retrieved text chunks into a single context string."""</span>
+        context_parts = []
+        <span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(retrieved_docs):
+            context_parts.<span class="fn">append</span>(
+                f<span class="str">f"[Source {i+1} | Page {doc.metadata.get('page_number','?')}]\n{doc.page_content}"</span>
+            )
+        context = <span class="str">"\n\n"</span>.<span class="fn">join</span>(context_parts)
+        <span class="kw">return</span> context[:self.max_context_chars]  <span class="cm"># truncate if too long</span>
+
+    <span class="kw">def</span> <span class="fn">_build_messages</span>(self, query: str, context: str, image_urls: list) -> list:
+        <span class="str">"""Build the final message list to send to the multimodal LLM."""</span>
+        <span class="cm"># System message</span>
+        messages = [(<span class="str">"system"</span>, <span class="cls">MULTIMODAL_RAG_SYSTEM_PROMPT</span>)]
+        <span class="cm"># User message with context</span>
+        user_content = <span class="fn">format_multimodal_rag_user_prompt</span>(query=query, context=context)
+        <span class="cm"># Append images if available</span>
+        <span class="kw">if</span> image_urls:
+            messages.<span class="fn">append</span>((<span class="str">"human"</span>, [
+                {<span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"text"</span>: user_content},
+                *[{<span class="str">"type"</span>: <span class="str">"image_url"</span>, <span class="str">"image_url"</span>: {<span class="str">"url"</span>: url}} <span class="kw">for</span> url <span class="kw">in</span> image_urls]
+            ]))
+        <span class="kw">else</span>:
+            messages.<span class="fn">append</span>((<span class="str">"human"</span>, user_content))
+        <span class="kw">return</span> messages
+
+    <span class="kw">def</span> <span class="fn">generate</span>(self, query: str, k: int = <span class="num">5</span>) -> dict:
+        <span class="str">"""Master method: retrieve → build context → call LLM → return answer."""</span>
+        <span class="kw">try</span>:
+            <span class="cm"># 1. Retrieve relevant documents</span>
+            docs_with_scores = self.retriever.<span class="fn">retrieve_with_score</span>(query, k=k)
+            docs             = [doc <span class="kw">for</span> doc, _ <span class="kw">in</span> docs_with_scores]
+            <span class="cm"># 2. Prepare text context</span>
+            context    = self.<span class="fn">_prepare_context</span>(docs)
+            <span class="cm"># 3. Collect page images for multimodal input</span>
+            image_urls = []
+            <span class="kw">for</span> doc <span class="kw">in</span> docs[:self.max_images]:
+                img_path = doc.metadata.<span class="fn">get</span>(<span class="str">"page_image"</span>)
+                <span class="kw">if</span> img_path <span class="kw">and</span> os.path.<span class="fn">exists</span>(img_path):
+                    image_urls.<span class="fn">append</span>(self.<span class="fn">_image_to_data_url</span>(img_path))
+            <span class="cm"># 4. Build messages + call LLM</span>
+            messages = self.<span class="fn">_build_messages</span>(query, context, image_urls)
+            response = self.llm.<span class="fn">invoke</span>(messages)
+            <span class="kw">return</span> {<span class="str">"answer"</span>: response.content, <span class="str">"sources"</span>: docs}
+        <span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+            logger.<span class="fn">error</span>(<span class="str">"Generation failed"</span>, error=<span class="fn">str</span>(e))
+            <span class="kw">raise</span> <span class="cls">DocumentPortalException</span>(f<span class="str">f"Generation failed: {e}"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- PROMPT LIBRARY -->
+  <section id="prompt-library">
+    <div class="section-eyebrow">11 — Prompts</div>
+    <h2>Prompt Library — prompt_library/prompt.py</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · prompt.py</span>
+      <pre><span class="cm">## prompt_library/prompt.py — all prompt templates</span>
+
+<span class="cm"># ── System prompt: defines the assistant's role and rules ─────────</span>
+<span class="cls">MULTIMODAL_RAG_SYSTEM_PROMPT</span> = <span class="str">"""You are an answer generator component of a Multimodal RAG system.
+Answer ONLY from the retrieved context and retrieved images provided.
+Do NOT answer from outside knowledge.
+If the retrieved evidence is insufficient, clearly say 'Evidence is not available.'
+Treat text, OCR output, table data, and images as equal evidence sources.
+If sources disagree, mention the discrepancy.
+Be concise, accurate, and cite the source page number where possible."""</span>
+
+<span class="cm"># ── User prompt: query + context → answer ────────────────────────</span>
+<span class="cls">MULTIMODAL_RAG_USER_PROMPT</span> = <span class="str">"""Retrieved Context:
+{context}
+
+User Question: {query}
+
+Answer the user question ONLY based on the evidence above."""</span>
+
+<span class="cm"># ── Image evidence prompt ─────────────────────────────────────────</span>
+<span class="cls">RETRIEVE_IMAGE_EVIDENCE_PROMPT</span> = <span class="str">"""Image {image_index} (Page {page_number}):
+{citation}"""</span>
+
+<span class="cm"># ── Chat suggested queries (shown on UI sidebar) ──────────────────</span>
+<span class="cls">CHAT_SUGGEST_PROMPT</span> = <span class="str">"""Based on the document indexed, suggest 5 meaningful questions
+the user might want to ask. Return as a Python list of strings."""</span>
+
+<span class="cm"># ── Smoke test query (used in development to validate pipeline) ───</span>
+<span class="cls">GENERATION_SMOKE_TEST_QUERY</span> = <span class="str">"Summarise the main topic of this document in 2–3 sentences."</span>
+
+<span class="cm"># ── Format methods ────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">format_multimodal_rag_user_prompt</span>(query: str, context: str) -> str:
+    <span class="kw">return</span> <span class="cls">MULTIMODAL_RAG_USER_PROMPT</span>.<span class="fn">format</span>(context=context, query=query)
+
+<span class="kw">def</span> <span class="fn">format_retrieve_image_evidence_prompt</span>(image_index: int, page_number: int, citation: str) -> str:
+    <span class="kw">return</span> <span class="cls">RETRIEVE_IMAGE_EVIDENCE_PROMPT</span>.<span class="fn">format</span>(
+        image_index=image_index, page_number=page_number, citation=citation
+    )</pre>
+    </div>
+
+    <div class="sunny-says">
+      "You can write a conditional prompt, you can define the prompt, use a ChatPromptTemplate, PromptTemplate, single string, simple multi-lined string, F string, anything. In any way you can write a prompt. You can create a JSON file, you can create a PY file, you can create a YAML file — anything you can create. It's up to you how you are going to be design this system."
+    </div>
+  </section>
+
+  <!-- LOGGER + EXCEPTIONS -->
+  <section id="logger-exception">
+    <div class="section-eyebrow">12 — Observability</div>
+    <h2>Custom Logger & Exceptions</h2>
+
+    <div class="code-block">
+      <span class="lang-label">python · custom_logger.py</span>
+      <pre><span class="cm">## logger/custom_logger.py</span>
+<span class="kw">import</span> logging, os
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> pathlib <span class="kw">import</span> <span class="cls">Path</span>
+
+<span class="kw">def</span> <span class="fn">setup_logger</span>(log_file: str = <span class="kw">None</span>) -> logging.<span class="cls">Logger</span>:
+    <span class="str">"""Create a logger that writes to both console and timestamped log file."""</span>
+    <span class="cm"># Create logs directory</span>
+    log_dir = <span class="str">"logs"</span>
+    <span class="cls">Path</span>(log_dir).<span class="fn">mkdir</span>(exist_ok=<span class="kw">True</span>)
+
+    <span class="cm"># Timestamped filename: logs/08_17_2026_14_35_22.log</span>
+    timestamp = datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="str">"%m_%d_%Y_%H_%M_%S"</span>)
+    log_file  = log_file <span class="kw">or</span> os.path.<span class="fn">join</span>(log_dir, f<span class="str">f"{timestamp}.log"</span>)
+
+    logging.<span class="fn">basicConfig</span>(
+        level   = logging.INFO,
+        format  = <span class="str">"%(asctime)s | %(levelname)s | %(name)s | %(message)s"</span>,
+        handlers= [
+            logging.<span class="cls">FileHandler</span>(log_file),
+            logging.<span class="cls">StreamHandler</span>()     <span class="cm"># also print to console/terminal</span>
+        ]
+    )
+    <span class="kw">return</span> logging.<span class="fn">getLogger</span>(<span class="str">"MultimodalRAG"</span>)
+
+<span class="cm">## exception/custom_exception.py</span>
+<span class="kw">class</span> <span class="cls">DocumentPortalException</span>(<span class="cls">Exception</span>):
+    <span class="str">"""Base exception for Multimodal RAG system errors."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, message: str, details: dict = <span class="kw">None</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(message)
+        self.details = details <span class="kw">or</span> {}
+
+<span class="kw">class</span> <span class="cls">ParseException</span>(<span class="cls">DocumentPortalException</span>):     <span class="kw">pass</span>
+<span class="kw">class</span> <span class="cls">IngestionException</span>(<span class="cls">DocumentPortalException</span>): <span class="kw">pass</span>
+<span class="kw">class</span> <span class="cls">RetrievalException</span>(<span class="cls">DocumentPortalException</span>): <span class="kw">pass</span>
+<span class="kw">class</span> <span class="cls">GenerationException</span>(<span class="cls">DocumentPortalException</span>):<span class="kw">pass</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">📋</span>
+      <p><strong>Log visibility:</strong> "Every sort of log is being represented over the console. You can directly debug it from here itself. And in the log file — every time the app runs, a new timestamped log file is created. You can monitor your application logs in CloudWatch or any log aggregation platform."</p>
+    </div>
+  </section>
+
+  <!-- STREAMLIT UI -->
+  <section id="ui-streamlit">
+    <div class="section-eyebrow">13 — Frontend</div>
+    <h2>Streamlit UI</h2>
+
+    <div class="sunny-says">
+      "UI you can create according to your requirement — it is a very subjective thing. For whatever project you are working, you will first create a wireframe, consult with the end user, the business user, the product team, and according to that only you will be creating a UI. If you are a UI UX engineer, this is your responsibility. But if you're not, you can skip this part. As an AI engineer, no need to be worried about the UI skill. In multiple projects I haven't coded any single UI file. For MVPs and POCs I created a basic UI using Streamlit, Gradio, or a basic React app."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Streamlit UI — Panel Structure</div>
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:16px;">
+        <div style="background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.2); border-radius:6px; padding:14px; font-size:0.76rem; color:#94a3b8;">
+          <div style="color:var(--accent); font-weight:700; margin-bottom:8px;">Left Sidebar</div>
+          Upload PDF<br>
+          Parse Document<br>
+          Create Index Name<br>
+          Chunk Size / Overlap<br>
+          Index to Qdrant<br>
+          Re-index button
+        </div>
+        <div style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.2); border-radius:6px; padding:14px; font-size:0.76rem; color:#94a3b8;">
+          <div style="color:var(--accent5); font-weight:700; margin-bottom:8px;">Main Chat Panel</div>
+          Select model (gpt-4.1-mini, etc.)<br>
+          Top-k retrieval slider<br>
+          Max retrieved images slider<br>
+          Chat input / history<br>
+          Console / log display<br>
+          Index status indicator
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECOUPLED PIPELINE -->
+  <section id="decoupled-pipeline">
+    <div class="section-eyebrow">14 — Design Pattern</div>
+    <h2>Decoupled Pipeline Design</h2>
+
+    <div class="sunny-says">
+      "These two things are decoupled, actually, from the entire pipeline — this ingestion and the parsing one. So this thing is a decoupled one. Ingestion and parsing, we can do before-hand, and then on top of it, we can perform our generation, means our chatting. Always keep this ingestion-parsing pipeline as a decoupled one. Schedule it separately. Parsing should be a separate one, ingestion should be a separate one. And generation/retrieval should be the separate pipeline."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.4;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Two Separate Pipelines</div>
+      <div style="margin-bottom:14px;">
+        <div style="color:var(--accent4); font-weight:700; margin-bottom:6px;">Pipeline A — Offline (run once / scheduled)</div>
+        <div style="color:#94a3b8;">Parse PDF → Chunk → Embed → Store in Qdrant</div>
+        <div style="color:var(--muted); font-size:0.72rem; margin-top:4px;">Run via Airflow, a cron job, or triggered by UI "Index" button. Not in the critical path.</div>
+      </div>
+      <div>
+        <div style="color:var(--accent5); font-weight:700; margin-bottom:6px;">Pipeline B — Online (every user query)</div>
+        <div style="color:#94a3b8;">User Query → Retrieve from Qdrant → Generate Answer</div>
+        <div style="color:var(--muted); font-size:0.72rem; margin-top:4px;">Must be fast — only retrieval + generation. Parsing/ingestion already done.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE DEMO -->
+  <section id="live-demo">
+    <div class="section-eyebrow">15 — What Sunny Built Live</div>
+    <h2>Live Demo Walkthrough</h2>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">1</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Upload Llama 2 research paper</strong> (72 pages PDF) via Streamlit sidebar</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">2</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Parse button clicked</strong> → PyMuPDF + Tesseract runs → 72 pages parsed → page_record.json saved → logs appear in console</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent5); flex-shrink:0; margin-top:2px;">3</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Index to Qdrant</strong> → "llama-research-paper-index" collection created in Qdrant cloud → 480 points (chunks) stored</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent3); flex-shrink:0; margin-top:2px;">4</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Chat with document</strong> → user types "What is contract processing ownership map?" → retriever finds relevant pages → GPT-4.1-mini generates grounded answer with source citations</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(250,204,21,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent6); flex-shrink:0; margin-top:2px;">5</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:#fff;">Multiple indexes</strong> → demonstrated creating "Multimodal RAG document index 2" and switching between indexes in the UI</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSIGNMENT -->
+  <section id="assignment">
+    <div class="section-eyebrow">16 — Homework</div>
+    <h2>Multimodal RAG Assignment</h2>
+
+    <div style="background:rgba(244,114,182,0.06); border:1px solid rgba(244,114,182,0.25); border-radius:10px; padding:24px; margin:16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent2); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:14px;">Assignment — Deadline: 29 August 2026</div>
+      <p style="font-size:0.9rem; color:#fff; font-weight:600; margin-bottom:12px;">Extend the Multimodal RAG project to production-grade level by adding all missing advanced components.</p>
+
+      <div style="font-size:0.84rem; color:#94a3b8; line-height:2.4;">
+        <strong style="color:var(--text);">Required additions:</strong><br>
+        → <strong>Evaluation (RAGAs)</strong> — precision, recall, faithfulness, answer relevance metrics<br>
+        → <strong>Memory</strong> — conversational memory so follow-up questions reference prior answers<br>
+        → <strong>Guardrails</strong> — input/output safety checks, topic restriction, PII detection<br>
+        → <strong>Configuration via YAML</strong> — all hardcoded values moved to config.yaml<br>
+        → <strong>Advanced retrieval</strong> — implement at least one advanced technique (hybrid, reranking, MMR)<br>
+        → <strong>Error handling</strong> — robust exception handling across all modules<br>
+        → <strong>Unit tests</strong> — smoke tests for parsing, ingestion, retrieval, generation pipelines
+      </div>
+
+      <div style="margin-top:14px; font-size:0.8rem; color:#94a3b8; border-top:1px solid var(--border); padding-top:12px;">
+        Assignment PDF pushed to GitHub repo. After Agentic AI chapter, a bigger combined assignment (RAG + Agentic) will be released — with higher-value prize (Sunny mentioned possibly iPhone 18 as prize for the big assignment after Agentic classes).
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💼</span>
+      <p><strong>Career value:</strong> "This assignment will teach you how to make a production-grade system from this prototype. And then I will provide one more assignment after completing this, where you will learn how to create a complete SaaS. So we'll try to create this project in such a way where we can deploy it for real-time users. You can even mention this kind of project inside your resume also — and you can sell it to your client."</p>
+    </div>
+  </section>
+
+  <!-- Q&A -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">17 — Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Naveen</div>
+      <div class="qa-question">Will deployment be covered in this bootcamp?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — deployment is planned for 3 specific end-to-end projects near the end of the bootcamp. Not every development session will include deployment. There are 3 projects at the end that specifically cover cloud deployment — AWS, GCP, or Azure setup. The development part (building the application) is taught throughout; deployment will be shown in the final project phase.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati (Dorge)</div>
+      <div class="qa-question">How much did you spend on API keys for this project? Is OpenAI the only paid service?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Except OpenAI, everything else is free: Qdrant has a free cloud tier, Tesseract is open-source, Groq is free for the LLM. OpenAI I spent about $5–$10 for my practice purposes. For the embedding model (text-embedding-3-small) you need OpenAI. For the generation model, you can substitute Groq (free) — just change the ChatOpenAI to ChatGroq and update the model name. Sunny's recommendation: start with Groq for learning, use OpenAI when you need GPT-4 quality for production demos.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Jyoti</div>
+      <div class="qa-question">Rather than deleting the old index and creating a new one, can we just add more documents to an existing Qdrant collection?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — you can add more documents to an existing collection at any time. The DocumentIngestion class's _ensure_collection() method only creates the collection if it doesn't exist. If you call ingest_pdf() with a new document, it will add the new vectors to the existing collection without deleting anything. For update scenarios (when the same document changes): you can write logic to delete existing points by document ID before re-inserting updated vectors — or create a new collection with a new version name and archive the old one.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Nabi</div>
+      <div class="qa-question">I have structured data in a Hive data warehouse. Can I connect it to a RAG system?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — the approach: (1) Use Spark SQL to query Hive and fetch relevant columns/rows that contain meaningful text. (2) Clean and prepare the data. (3) Convert each row into a LangChain Document object (page_content = text, metadata = structured fields). (4) Do chunking if needed, embed with OpenAI, store in Qdrant. (5) Build RAG on top of that collection. The same pipeline applies — you're just replacing the PDF parser with a Hive/Spark connector for the data extraction step. For structured data, you can also consider Text-to-SQL as an alternative to RAG for pure table queries.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">18 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 39 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. Why can't a Jupyter Notebook be deployed directly to production? What architectural changes are needed?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Notebooks are interactive, sequential, and not structured for deployment. They have no error handling, no logging, no modularity, and can't be served as a web API or scheduled job. To productionize: convert notebook cells into Python classes and methods (OOP); add custom logger for observability; add custom exceptions for robust error handling; break into modules (parsing.py, ingestion.py, retrieval.py, generation.py); create a config system (.env + config.yaml); build a UI (Streamlit/FastAPI); add a setup.py for proper package imports. The code logic is exactly the same — only the structure changes from linear cells to callable classes.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What are the 4 pipeline stages and their corresponding files in the Multimodal RAG project?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Stage 1 — Parsing (parsing.py): PDF → text (PyMuPDF) + images (Tesseract OCR) + tables (camelot) → LangChain Documents. Class: ComplexPDFParser. Stage 2 — Ingestion (ingestion.py): LangChain Documents → split into chunks → embed with OpenAI text-embedding-3-small → store in Qdrant vector DB. Class: DocumentIngestion. Stage 3 — Retrieval (retrieval.py): user query → vector similarity search in Qdrant → top-k chunks with scores. Class: MultimodalQdrantRetriever. Stage 4 — Generation (generation.py): retrieved chunks + images + prompt → GPT-4.1-mini → grounded answer. Class: MultimodalRAGGenerator.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is the private method naming convention in Python and what methods in ComplexPDFParser are private vs public?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">In Python, methods starting with a single underscore (_methodname) are "private by convention" — they should not be called from outside the class. They're meant to be called only from within the class itself. Private methods in ComplexPDFParser: _validate_pdf(), _create_output_directories(), _configure_tesseract(), _run_ocr_on_images(), _save_json(). Public methods (callable from outside): extract_text_and_images(), extract_table(), create_langchain_document(), save_output(), parse() (master). The pattern: internal helpers are private; the main orchestration method parse() is public and calls all the private helpers internally.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What does "decoupled pipeline" mean in the context of this project and why is it important?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Decoupled pipeline means: Pipeline A (parsing + ingestion) and Pipeline B (retrieval + generation) are independent. Pipeline A runs once or on schedule (when new documents arrive). Pipeline B runs on every user query. Why important: (1) Performance — user queries are not slowed down by PDF parsing; only fast retrieval + generation is in the critical path. (2) Scalability — pipelines can scale independently. (3) Reliability — a parsing error doesn't affect user queries if data is already indexed. (4) Scheduling — Pipeline A can be triggered by document upload or run as a nightly batch job. In the Streamlit UI: left sidebar (upload + parse + index) is Pipeline A; chat panel is Pipeline B. Sunny: "Always keep ingestion-parsing as a decoupled one. Schedule it separately."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What API keys are required for this project, and which ones are free vs paid?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Required and PAID: OpenAI API key — needed for text-embedding-3-small (embedding model) and GPT-4.1-mini (generation). Sunny spent ~$5–$10 for practice. Free alternatives for the generation model: Groq API key (free tier) — swap ChatOpenAI for ChatGroq with a free Llama model. Required and FREE: Qdrant API key + cluster endpoint — Qdrant offers a free cloud tier. Tesseract — open-source OCR, no API key. Not needed for base project (optional): Google API key (Gemini models), Anthropic API key (Claude), HuggingFace token, Pinecone. Minimum setup for local practice: OPENAI_API_KEY (paid ~$5) + QDRANT_API_KEY (free) + TESSERACT_PATH.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 39 · Multimodal RAG End-to-End Project · 17 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 33 — Vector Databases | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #a78bfa;   /* violet — vector / embedding */
+  --accent2:     #22d3ee;   /* cyan — similarity search */
+  --accent3:     #4ade80;   /* green — success / FAISS */
+  --accent4:     #fb923c;   /* orange — index / warning */
+  --accent5:     #f472b6;   /* pink — ChromaDB */
+  --accent6:     #facc15;   /* yellow — highlights */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(167,139,250,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(167,139,250,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 60%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 33):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.violet p { color: #c4b5fd; }
+.callout.pink p   { color: #f9a8d4; }
+
+/* ── VDB VISUAL STORE DIAGRAM ── */
+.vdb-store-diagram { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+.vdb-store-diagram .diag-label { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; }
+.doc-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.doc-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+.doc-row-label { font-size: 0.68rem; color: var(--muted); width: 30px; display: flex; align-items: center; }
+.doc-cell { padding: 8px 12px; border-radius: 5px; font-size: 0.72rem; border: 1px solid; flex: 1; min-width: 80px; }
+.cell-id     { background: rgba(250,204,21,0.1);   border-color: rgba(250,204,21,0.3);   color: var(--accent6); }
+.cell-text   { background: rgba(74,222,128,0.1);   border-color: rgba(74,222,128,0.3);   color: var(--accent3); }
+.cell-embed  { background: rgba(167,139,250,0.1);  border-color: rgba(167,139,250,0.3);  color: var(--accent); }
+.cell-meta   { background: rgba(34,211,238,0.1);   border-color: rgba(34,211,238,0.3);   color: var(--accent2); }
+.cell-header { background: var(--card); border: 1px solid var(--border); color: var(--text); font-weight: 700; }
+
+/* ── INDEX TYPE CARDS ── */
+.index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 20px 0; }
+.index-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; border-top: 3px solid; }
+.index-card .idx-type { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+.index-card .idx-full { font-size: 0.75rem; color: var(--muted); margin-bottom: 10px; }
+.index-card h4 { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.index-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; line-height: 1.55; }
+.index-card .idx-search { font-size: 0.72rem; padding: 2px 8px; border-radius: 3px; display: inline-block; font-family: 'IBM Plex Mono', monospace; }
+
+/* ── SIMILARITY METRICS ── */
+.metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+.metric-card .m-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.metric-card h4 { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.metric-card p  { font-size: 0.76rem; color: var(--muted); margin: 0; line-height: 1.5; }
+.metric-card .m-best { font-size: 0.7rem; margin-top: 8px; color: var(--accent3); }
+
+/* ── COMPARE TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 11px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+.compare-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .yes   { color: var(--accent3); font-weight: 500; }
+.compare-table .no    { color: #f87171; }
+.compare-table .mid   { color: var(--accent4); }
+.compare-table .best  { color: var(--accent6); font-weight: 600; }
+.compare-table .mono  { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; }
+
+/* ── VDB LANDSCAPE ── */
+.vdb-landscape { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.vdb-badge { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.vdb-badge .vb-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+.vdb-badge .vb-type { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+.vdb-badge .vb-use  { font-size: 0.7rem; }
+
+/* ── CATEGORIES ── */
+.cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.cat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+.cat-card .cat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.cat-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.cat-card ul { list-style: none; }
+.cat-card ul li { font-size: 0.8rem; color: #94a3b8; padding: 2px 0; }
+.cat-card ul li::before { content: '→ '; color: var(--muted); }
+
+/* ── CODE BLOCKS ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── KEY TERMS ── */
+.key-terms { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 8px; padding: 20px; margin: 24px 0; }
+.key-terms h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.term { margin-bottom: 12px; }
+.term dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+.term dd { font-size: 0.8rem; color: var(--muted); margin-left: 0; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(167,139,250,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(167,139,250,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .metrics-row, .cat-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#what-is-vdb">What is a Vector DB?</a></li>
+    <li class="sub"><a href="#definition">Definition</a></li>
+    <li class="sub"><a href="#what-is-stored">What's Stored</a></li>
+    <li class="sub"><a href="#vector-index">Vector Index</a></li>
+    <li><a href="#similarity-search">Similarity Search</a></li>
+    <li class="sub"><a href="#cosine">Cosine Similarity</a></li>
+    <li class="sub"><a href="#euclidean">Euclidean Distance</a></li>
+    <li class="sub"><a href="#dot-product">Dot Product</a></li>
+    <li><a href="#index-types">Index Types</a></li>
+    <li class="sub"><a href="#flat-index">Flat Index</a></li>
+    <li class="sub"><a href="#ivf-index">IVF Index</a></li>
+    <li class="sub"><a href="#hnsw-index">HNSW Index</a></li>
+    <li class="sub"><a href="#exact-vs-ann">Exact vs ANN Search</a></li>
+    <li><a href="#vdb-landscape">VDB Landscape</a></li>
+    <li class="sub"><a href="#categories">4 Categories</a></li>
+    <li class="sub"><a href="#vdb-vs-store">VDB vs Vector Store</a></li>
+    <li><a href="#vdb-vs-sql">VDB vs SQL vs NoSQL</a></li>
+    <li><a href="#faiss-practical">FAISS — Practical</a></li>
+    <li class="sub"><a href="#faiss-setup">Setup & Index</a></li>
+    <li class="sub"><a href="#faiss-add">Add Documents</a></li>
+    <li class="sub"><a href="#faiss-search">Similarity Search</a></li>
+    <li class="sub"><a href="#faiss-filter">Metadata Filtering</a></li>
+    <li class="sub"><a href="#faiss-persist">Persist to Disk</a></li>
+    <li><a href="#full-code">Full Code</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 33</span></div>
+    <div class="hero-class-num">Class 33 · 19 July 2026</div>
+    <h1>Vector<br><em>Databases</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Vector Index</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Similarity Search</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> FAISS</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> IVF · HNSW</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> ChromaDB</div>
+    </div>
+    <p class="hero-summary">
+      Data parsing is done. Now it's time to store it. Class 33 covers Vector Databases from first principles — what they store, how indexing works, what similarity search really means mathematically, and how to implement a complete FAISS vector store in LangChain with in-memory, disk persistence, similarity search, and metadata filtering.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <p>Class 33 is a theory-heavy session building from the ground up. Sunny covers the complete conceptual model of vector databases before moving to hands-on FAISS code in VS Code. ChromaDB, Pinecone, and Qdrant are introduced and will be covered practically in the next class.</p>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Define what a vector database is and why it's needed in RAG</li>
+      <li><span class="chk">✓</span> Understand what 3 things are stored per document: actual text, embedding vector, metadata</li>
+      <li><span class="chk">✓</span> Understand what a Vector Index is and why it matters for search speed</li>
+      <li><span class="chk">✓</span> Know the 3 similarity search metrics: cosine similarity, dot product, Euclidean distance</li>
+      <li><span class="chk">✓</span> Understand the 3 index types: Flat (exact), IVF (cluster-based ANN), HNSW (graph-based ANN)</li>
+      <li><span class="chk">✓</span> Know the difference between Exact Search and Approximate Nearest Neighbour (ANN) search</li>
+      <li><span class="chk">✓</span> Know the 4 categories of vector databases: in-memory, local persistent, vendor managed (SaaS), cloud provider</li>
+      <li><span class="chk">✓</span> Understand the difference between a "Vector Store" and a "Vector Database"</li>
+      <li><span class="chk">✓</span> Compare Vector DB with SQL and NoSQL databases</li>
+      <li><span class="chk">✓</span> Build a complete FAISS vector store — add docs, similarity search, metadata filter, save/load from disk</li>
+    </ul>
+  </section>
+
+  <!-- WHAT IS VDB -->
+  <section id="what-is-vdb">
+    <div class="section-eyebrow">02 — Core Concept</div>
+    <h2>What is a Vector Database?</h2>
+
+    <h3 id="definition">The Definition (from Sunny's Blackboard)</h3>
+    <div style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.2); border-radius:8px; padding:20px 24px; margin:16px 0; text-align:center;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--muted); margin-bottom:10px; letter-spacing:0.12em; text-transform:uppercase;">Definition</div>
+      <div style="font-size:1rem; font-weight:600; color:#fff; line-height:1.6;">A Vector Database <span style="color:var(--accent)">stores data as numerical vectors</span> (embeddings)<br>and retrieves the most similar vectors using <span style="color:var(--accent2)">similarity search</span></div>
+    </div>
+
+    <div class="sunny-says">
+      "Vector Database store data as a numerical vector, which is called the embedding. And retrieve the most similar vector using the similarity search. So if two vectors are near to each other, then those vectors we are going to be retrieved. If the vector are not near to each other, the information is not similar — we are not going to retrieve that particular data."
+    </div>
+
+    <p>Vector databases are used primarily for:</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 20px;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-size:0.82rem; color:#94a3b8;">🔍 Semantic Search (RAG)</div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-size:0.82rem; color:#94a3b8;">🎯 Recommendation Systems</div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-size:0.82rem; color:#94a3b8;">🖼 Image Search</div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-size:0.82rem; color:#94a3b8;">💬 Chatbot Memory</div>
+    </div>
+
+    <h3 id="what-is-stored">What is Stored per Document</h3>
+    <p>Sunny drew this on the blackboard explicitly. Every document stored in a vector database has exactly 3 components:</p>
+
+    <div class="vdb-store-diagram">
+      <div class="diag-label">What gets stored in the Vector Database — per document</div>
+      <div class="doc-rows">
+        <div class="doc-row">
+          <span class="doc-row-label"></span>
+          <div class="doc-cell cell-header">Actual Data (Text)</div>
+          <div class="doc-cell cell-header">Embedded Data (Vector)</div>
+          <div class="doc-cell cell-header">Metadata</div>
+        </div>
+        <div class="doc-row">
+          <span class="doc-row-label" style="color:var(--accent); font-weight:700;">D1</span>
+          <div class="doc-cell cell-text">"AI is the future"</div>
+          <div class="doc-cell cell-embed">[1, 2, 9, 6, 7, 8, 9, 2…]</div>
+          <div class="doc-cell cell-meta">source: data_file.pdf</div>
+        </div>
+        <div class="doc-row">
+          <span class="doc-row-label" style="color:var(--accent); font-weight:700;">D2</span>
+          <div class="doc-cell cell-text">"Vibe coding is useful"</div>
+          <div class="doc-cell cell-embed">[2, 6, 8, 15, 13, 4, 7…]</div>
+          <div class="doc-cell cell-meta">source: data_file.pdf</div>
+        </div>
+        <div class="doc-row">
+          <span class="doc-row-label" style="color:var(--accent); font-weight:700;">D3</span>
+          <div class="doc-cell cell-text">"System design is important"</div>
+          <div class="doc-cell cell-embed">[6, 8, 70, 13, 5, 9…]</div>
+          <div class="doc-cell cell-meta">source: data_file.pdf</div>
+        </div>
+      </div>
+      <div style="font-size:0.68rem; color:var(--muted); margin-top:8px; font-style:italic;">Embedding values are random examples for illustration only — real embeddings are 768- to 3072-dimensional float arrays</div>
+    </div>
+
+    <div class="sunny-says">
+      "Inside this vector database, we are storing 3 things per document. The first is the actual data — the text itself. The second is the embedded data — the numerical vector representation. And the third is the metadata — information about the data. Metadata could be anything: the file path, the source, the page number, the author."
+    </div>
+
+    <h3 id="vector-index">What is a Vector Index?</h3>
+    <p>Sunny's definition from the blackboard:</p>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin:16px 0; border-left:4px solid var(--accent4);">
+      <p style="color:var(--text); font-size:0.9rem; margin:0; line-height:1.7;"><strong style="color:var(--accent4);">Vector Index</strong> — a data structure that organises embeddings so that the vector database can find vectors quickly <em>without</em> comparing the query with every stored vector.</p>
+    </div>
+
+    <div class="sunny-says">
+      "Vector Index is nothing — it is just a way of organising the embedding. Vector Database stores the vectors. The Vector Index makes searching those vectors faster. Whenever we are going to store the data inside the Vector database, we are going to organise it in the form of index only."
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">💡</span>
+      <p><strong>Think of it like a book's index.</strong> Without an index you'd read every page to find a topic. With an index, you jump to page 312. Vector indices do the same for embedding space — they let the database skip most vectors and go straight to the relevant ones.</p>
+    </div>
+  </section>
+
+  <!-- SIMILARITY SEARCH -->
+  <section id="similarity-search">
+    <div class="section-eyebrow">03 — How Retrieval Works</div>
+    <h2>Similarity Search — The 3 Methods</h2>
+
+    <p>Similarity search is the process of finding stored vectors that are closest or most similar to a query vector. Sunny covered 3 methods:</p>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="m-icon">📐</div>
+        <h4 id="cosine">Cosine Similarity</h4>
+        <p>Measures the angle between two vectors. Returns a score between -1 and 1. A score of 1 = identical direction (same meaning). Ignores magnitude, only cares about direction.</p>
+        <div class="m-best">✓ Best for: text, RAG, most NLP tasks</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon">📏</div>
+        <h4 id="euclidean">Euclidean Distance</h4>
+        <p>Measures the straight-line geometric distance between two vector points. Smaller distance = more similar. Sensitive to vector magnitude (length).</p>
+        <div class="m-best">✓ Best for: image search, spatial data</div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon">🔢</div>
+        <h4 id="dot-product">Dot Product</h4>
+        <p>Multiplies corresponding elements and sums them. Higher dot product = more similar. Faster to compute than cosine. Affected by both angle and magnitude.</p>
+        <div class="m-best">✓ Best for: when vectors are normalised</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Similarity search — example: search for 'how I can recover my account' — it may retrieve 'step to reset your password', because both have similar meaning, even though the words are different. This is called semantic search — results found by meaning rather than exact keyword matching."
+    </div>
+
+    <h3>How a Query is Processed</h3>
+    <p>The step-by-step flow from Sunny's blackboard demonstration:</p>
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:24px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:14px;">Query Processing Flow</div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <span style="background:rgba(244,114,182,0.12); border:1px solid rgba(244,114,182,0.3); border-radius:5px; padding:6px 14px; color:var(--accent5);">User Query: "ML is future"</span>
+        <span style="color:var(--muted);">→</span>
+        <span style="background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.3); border-radius:5px; padding:6px 14px; color:var(--accent);">Embedding Model → [5, 6, 7, 8, 9, 10, 60, 55…]</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <span style="color:var(--muted); padding-left:4px;">↓</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <span style="background:rgba(34,211,238,0.12); border:1px solid rgba(34,211,238,0.3); border-radius:5px; padding:6px 14px; color:var(--accent2);">Cosine Similarity / Euclidean / Dot Product</span>
+        <span style="color:var(--muted);">vs all stored vectors in the index</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <span style="color:var(--muted); padding-left:4px;">↓</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.3); border-radius:5px; padding:6px 14px; color:var(--accent3);">Top-K Results → "AI is the future" (D1) is most similar ✓</span>
+      </div>
+    </div>
+    <p style="font-size:0.82rem; color:var(--muted); margin-top:4px;">The query "ML is future" retrieves "AI is the future" because both sentences have similar semantic meaning — vectors point in nearly the same direction in embedding space.</p>
+  </section>
+
+  <!-- INDEX TYPES -->
+  <section id="index-types">
+    <div class="section-eyebrow">04 — How Data is Organised</div>
+    <h2>Index Types in Vector Databases</h2>
+    <p>Sunny covered 3 index types that determine how vectors are organised and searched. The choice of index directly determines search speed vs accuracy tradeoff.</p>
+
+    <div class="index-grid">
+
+      <div class="index-card" style="border-top-color:var(--accent3);">
+        <div class="idx-type" style="color:var(--accent3);">Flat Index</div>
+        <div class="idx-full">aka IndexFlatL2 / IndexFlatIP</div>
+        <h4>Exact Search</h4>
+        <p>Stores all vectors as-is with no organisation. Every query compares against every stored vector. Always returns the exact best result — 100% accuracy.</p>
+        <span class="idx-search" style="background:rgba(74,222,128,0.1); color:var(--accent3); border:1px solid rgba(74,222,128,0.3);">Exact Nearest Neighbour (ENN)</span>
+        <p style="margin-top:10px; font-size:0.75rem; color:var(--muted);">✓ Best for: small datasets (POC/MVP). ✗ Slow on large datasets — O(n) comparison.</p>
+      </div>
+
+      <div class="index-card" style="border-top-color:var(--accent4);">
+        <div class="idx-type" style="color:var(--accent4);">IVF Index</div>
+        <div class="idx-full">Inverted File Index</div>
+        <h4>Cluster-Based ANN Search</h4>
+        <p>Divides the vector space into clusters (like K-Means clustering). Similar vectors go into the same cluster. At query time, only the nearest cluster(s) are searched — skipping most data.</p>
+        <span class="idx-search" style="background:rgba(251,146,60,0.1); color:var(--accent4); border:1px solid rgba(251,146,60,0.3);">Approximate Nearest Neighbour (ANN)</span>
+        <p style="margin-top:10px; font-size:0.75rem; color:var(--muted);">✓ Faster than flat. ✓ Scales to large datasets. ✗ May occasionally miss the exact best result.</p>
+      </div>
+
+      <div class="index-card" style="border-top-color:var(--accent2);">
+        <div class="idx-type" style="color:var(--accent2);">HNSW Index</div>
+        <div class="idx-full">Hierarchical Navigable Small World</div>
+        <h4>Graph-Based ANN Search</h4>
+        <p>Builds a multi-layer graph where nodes are vectors and edges connect similar ones. Traverses the graph hierarchically — top layers for coarse navigation, bottom layers for fine precision. Graph-based technique.</p>
+        <span class="idx-search" style="background:rgba(34,211,238,0.1); color:var(--accent2); border:1px solid rgba(34,211,238,0.3);">Approximate Nearest Neighbour (ANN)</span>
+        <p style="margin-top:10px; font-size:0.75rem; color:var(--muted);">✓ Fastest ANN method. ✓ Excellent accuracy-speed tradeoff. Default in Qdrant, ChromaDB.</p>
+      </div>
+
+    </div>
+
+    <h3 id="exact-vs-ann">Exact Search vs Approximate Nearest Neighbour (ANN)</h3>
+
+    <table class="compare-table">
+      <thead><tr><th>Method</th><th>Index Type</th><th>Accuracy</th><th>Speed</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Exact Search (ENN)</td>
+          <td class="mono">Flat Index</td>
+          <td class="yes">100% — always exact</td>
+          <td class="no">Slow on large data (O(n))</td>
+          <td>Small datasets, POC, MVP</td>
+        </tr>
+        <tr>
+          <td>Approximate Search (ANN)</td>
+          <td class="mono">IVF / HNSW</td>
+          <td class="mid">~95–99% — very close</td>
+          <td class="yes">Much faster (skip most data)</td>
+          <td>Large-scale production search</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sunny-says">
+      "Exact search — check all the query against every stored vector, and return the nearest true match. ANN — only searches a selected part of the index, returns very close match, faster, but it may occasionally miss the exact best result. Accuracy-wise, exact is good. Speed-wise, ANN is good. If you have a lot of data, and you want to build the index — you can negotiate some sort of accuracy. In that case, go with approximate nearest search."
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Interview tip from Sunny:</strong> "In interviews, no one will ask you the in-depth mathematics of HNSW. They will just ask: what are the different types of index we have, and how does it work? That's it. Most people will not ask the deep mathematics — it's one case out of 100."</p>
+    </div>
+  </section>
+
+  <!-- VDB LANDSCAPE -->
+  <section id="vdb-landscape">
+    <div class="section-eyebrow">05 — The Ecosystem</div>
+    <h2>The Vector Database Landscape</h2>
+
+    <div class="sunny-says">
+      "There are so many vector databases. If you master at least one vector database, you can understand any other. Specifically, if you master FAISS and OpenSearch, I think you will be able to understand all the fundamentals behind the vector database — all concepts, all index types. Then ChromaDB, Pinecone, Qdrant, Milvus, pgvector — these are all additional ones."
+    </div>
+
+    <div class="vdb-landscape">
+      <div class="vdb-badge" style="border-top:2px solid var(--accent3);">
+        <div class="vb-name" style="color:var(--accent3);">FAISS</div>
+        <div class="vb-type">Facebook AI · Open-source</div>
+        <div class="vb-use" style="color:var(--accent3);">★ Best for learning fundamentals. All index types. In-memory + local disk.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent5);">
+        <div class="vb-name" style="color:var(--accent5);">ChromaDB</div>
+        <div class="vb-type">Open-source · Local + Cloud</div>
+        <div class="vb-use" style="color:var(--accent5);">Easy API. Great for POC. HNSW default.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent4);">
+        <div class="vb-name" style="color:var(--accent4);">Pinecone</div>
+        <div class="vb-type">Managed SaaS · Paid</div>
+        <div class="vb-use" style="color:var(--accent4);">Fully managed. Production-ready. Abstracts all internals.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent2);">
+        <div class="vb-name" style="color:var(--accent2);">Qdrant</div>
+        <div class="vb-type">Open-source · Cloud / Self-hosted</div>
+        <div class="vb-use" style="color:var(--accent2);">HNSW-based. Very popular in 2025+. Self-host or cloud.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent6);">
+        <div class="vb-name" style="color:var(--accent6);">Milvus</div>
+        <div class="vb-type">Open-source · Distributed</div>
+        <div class="vb-use" style="color:var(--accent6);">Enterprise scale. Multiple index types. Self-hosted.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--muted);">
+        <div class="vb-name" style="color:var(--text);">pgvector</div>
+        <div class="vb-type">PostgreSQL Extension</div>
+        <div class="vb-use" style="color:var(--muted);">Add vector search to existing PostgreSQL databases.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent3);">
+        <div class="vb-name" style="color:var(--accent3);">AWS OpenSearch</div>
+        <div class="vb-type">Cloud Managed · AWS</div>
+        <div class="vb-use" style="color:var(--accent3);">★ Enterprise standard. Built on OpenSearch. Full index control.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--accent2);">
+        <div class="vb-name" style="color:var(--accent2);">Azure AI Search</div>
+        <div class="vb-type">Cloud Managed · Microsoft</div>
+        <div class="vb-use" style="color:var(--accent2);">Enterprise preference. Integrated with Azure OpenAI.</div>
+      </div>
+      <div class="vdb-badge" style="border-top:2px solid var(--muted);">
+        <div class="vb-name" style="color:var(--text);">Vertex AI Vector</div>
+        <div class="vb-type">Cloud Managed · Google</div>
+        <div class="vb-use" style="color:var(--muted);">Google Cloud. Also BigQuery Vector Search available.</div>
+      </div>
+    </div>
+
+    <h3 id="categories">4 Categories of Vector Databases</h3>
+
+    <div class="cat-grid">
+      <div class="cat-card" style="border-top:3px solid var(--accent3);">
+        <div class="cat-label" style="color:var(--accent3);">Category 1</div>
+        <h4>In-Memory</h4>
+        <ul>
+          <li>FAISS (in-memory mode)</li>
+          <li>ChromaDB (in-memory mode)</li>
+        </ul>
+        <p style="font-size:0.78rem; color:var(--muted); margin-top:8px;">Data lives in RAM only. Lost when process restarts. Fastest. Best for POC and experimentation.</p>
+      </div>
+      <div class="cat-card" style="border-top:3px solid var(--accent4);">
+        <div class="cat-label" style="color:var(--accent4);">Category 2</div>
+        <h4>Local Persistent (Disk)</h4>
+        <ul>
+          <li>FAISS (save_local)</li>
+          <li>ChromaDB (persist_directory)</li>
+          <li>Qdrant (local mode)</li>
+          <li>Milvus (local)</li>
+        </ul>
+        <p style="font-size:0.78rem; color:var(--muted); margin-top:8px;">Data saved to local disk. Survives restarts. Still single-node. Good for dev/local projects.</p>
+      </div>
+      <div class="cat-card" style="border-top:3px solid var(--accent5);">
+        <div class="cat-label" style="color:var(--accent5);">Category 3</div>
+        <h4>Vendor Managed (SaaS)</h4>
+        <ul>
+          <li>Pinecone</li>
+          <li>Qdrant Cloud</li>
+          <li>Milvus Cloud (Zilliz)</li>
+          <li>Weaviate Cloud</li>
+        </ul>
+        <p style="font-size:0.78rem; color:var(--muted); margin-top:8px;">Fully managed by vendor. No infrastructure to manage. Paid. Best for production without DevOps overhead.</p>
+      </div>
+      <div class="cat-card" style="border-top:3px solid var(--accent2);">
+        <div class="cat-label" style="color:var(--accent2);">Category 4</div>
+        <h4>Cloud Provider Managed</h4>
+        <ul>
+          <li>AWS OpenSearch</li>
+          <li>Azure AI Search</li>
+          <li>Google Vertex AI Vector Search</li>
+          <li>Google BigQuery Vector Search</li>
+        </ul>
+        <p style="font-size:0.78rem; color:var(--muted); margin-top:8px;">Enterprise preference. Integrated with cloud services. Self-hosted is also possible for any of these.</p>
+      </div>
+    </div>
+
+    <h3 id="vdb-vs-store">Vector Database vs Vector Store — The Difference</h3>
+    <p>Sunny made this distinction very clearly:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent2); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">Vector Database</div>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">A complete system. Supports distribution, sharding (splitting large DB across multiple servers), replication, CRUD operations, backups. Like a proper database engine. Use for full production-grade systems.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">Vector Store</div>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">A simple store — in-memory or persistent, but without distribution, sharding, or full database capabilities. FAISS and ChromaDB in local mode are vector stores. Use for POC, MVP, prototyping.</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Generally, for any basic prototype, POC, MVP — we can utilise the normal Vector Store. If we are going to create a full-scale production-grade solution — there we prefer the complete system. Both terms are used interchangeably in the industry, but technically there is this difference."
+    </div>
+  </section>
+
+  <!-- VDB vs SQL vs NoSQL -->
+  <section id="vdb-vs-sql">
+    <div class="section-eyebrow">06 — Comparison</div>
+    <h2>Vector DB vs SQL vs NoSQL</h2>
+
+    <table class="compare-table">
+      <thead><tr><th>Dimension</th><th>SQL Database</th><th>NoSQL Database</th><th>Vector Database</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Primary Purpose</td>
+          <td>Structured, relational data</td>
+          <td>Flexible, unstructured / semi-structured data</td>
+          <td class="best">Embedding storage + semantic search</td>
+        </tr>
+        <tr>
+          <td>Data Format</td>
+          <td>Tables, rows, columns</td>
+          <td>Documents, key-value, graphs, columns</td>
+          <td>Vector ID + embedding + text + metadata</td>
+        </tr>
+        <tr>
+          <td>Schema</td>
+          <td>Predefined, rigid</td>
+          <td>Flexible, can change at runtime</td>
+          <td>Fixed vector dimension, flexible metadata</td>
+        </tr>
+        <tr>
+          <td>Query Type</td>
+          <td>WHERE conditions, joins, aggregations</td>
+          <td>Filter conditions by field/value</td>
+          <td class="best">Similarity search (cosine / Euclidean / dot product)</td>
+        </tr>
+        <tr>
+          <td>Search Method</td>
+          <td>Exact keyword match</td>
+          <td>Filter on fields</td>
+          <td class="best">Semantic / meaning-based search</td>
+        </tr>
+        <tr>
+          <td>Use in RAG?</td>
+          <td class="no">Not designed for it</td>
+          <td class="mid">Limited (no native similarity search)</td>
+          <td class="yes">Yes — primary purpose</td>
+        </tr>
+        <tr>
+          <td>Examples</td>
+          <td class="mono">PostgreSQL, MySQL, Oracle</td>
+          <td class="mono">MongoDB, Redis, Cassandra</td>
+          <td class="mono">FAISS, Chroma, Pinecone, Qdrant</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>Modern convergence:</strong> SQL and NoSQL databases are adding vector capabilities: PostgreSQL has pgvector, MongoDB has Atlas Vector Search, Redis has Vector Similarity Search, Oracle has built-in vector support. But dedicated vector databases (FAISS, Qdrant, Pinecone) remain the best choice when vector search is your primary workload.</p>
+    </div>
+  </section>
+
+  <!-- FAISS PRACTICAL -->
+  <section id="faiss-practical">
+    <div class="section-eyebrow">07 — Hands-On Code</div>
+    <h2>FAISS — Complete Practical (Class Demo)</h2>
+
+    <p>Sunny built the FAISS vector store step by step in VS Code. Files created: <code>Vector Database/faiss/faiss.ipynb</code>. Here is everything Sunny demonstrated:</p>
+
+    <h3 id="faiss-setup">Step 1 — Setup: Create FAISS Index + Vector Store</h3>
+    <div class="code-block">
+      <span class="lang-label">python · FAISS setup</span>
+      <pre><span class="cm"># !pip install langchain langchain-community faiss-cpu sentence-transformers openai</span>
+
+<span class="kw">import</span> faiss
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain_community.embeddings <span class="kw">import</span> <span class="cls">HuggingFaceEmbeddings</span>
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+
+<span class="cm"># ── Embedding model ───────────────────────────────────────────────</span>
+<span class="cm"># Using a local HuggingFace model — no API key needed, runs on CPU</span>
+embedding_model = <span class="cls">HuggingFaceEmbeddings</span>(
+    model_name = <span class="str">"sentence-transformers/all-MiniLM-L6-v2"</span>
+)
+
+<span class="cm"># Check the embedding dimension (needed for FAISS index creation)</span>
+sample_embed = embedding_model.<span class="fn">embed_query</span>(<span class="str">"test"</span>)
+dimension = <span class="fn">len</span>(sample_embed)
+<span class="fn">print</span>(f<span class="str">f"Embedding dimension: {dimension}"</span>)  <span class="cm"># e.g. 384 or 3072</span>
+
+<span class="cm"># ── Create FAISS Index manually (Flat Index = exact search) ───────</span>
+<span class="cm"># IndexFlatL2  → Euclidean distance (L2 norm)</span>
+<span class="cm"># IndexFlatIP  → Inner product / dot product (cosine if normalised)</span>
+faiss_index = faiss.<span class="fn">IndexFlatL2</span>(dimension)   <span class="cm"># ← Flat index, exact search</span>
+
+<span class="cm"># ── Create LangChain FAISS Vector Store ──────────────────────────</span>
+<span class="cm"># This wraps the raw FAISS index with LangChain's document management</span>
+vector_store = <span class="cls">FAISS</span>(
+    embedding_function = embedding_model,
+    index              = faiss_index,
+    docstore           = <span class="cls">FAISS</span>.<span class="fn">_InMemoryDocstore</span>({}),  <span class="cm"># in-memory!</span>
+    index_to_docstore_id = {}
+)
+<span class="fn">print</span>(<span class="str">"✓ FAISS vector store created (in-memory, Flat Index)"</span>)</pre>
+    </div>
+
+    <h3 id="faiss-add">Step 2 — Add Documents to the Vector Store</h3>
+    <div class="code-block">
+      <span class="lang-label">python · add documents</span>
+      <pre><span class="cm"># ── Create Documents (LangChain Document objects) ─────────────────</span>
+<span class="cm"># Sunny created these manually in the demo</span>
+docs = [
+    <span class="cls">Document</span>(page_content=<span class="str">"Donald Trump is the president of the USA."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"news"</span>, <span class="str">"date"</span>: <span class="str">"2025-01-20"</span>}),
+    <span class="cls">Document</span>(page_content=<span class="str">"Washington D.C. is the capital of the USA."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"wiki"</span>}),
+    <span class="cls">Document</span>(page_content=<span class="str">"The USA has 50 states."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"wiki"</span>}),
+    <span class="cls">Document</span>(page_content=<span class="str">"Python is a popular programming language."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"tech"</span>}),
+    <span class="cls">Document</span>(page_content=<span class="str">"Machine learning is a subset of artificial intelligence."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"ai_blog"</span>}),
+]
+
+<span class="cm"># ── Add documents to vector store ────────────────────────────────</span>
+<span class="cm"># LangChain automatically: embeds each doc → stores in FAISS index</span>
+vector_store.<span class="fn">add_documents</span>(docs)
+<span class="fn">print</span>(f<span class="str">f"Added {len(docs)} documents to FAISS"</span>)
+
+<span class="cm"># ── Inspect: see the index-to-docstore mapping ────────────────────</span>
+<span class="fn">print</span>(vector_store.index_to_docstore_id)
+<span class="cm"># {0: 'some-uuid', 1: 'another-uuid', 2: '...', ...}</span>
+<span class="cm"># Each FAISS index position maps to a document ID</span>
+
+<span class="cm"># ── Fetch a specific document by FAISS index ID ───────────────────</span>
+faiss_idx = <span class="num">1</span>
+doc_store_id = vector_store.index_to_docstore_id[faiss_idx]
+retrieved_doc = vector_store.docstore.<span class="fn">search</span>(doc_store_id)
+<span class="fn">print</span>(f<span class="str">f"Document at FAISS index {faiss_idx}:"</span>)
+<span class="fn">print</span>(f<span class="str">f"  content: {retrieved_doc.page_content}"</span>)
+<span class="fn">print</span>(f<span class="str">f"  metadata: {retrieved_doc.metadata}"</span>)
+
+<span class="cm"># ── View the raw embedding of a stored document ───────────────────</span>
+embedding_vector = vector_store.index.<span class="fn">reconstruct</span>(faiss_idx)
+<span class="fn">print</span>(f<span class="str">f"Embedding shape: {embedding_vector.shape}"</span>)  <span class="cm"># e.g. (384,)</span></pre>
+    </div>
+
+    <h3 id="faiss-search">Step 3 — Similarity Search</h3>
+    <div class="code-block">
+      <span class="lang-label">python · similarity search</span>
+      <pre><span class="cm"># ── Basic similarity search ───────────────────────────────────────</span>
+query = <span class="str">"Who is the president of the USA?"</span>
+
+<span class="cm"># k = number of top documents to return</span>
+results = vector_store.<span class="fn">similarity_search</span>(query, k=<span class="num">1</span>)
+<span class="fn">print</span>(f<span class="str">f"Top 1 result: {results[0].page_content}"</span>)
+<span class="cm"># → "Donald Trump is the president of the USA."  ✓</span>
+
+<span class="cm"># Return top 2 documents</span>
+results = vector_store.<span class="fn">similarity_search</span>(query, k=<span class="num">2</span>)
+<span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(results):
+    <span class="fn">print</span>(f<span class="str">f"  [{i+1}] {doc.page_content}"</span>)
+<span class="cm"># → [1] Donald Trump is the president of the USA.</span>
+<span class="cm"># → [2] Washington D.C. is the capital of the USA.</span>
+
+<span class="cm"># Return top 5 documents</span>
+results = vector_store.<span class="fn">similarity_search</span>(query, k=<span class="num">5</span>)
+<span class="fn">print</span>(f<span class="str">f"Top 5 results:"</span>)
+<span class="kw">for</span> doc <span class="kw">in</span> results:
+    <span class="fn">print</span>(f<span class="str">f"  - [{doc.metadata['source']}] {doc.page_content[:60]}"</span>)
+
+<span class="cm"># ── Similarity search with SCORE ─────────────────────────────────</span>
+<span class="cm"># Returns (Document, score) tuples — lower score = more similar (L2)</span>
+results_with_scores = vector_store.<span class="fn">similarity_search_with_score</span>(query, k=<span class="num">3</span>)
+<span class="kw">for</span> doc, score <span class="kw">in</span> results_with_scores:
+    <span class="fn">print</span>(f<span class="str">f"  Score: {score:.4f} | {doc.page_content[:50]}"</span>)
+<span class="cm"># Lower L2 distance = more similar</span>
+<span class="cm"># Score: 0.3421 | Donald Trump is the president of the USA.</span>
+<span class="cm"># Score: 0.8874 | Washington D.C. is the capital of the USA.</span></pre>
+    </div>
+
+    <h3 id="faiss-filter">Step 4 — Metadata Filtering</h3>
+    <div class="code-block">
+      <span class="lang-label">python · metadata filtering</span>
+      <pre><span class="cm"># ── Filter by metadata WHILE doing similarity search ─────────────</span>
+<span class="cm"># Only retrieve documents where metadata["source"] == "wiki"</span>
+
+results = vector_store.<span class="fn">similarity_search</span>(
+    query  = <span class="str">"Tell me about the USA"</span>,
+    k      = <span class="num">3</span>,
+    filter = {<span class="str">"source"</span>: <span class="str">"wiki"</span>}   <span class="cm"># ← metadata filter</span>
+)
+<span class="fn">print</span>(<span class="str">"Results from 'wiki' source only:"</span>)
+<span class="kw">for</span> doc <span class="kw">in</span> results:
+    <span class="fn">print</span>(f<span class="str">f"  {doc.page_content}"</span>)
+<span class="cm"># → Washington D.C. is the capital of the USA.</span>
+<span class="cm"># → The USA has 50 states.</span>
+<span class="cm"># (Results from "news" or "tech" sources are excluded)</span>
+
+<span class="cm"># ── Filter by "news" source ───────────────────────────────────────</span>
+results_news = vector_store.<span class="fn">similarity_search</span>(
+    query  = <span class="str">"Who is the president?"</span>,
+    k      = <span class="num">3</span>,
+    filter = {<span class="str">"source"</span>: <span class="str">"news"</span>}
+)
+<span class="kw">for</span> doc <span class="kw">in</span> results_news:
+    <span class="fn">print</span>(f<span class="str">f"  {doc.page_content}"</span>)</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Sunny's warning on metadata filtering:</strong> "Pass metadata filters very, very carefully. If you're passing the metadata and you're not sure which metadata needs to be passed — don't pass it. Because with respect to a query, if I'm passing a wrong metadata value, it is giving the wrong result. Until you're sure, just skip the filter and let similarity search alone do the work."</p>
+    </div>
+
+    <h3 id="faiss-persist">Step 5 — Persist to Disk and Reload</h3>
+    <div class="code-block">
+      <span class="lang-label">python · save and load</span>
+      <pre><span class="cm"># ── Save FAISS index to local disk ───────────────────────────────</span>
+<span class="cm"># Without saving: when you restart the notebook, all embeddings are GONE</span>
+vector_store.<span class="fn">save_local</span>(<span class="str">"faiss_index"</span>)
+<span class="cm"># Creates: faiss_index/index.faiss  (the FAISS binary index)</span>
+<span class="cm">#          faiss_index/index.pkl    (the docstore mappings)</span>
+<span class="fn">print</span>(<span class="str">"✓ FAISS index saved to disk at ./faiss_index/"</span>)
+
+<span class="cm"># ── Load FAISS index from disk ────────────────────────────────────</span>
+loaded_vector_store = <span class="cls">FAISS</span>.<span class="fn">load_local</span>(
+    folder_path = <span class="str">"faiss_index"</span>,
+    embeddings  = embedding_model,
+    allow_dangerous_deserialization = <span class="kw">True</span>  <span class="cm"># required for pkl loading</span>
+)
+<span class="fn">print</span>(<span class="str">"✓ FAISS index loaded from disk"</span>)
+
+<span class="cm"># ── Verify loaded store works ─────────────────────────────────────</span>
+results = loaded_vector_store.<span class="fn">similarity_search</span>(<span class="str">"Who is president?"</span>, k=<span class="num">1</span>)
+<span class="fn">print</span>(f<span class="str">f"Test query result: {results[0].page_content}"</span>)
+
+<span class="cm"># KEY POINT from Sunny:</span>
+<span class="cm"># In-memory → data vanishes when notebook stops</span>
+<span class="cm"># save_local() → persists to disk → data survives restarts</span>
+<span class="cm"># This is the difference between in-memory and local persistent storage</span></pre>
+    </div>
+  </section>
+
+  <!-- FULL CODE -->
+  <section id="full-code">
+    <div class="section-eyebrow">08 — Complete Reference</div>
+    <h2>Full Class 33 FAISS Notebook</h2>
+    <p>All-in-one complete script mirroring what Sunny built in the live session:</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · complete faiss notebook</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 33 — Vector Databases: FAISS Practical
+## VS Code · CPU only · No GPU needed
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># CELL 1: Install</span>
+<span class="cm"># !pip install langchain langchain-community faiss-cpu sentence-transformers</span>
+
+<span class="cm"># CELL 2: Imports</span>
+<span class="kw">import</span> faiss
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain_community.embeddings <span class="kw">import</span> <span class="cls">HuggingFaceEmbeddings</span>
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+
+<span class="cm"># CELL 3: Embedding model + dimension</span>
+embedding_model = <span class="cls">HuggingFaceEmbeddings</span>(
+    model_name=<span class="str">"sentence-transformers/all-MiniLM-L6-v2"</span>)
+dim = <span class="fn">len</span>(embedding_model.<span class="fn">embed_query</span>(<span class="str">"test"</span>))
+<span class="fn">print</span>(f<span class="str">f"Dimension: {dim}"</span>)   <span class="cm"># 384</span>
+
+<span class="cm"># CELL 4: Create FAISS index + vector store</span>
+index        = faiss.<span class="fn">IndexFlatL2</span>(dim)   <span class="cm"># Flat, Exact search, L2 distance</span>
+vector_store = <span class="cls">FAISS</span>(
+    embedding_function   = embedding_model,
+    index                = index,
+    docstore             = <span class="cls">FAISS</span>.<span class="fn">_InMemoryDocstore</span>({}),
+    index_to_docstore_id = {}
+)
+
+<span class="cm"># CELL 5: Create and add documents</span>
+docs = [
+    <span class="cls">Document</span>(<span class="str">"Donald Trump is the president of the USA."</span>,   metadata={<span class="str">"source"</span>:<span class="str">"news"</span>}),
+    <span class="cls">Document</span>(<span class="str">"Washington D.C. is the capital of the USA."</span>,   metadata={<span class="str">"source"</span>:<span class="str">"wiki"</span>}),
+    <span class="cls">Document</span>(<span class="str">"The USA has 50 states."</span>,                      metadata={<span class="str">"source"</span>:<span class="str">"wiki"</span>}),
+    <span class="cls">Document</span>(<span class="str">"Python is a popular programming language."</span>,     metadata={<span class="str">"source"</span>:<span class="str">"tech"</span>}),
+    <span class="cls">Document</span>(<span class="str">"Machine learning is a subset of AI."</span>,           metadata={<span class="str">"source"</span>:<span class="str">"ai_blog"</span>}),
+]
+vector_store.<span class="fn">add_documents</span>(docs)
+<span class="fn">print</span>(f<span class="str">f"Stored {len(docs)} documents"</span>)
+
+<span class="cm"># CELL 6: Basic similarity search</span>
+q = <span class="str">"Who is the president of the USA?"</span>
+<span class="kw">for</span> k <span class="kw">in</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]:
+    results = vector_store.<span class="fn">similarity_search</span>(q, k=k)
+    <span class="fn">print</span>(f<span class="str">f"\nTop {k} result(s):"</span>)
+    <span class="kw">for</span> d <span class="kw">in</span> results: <span class="fn">print</span>(f<span class="str">f"  [{d.metadata['source']}] {d.page_content}"</span>)
+
+<span class="cm"># CELL 7: Search with scores</span>
+results_s = vector_store.<span class="fn">similarity_search_with_score</span>(q, k=<span class="num">3</span>)
+<span class="fn">print</span>(<span class="str">"\nResults with L2 distance scores:"</span>)
+<span class="kw">for</span> doc, score <span class="kw">in</span> results_s:
+    <span class="fn">print</span>(f<span class="str">f"  {score:.4f} | {doc.page_content[:60]}"</span>)
+
+<span class="cm"># CELL 8: Metadata filtering</span>
+r_wiki = vector_store.<span class="fn">similarity_search</span>(q, k=<span class="num">3</span>, filter={<span class="str">"source"</span>:<span class="str">"wiki"</span>})
+<span class="fn">print</span>(<span class="str">f"\nWiki-only results:"</span>)
+<span class="kw">for</span> d <span class="kw">in</span> r_wiki: <span class="fn">print</span>(f<span class="str">f"  {d.page_content}"</span>)
+
+<span class="cm"># CELL 9: Inspect embedding</span>
+embed = vector_store.index.<span class="fn">reconstruct</span>(<span class="num">0</span>)
+<span class="fn">print</span>(f<span class="str">f"\nEmbedding of doc 0, shape: {embed.shape}"</span>)
+
+<span class="cm"># CELL 10: Save to disk</span>
+vector_store.<span class="fn">save_local</span>(<span class="str">"faiss_index"</span>)
+<span class="fn">print</span>(<span class="str">"✓ Saved to ./faiss_index/"</span>)
+
+<span class="cm"># CELL 11: Load from disk</span>
+loaded = <span class="cls">FAISS</span>.<span class="fn">load_local</span>(
+    <span class="str">"faiss_index"</span>, embedding_model,
+    allow_dangerous_deserialization=<span class="kw">True</span>
+)
+test = loaded.<span class="fn">similarity_search</span>(<span class="str">"USA president"</span>, k=<span class="num">1</span>)
+<span class="fn">print</span>(f<span class="str">f"Loaded store test: {test[0].page_content}"</span>)
+
+<span class="cm"># ── Next class: ChromaDB, Pinecone, Qdrant ───────────────────────</span></pre>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">09 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 33 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What 3 things are stored per document inside a vector database?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Every document in a vector database stores: (1) Actual data — the original text content; (2) Embedded data — the numerical vector representation (embedding) of that text; (3) Metadata — additional information about the document such as source file, page number, author, date, or any other contextual key-value pairs.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is a Vector Index, and why is it needed?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A Vector Index is a data structure that organises embeddings inside a vector database so that vectors can be found quickly without comparing the query against every single stored vector. Without an index, every search requires O(n) comparisons. With an index like IVF or HNSW, the search space is reduced dramatically — like using a book's index instead of reading every page.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What are the 3 similarity search metrics? Which is typically best for text/RAG use-cases?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">The 3 similarity search metrics are: (1) Cosine Similarity — measures the angle between two vectors, returns -1 to 1, ignores magnitude. Best for text and NLP tasks (including RAG) because it measures semantic direction, not length. (2) Euclidean Distance (L2) — geometric straight-line distance between points, smaller = more similar. Best for image search and spatial data. (3) Dot Product — sum of element-wise products, faster to compute. Best when vectors are already normalised. Cosine similarity is typically recommended for RAG and text-based applications.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. Explain the difference between Flat Index (ENN) and IVF Index (ANN). When would you choose each?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Flat Index (Exact Nearest Neighbour): stores all vectors with no organisation. Every query compares against every stored vector — 100% accuracy but O(n) time complexity, very slow on large datasets. Choose for small datasets, POC, or MVP where accuracy is critical. IVF Index (Approximate Nearest Neighbour): divides the vector space into clusters using K-Means-like clustering. At query time, only the nearest cluster(s) are searched, skipping most data. Faster, but may occasionally miss the single best result. Choose for large-scale production systems where speed matters and you can accept ~99% accuracy instead of 100%.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What is the difference between a "Vector Store" and a "Vector Database" according to Sunny?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A Vector Store is a simple in-memory or local persistent store — it stores and retrieves vectors but doesn't support database-level features like distribution across servers, sharding (splitting data across multiple servers), replication, or complex CRUD operations. FAISS and ChromaDB in local mode are vector stores. A Vector Database is a complete system that supports all the above — distribution, sharding, replication, backup, CRUD — making it suitable for full-scale production enterprise deployments. Pinecone, Qdrant Cloud, and AWS OpenSearch are proper vector databases.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What is HNSW and how does it work conceptually?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">HNSW stands for Hierarchical Navigable Small World. It's a graph-based ANN (Approximate Nearest Neighbour) index. It builds a multi-layer graph where nodes represent vectors and edges connect similar vectors. The top layer is sparse with long-range connections for fast coarse navigation; bottom layers are dense for fine-grained precision. When a query comes in, it starts at the top layer, finds the approximate nearest neighbour there, then descends to lower layers, refining the search at each level. This hierarchical traversal skips most vectors and returns results much faster than exact search, with very high accuracy. It's the default index in ChromaDB and Qdrant.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. What does <code>save_local()</code> do in FAISS, and why is it important?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">save_local() persists the FAISS index to disk as two files: index.faiss (the FAISS binary index containing all the embedding vectors) and index.pkl (the docstore mapping from FAISS IDs to LangChain Document objects). This is important because by default FAISS is in-memory — when the notebook or application restarts, all stored embeddings are lost. With save_local(), the vector store survives restarts and can be reloaded with load_local(). This is the difference between Category 1 (in-memory) and Category 2 (local persistent) vector storage.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>8. Sunny warned about metadata filtering — what was his advice?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Sunny's advice: pass metadata filters very carefully. If you're not sure which metadata value to filter on, don't pass a filter at all — let similarity search alone determine the results. The reason: passing an incorrect or overly restrictive metadata filter can force the system to return results from a wrong source, even if those results are semantically unrelated to the query. This can make the retrieved context worse than no filter. Only use metadata filtering when you are confident about which subset of your knowledge base is relevant to the query.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 33 · Vector Databases · 19 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

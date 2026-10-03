@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 30 — Data Parsing for RAG | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07090f;
+  --surface:   #0d1120;
+  --card:      #121829;
+  --border:    #1c2640;
+  --accent:    #34d399;   /* emerald — parsing/extraction */
+  --accent2:   #fb923c;   /* orange — LangChain */
+  --accent3:   #60a5fa;   /* blue — document object */
+  --accent4:   #f472b6;   /* pink — complex/advanced */
+  --accent5:   #facc15;   /* yellow — Docling */
+  --accent6:   #a78bfa;   /* violet — metadata */
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --code-bg:   #0f172a;
+  --code-border:#1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(52,211,153,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(52,211,153,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 60%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; position: relative; }
+.sunny-says::before { content: '🎙 Sunny (Class 30):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(96,165,250,0.07);  border: 1px solid rgba(96,165,250,0.22); }
+.callout.tip    { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.yellow { background: rgba(250,204,21,0.07);  border: 1px solid rgba(250,204,21,0.22); }
+.callout.info p   { color: #93c5fd; }
+.callout.tip p    { color: var(--accent); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.yellow p { color: var(--accent5); }
+
+/* ── DOCUMENT OBJECT VISUAL ── */
+.doc-object { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+.doc-object .doc-label { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; }
+.doc-key { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; padding: 12px 16px; border-radius: 6px; border: 1px solid; }
+.doc-key-name { font-weight: 700; font-size: 0.8rem; white-space: nowrap; }
+.doc-key-desc { font-size: 0.76rem; color: #94a3b8; line-height: 1.5; }
+.key-page-content { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.25); }
+.key-page-content .doc-key-name { color: var(--accent); }
+.key-metadata { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.25); }
+.key-metadata .doc-key-name { color: var(--accent6); }
+
+/* ── LOADER CARDS ── */
+.loader-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin: 20px 0; }
+.loader-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; border-left: 3px solid; }
+.loader-card .lc-class { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 600; margin-bottom: 8px; }
+.loader-card .lc-ext { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
+.loader-card p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.5; }
+.loader-card .lc-backend { font-size: 0.7rem; margin-top: 8px; opacity: 0.8; }
+
+/* ── CSV PAGE CONTENT FORMAT ── */
+.csv-format { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 16px 20px; margin: 14px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+
+/* ── METADATA FIELDS ── */
+.meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+.meta-field { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+.meta-field .mf-key { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--accent6); margin-bottom: 3px; }
+.meta-field .mf-val { font-size: 0.78rem; color: #94a3b8; }
+
+/* ── PARSING LEVELS ── */
+.levels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.level-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.level-card .level-badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 10px; border-radius: 3px; display: inline-block; margin-bottom: 10px; font-weight: 600; }
+.level-simple { border-top: 3px solid var(--accent2); }
+.level-complex { border-top: 3px solid var(--accent4); }
+.level-card h4 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.level-card p { font-size: 0.82rem; color: var(--muted); margin: 0 0 10px; }
+.level-card ul { list-style: none; }
+.level-card ul li { font-size: 0.78rem; color: #94a3b8; padding: 2px 0; }
+.level-card ul li::before { content: '→ '; color: var(--muted); }
+
+/* ── WHAT DOCLING EXTRACTS ── */
+.extract-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+.extract-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+.extract-item .ex-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.extract-item .ex-name { font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.extract-item .ex-fmt  { font-size: 0.68rem; color: var(--muted); }
+
+/* ── COMPARE TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 12px 16px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+.compare-table td { padding: 10px 16px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .yes  { color: var(--accent);  font-weight: 500; }
+.compare-table .no   { color: #f87171; }
+.compare-table .mid  { color: var(--accent2); }
+.compare-table .best { color: var(--accent5); font-weight: 600; }
+.compare-table .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; }
+
+/* ── CODE BLOCKS ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+.hl  { color: var(--accent); font-weight: 600; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(52,211,153,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── KEY TERMS ── */
+.key-terms { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 8px; padding: 20px; margin: 24px 0; }
+.key-terms h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.term { margin-bottom: 12px; }
+.term dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+.term dd { font-size: 0.8rem; color: var(--muted); margin-left: 0; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent6); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(52,211,153,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── DATASET LINKS ── */
+.dataset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.dataset-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.dataset-card h4 { font-size: 0.85rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.dataset-card p  { font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; line-height: 1.5; }
+.dataset-card .ds-url { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .levels { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#agenda">Class Agenda</a></li>
+    <li><a href="#document-object">Document Object</a></li>
+    <li class="sub"><a href="#page-content">page_content</a></li>
+    <li class="sub"><a href="#metadata">metadata</a></li>
+    <li class="sub"><a href="#custom-doc">Custom Document</a></li>
+    <li><a href="#langchain-loaders">LangChain Loaders</a></li>
+    <li class="sub"><a href="#pdf-loader">PDF Loader</a></li>
+    <li class="sub"><a href="#csv-loader">CSV Loader</a></li>
+    <li class="sub"><a href="#json-loader">JSON Loader</a></li>
+    <li class="sub"><a href="#other-loaders">DOCX / HTML / TXT</a></li>
+    <li><a href="#parsing-levels">Parsing Levels</a></li>
+    <li><a href="#complex-parsing">Complex Parsing</a></li>
+    <li class="sub"><a href="#what-complex-means">What Makes it Complex</a></li>
+    <li class="sub"><a href="#pymupdf-scratch">PyMuPDF from Scratch</a></li>
+    <li class="sub"><a href="#docling">Docling</a></li>
+    <li class="sub"><a href="#extraction-outputs">Extraction Outputs</a></li>
+    <li><a href="#datasets">Practice Datasets</a></li>
+    <li><a href="#full-code">Full Code</a></li>
+    <li><a href="#faq">Class Q&A</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 30</span></div>
+    <div class="hero-class-num">Class 30 · 05 July 2026</div>
+    <h1>Data Parsing<br><em>for RAG</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> LangChain Loaders</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Document Object</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Docling</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Complex PDF Parsing</div>
+    </div>
+    <p class="hero-summary">
+      Class 30 is the first hands-on practical of the RAG chapter — entirely in VS Code, no GPU needed. Sunny takes you from simple LangChain document loaders (PDF, CSV, JSON, DOCX, HTML, TXT) all the way to a from-scratch complex PDF parser using PyMuPDF and Docling that extracts text, tables, images, and OCR from a real-world multi-format PDF.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <p>Class 30 is a 3-hour live coding session — Part 1 covers LangChain's standardised document loaders, and Part 2 goes deep into complex PDF parsing from scratch using PyMuPDF and Docling.</p>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Understand LangChain's Document object format — <code>page_content</code> + <code>metadata</code></li>
+      <li><span class="chk">✓</span> Use all 6 core LangChain loaders: PDF, CSV, JSON, DOCX, HTML, TXT</li>
+      <li><span class="chk">✓</span> Understand what metadata fields come with each loader and how to use them</li>
+      <li><span class="chk">✓</span> Create custom Document objects with your own metadata</li>
+      <li><span class="chk">✓</span> Understand the difference between simple data loading and real/complex parsing</li>
+      <li><span class="chk">✓</span> Parse a complex, real-world PDF from scratch using PyMuPDF — extracting text, tables, images, and page screenshots</li>
+      <li><span class="chk">✓</span> Use Docling as a unified, higher-level parsing library</li>
+      <li><span class="chk">✓</span> Save parsed output as JSON, Markdown, and image files — RAG-ready formats</li>
+      <li><span class="chk">✓</span> Know which practice datasets to use for building your own parsers</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">💻</span>
+      <p><strong>No GPU required.</strong> All work in Class 30 runs locally on CPU. Sunny ran everything in VS Code with a standard Python environment. You can use Google Colab if local dependencies (like Docling) give trouble on your machine.</p>
+    </div>
+  </section>
+
+  <!-- AGENDA -->
+  <section id="agenda">
+    <div class="section-eyebrow">02 — Session Agenda</div>
+    <h2>What Sunny Taught, Step by Step</h2>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent2);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--accent2); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px;">Part 1 — Simple Loading</div>
+        <h4 style="font-size:0.9rem; font-weight:600; color:#fff; margin-bottom:10px;">LangChain Data Loaders</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ Document object structure</li>
+          <li>→ PDF Loader (PyMuPDF backend)</li>
+          <li>→ CSV Loader (key-value format)</li>
+          <li>→ JSON Loader (jq_schema)</li>
+          <li>→ DOCX / HTML / TXT loaders</li>
+          <li>→ Metadata deep-dive</li>
+          <li>→ Custom Document creation</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent4);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--accent4); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px;">Part 2 — Complex Parsing</div>
+        <h4 style="font-size:0.9rem; font-weight:600; color:#fff; margin-bottom:10px;">Real PDF Parsing</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2;">
+          <li>→ From-scratch PyMuPDF parser</li>
+          <li>→ Extracting text per page</li>
+          <li>→ Extracting tables → Markdown + JSON</li>
+          <li>→ Extracting images (all types)</li>
+          <li>→ Page screenshots</li>
+          <li>→ OCR on image content</li>
+          <li>→ Docling (unified framework)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Today, guys, we'll more focus over the data parsing. And this RAG, actually, it is more about the practical. So from next week onwards we'll be more focusing over the practical itself than this theory."
+    </div>
+  </section>
+
+  <!-- DOCUMENT OBJECT -->
+  <section id="document-object">
+    <div class="section-eyebrow">03 — The Core Concept</div>
+    <h2>The LangChain Document Object</h2>
+    <p>This is the single most important concept of Class 30. Every LangChain loader — regardless of file type — returns data in the same standardised format: a <strong>Document object</strong> with exactly two fields.</p>
+
+    <div class="doc-object">
+      <div class="doc-label">LangChain Document Object — Standard Format</div>
+
+      <div class="doc-key key-page-content">
+        <div class="doc-key-name">page_content</div>
+        <div class="doc-key-desc">
+          The actual extracted text content from the file.<br>
+          <span style="color:var(--muted);">PDF → full page text · CSV → key:value row string · JSON → JSON object string · HTML → clean text</span>
+        </div>
+      </div>
+
+      <div class="doc-key key-metadata">
+        <div class="doc-key-name">metadata</div>
+        <div class="doc-key-desc">
+          Information <em>about</em> the data — source file path, page number, author, creation date, row number, etc.<br>
+          <span style="color:var(--muted);">Used for source citation, filtering, and traceability in RAG pipelines.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "In LangChain, parsed content comes in the document object. Inside the document object, basically, you will get the page content, and you will get the metadata. This format is useful for the RAG, because later we can show the source citation along with the final answer."
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🎯</span>
+      <p><strong>Why standardisation matters:</strong> Because every loader returns the same Document format, the rest of your RAG pipeline (text splitter → embedding → vector store) works identically regardless of whether the source was a PDF, CSV, or HTML file. The LangChain wrapper provides this unified interface — that is its primary value.</p>
+    </div>
+
+    <h3 id="page-content">page_content — What You Get</h3>
+    <p>The <code>page_content</code> field varies by file type:</p>
+    <table class="compare-table">
+      <thead><tr><th>File Type</th><th>page_content Format</th><th>One Document per…</th></tr></thead>
+      <tbody>
+        <tr><td>PDF</td><td>Full raw text of the page (tables appear as raw data)</td><td>Page</td></tr>
+        <tr><td>CSV</td><td class="mono">column1: value1\ncolumn2: value2\n...</td><td>Row</td></tr>
+        <tr><td>JSON</td><td>JSON object as string</td><td>JSON object in list</td></tr>
+        <tr><td>DOCX</td><td>Full document text</td><td>Document</td></tr>
+        <tr><td>HTML</td><td>Extracted clean text (strips HTML tags)</td><td>Page/file</td></tr>
+        <tr><td>TXT</td><td>Raw text content</td><td>File</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Tables in PDFs via LangChain loader:</strong> When you use the basic PDF loader, table data is extracted as raw text — it is NOT structured as a table. To get properly structured table data (Markdown or JSON), you need the complex parsing approach (PyMuPDF from scratch or Docling), which Sunny covered in Part 2.</p>
+    </div>
+
+    <h3 id="metadata">metadata — PDF Metadata Fields</h3>
+    <p>When loading a PDF, the metadata contains these fields (from Sunny's live demo):</p>
+
+    <div class="meta-grid">
+      <div class="meta-field"><div class="mf-key">source</div><div class="mf-val">Full file path of the PDF</div></div>
+      <div class="meta-field"><div class="mf-key">page</div><div class="mf-val">Page index (0-based, so page 0 = first page)</div></div>
+      <div class="meta-field"><div class="mf-key">page_label</div><div class="mf-val">Human-readable page number (1-based)</div></div>
+      <div class="meta-field"><div class="mf-key">total_pages</div><div class="mf-val">Total number of pages in the PDF</div></div>
+      <div class="meta-field"><div class="mf-key">author</div><div class="mf-val">Document author (if set, else "Anonymous")</div></div>
+      <div class="meta-field"><div class="mf-key">title</div><div class="mf-val">Document title from PDF properties</div></div>
+      <div class="meta-field"><div class="mf-key">subject</div><div class="mf-val">Document subject (if specified)</div></div>
+      <div class="meta-field"><div class="mf-key">keywords</div><div class="mf-val">Keywords embedded in PDF properties</div></div>
+      <div class="meta-field"><div class="mf-key">creator</div><div class="mf-val">Creator application (e.g. Word, Adobe)</div></div>
+      <div class="meta-field"><div class="mf-key">creation_date</div><div class="mf-val">When the document was created</div></div>
+      <div class="meta-field"><div class="mf-key">mod_date</div><div class="mf-val">Last modification date</div></div>
+      <div class="meta-field"><div class="mf-key">trapped</div><div class="mf-val">PDF print color trapping info (rarely used)</div></div>
+    </div>
+
+    <div class="sunny-says">
+      "These all are the things coming inside the metadata. If you wanted to utilize any sort of information, you can utilize that. Going forward, I will show you basically how you can create your own custom document object."
+    </div>
+
+    <h3 id="custom-doc">Creating Custom Document Objects</h3>
+    <p>You can manually create Document objects and attach any metadata you want. This is useful when your data comes from a database, API, or non-standard source.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · custom document</span>
+      <pre><span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+
+<span class="cm"># Creating a custom Document object from scratch</span>
+custom_doc = <span class="cls">Document</span>(
+    page_content=<span class="str">"Our refund policy allows returns within 7 days of purchase. "</span>
+                 <span class="str">"Items must be unused and in original packaging."</span>,
+    metadata={
+        <span class="str">"source"</span>:      <span class="str">"company_policy_db"</span>,
+        <span class="str">"department"</span>:  <span class="str">"Customer Service"</span>,
+        <span class="str">"doc_type"</span>:    <span class="str">"policy"</span>,
+        <span class="str">"version"</span>:     <span class="str">"v2.1"</span>,
+        <span class="str">"last_updated"</span>:<span class="str">"2026-06-15"</span>,
+        <span class="str">"priority"</span>:    <span class="str">"high"</span>
+    }
+)
+
+<span class="fn">print</span>(custom_doc.page_content)
+<span class="fn">print</span>(custom_doc.metadata)
+
+<span class="cm"># Create a list of custom documents (e.g. from a database query)</span>
+db_records = [
+    {<span class="str">"text"</span>: <span class="str">"Leave policy: 12 days per year."</span>,       <span class="str">"dept"</span>: <span class="str">"HR"</span>},
+    {<span class="str">"text"</span>: <span class="str">"Travel reimbursement limit: ₹5000/month."</span>, <span class="str">"dept"</span>: <span class="str">"Finance"</span>},
+]
+docs = [
+    <span class="cls">Document</span>(page_content=r[<span class="str">"text"</span>], metadata={<span class="str">"department"</span>: r[<span class="str">"dept"</span>], <span class="str">"source"</span>: <span class="str">"hr_db"</span>})
+    <span class="kw">for</span> r <span class="kw">in</span> db_records
+]
+<span class="fn">print</span>(f<span class="str">f"Created {len(docs)} custom documents"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- LANGCHAIN LOADERS -->
+  <section id="langchain-loaders">
+    <div class="section-eyebrow">04 — Part 1: Simple Loading</div>
+    <h2>LangChain Data Loaders — All 6 Types</h2>
+    <p>Sunny demonstrated these loaders live, each with the same <code>.load()</code> method call — the standardisation that makes LangChain a wrapper rather than a parser.</p>
+
+    <div class="loader-grid">
+      <div class="loader-card" style="border-left-color: var(--accent2);">
+        <div class="lc-class" style="color:var(--accent2);">PyMuPDFLoader</div>
+        <div class="lc-ext">Files: .pdf</div>
+        <p>Default PDF loader. Extracts text page by page. One Document per page.</p>
+        <div class="lc-backend" style="color:var(--accent2);">Backend: PyMuPDF (fitz)</div>
+      </div>
+      <div class="loader-card" style="border-left-color: var(--accent);">
+        <div class="lc-class" style="color:var(--accent);">CSVLoader</div>
+        <div class="lc-ext">Files: .csv</div>
+        <p>Loads CSV files. One Document per row. page_content is key:value string of all columns.</p>
+        <div class="lc-backend" style="color:var(--accent);">Backend: Python csv module</div>
+      </div>
+      <div class="loader-card" style="border-left-color: var(--accent3);">
+        <div class="lc-class" style="color:var(--accent3);">JSONLoader</div>
+        <div class="lc-ext">Files: .json</div>
+        <p>Loads JSON files. Requires jq_schema to navigate the JSON structure. One Document per JSON object.</p>
+        <div class="lc-backend" style="color:var(--accent3);">Backend: jq (JSON query)</div>
+      </div>
+      <div class="loader-card" style="border-left-color: var(--accent6);">
+        <div class="lc-class" style="color:var(--accent6);">Docx2txtLoader</div>
+        <div class="lc-ext">Files: .docx</div>
+        <p>Parses Microsoft Word files. Extracts full text content. One Document per file.</p>
+        <div class="lc-backend" style="color:var(--accent6);">Backend: docx2txt / python-docx</div>
+      </div>
+      <div class="loader-card" style="border-left-color: var(--accent4);">
+        <div class="lc-class" style="color:var(--accent4);">UnstructuredHTMLLoader</div>
+        <div class="lc-ext">Files: .html</div>
+        <p>Strips HTML tags and extracts clean text. One Document per HTML file.</p>
+        <div class="lc-backend" style="color:var(--accent4);">Backend: Unstructured.io</div>
+      </div>
+      <div class="loader-card" style="border-left-color: var(--muted);">
+        <div class="lc-class" style="color:var(--text);">TextLoader</div>
+        <div class="lc-ext">Files: .txt, .md</div>
+        <p>Simple raw text loader. One Document for the entire file. Also works for .md files.</p>
+        <div class="lc-backend" style="color:var(--muted);">Backend: Python open()</div>
+      </div>
+    </div>
+
+    <h3 id="pdf-loader">PDF Loader — Code & Output</h3>
+    <div class="code-block">
+      <span class="lang-label">python · PDF loader</span>
+      <pre><span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> (
+    <span class="cls">PyMuPDFLoader</span>, <span class="cls">CSVLoader</span>, <span class="cls">JSONLoader</span>,
+    <span class="cls">Docx2txtLoader</span>, <span class="cls">UnstructuredHTMLLoader</span>, <span class="cls">TextLoader</span>
+)
+
+<span class="cm"># ── PDF Loader ────────────────────────────────────────────────────</span>
+loader = <span class="cls">PyMuPDFLoader</span>(<span class="str">"data/sample_document.pdf"</span>)
+docs = loader.<span class="fn">load</span>()
+
+<span class="fn">print</span>(f<span class="str">f"Total documents (pages): {len(docs)}"</span>)
+
+<span class="cm"># Check the first page</span>
+<span class="fn">print</span>(docs[<span class="num">0</span>].page_content[:<span class="num">300</span>])   <span class="cm"># actual text content</span>
+<span class="fn">print</span>(docs[<span class="num">0</span>].metadata)              <span class="cm"># file path, page, author, etc.</span>
+
+<span class="cm"># Sample metadata output:</span>
+<span class="cm"># {</span>
+<span class="cm">#   'source': 'data/sample_document.pdf',</span>
+<span class="cm">#   'file_path': 'data/sample_document.pdf',</span>
+<span class="cm">#   'page': 0,          ← 0-based index</span>
+<span class="cm">#   'page_label': '1',  ← 1-based human label</span>
+<span class="cm">#   'total_pages': 5,</span>
+<span class="cm">#   'author': 'Anonymous',</span>
+<span class="cm">#   'title': '',</span>
+<span class="cm">#   'subject': '',</span>
+<span class="cm">#   'creator': '',</span>
+<span class="cm">#   'creation_date': "D:20260601...",</span>
+<span class="cm">#   'mod_date': "D:20260601...",</span>
+<span class="cm">#   'trapped': '/False'</span>
+<span class="cm"># }</span></pre>
+    </div>
+
+    <h3 id="csv-loader">CSV Loader — Code & Key-Value Format</h3>
+    <div class="code-block">
+      <span class="lang-label">python · CSV loader</span>
+      <pre><span class="cm"># ── CSV Loader ────────────────────────────────────────────────────</span>
+<span class="cm"># Sample CSV has columns: policy_id, department, topic, detail, last_update</span>
+csv_loader = <span class="cls">CSVLoader</span>(file_path=<span class="str">"data/sample.csv"</span>)
+csv_docs = csv_loader.<span class="fn">load</span>()
+
+<span class="fn">print</span>(f<span class="str">f"Total rows as documents: {len(csv_docs)}"</span>)  <span class="cm"># 3 rows → 3 documents</span>
+
+<span class="cm"># First row's metadata</span>
+<span class="fn">print</span>(csv_docs[<span class="num">0</span>].metadata)
+<span class="cm"># {'source': 'data/sample.csv', 'row': 0}  ← row 0 = first row</span>
+
+<span class="cm"># First row's page_content — KEY:VALUE FORMAT</span>
+<span class="fn">print</span>(csv_docs[<span class="num">0</span>].page_content)
+<span class="cm"># policy_id: 101</span>
+<span class="cm"># department: HR</span>
+<span class="cm"># topic: Leave Policy</span>
+<span class="cm"># detail: 12 casual leaves per year</span>
+<span class="cm"># last_update: 2026-01-01</span>
+
+<span class="cm"># Load multiple CSV files at once (pass a list)</span>
+<span class="cm"># multi_loader = CSVLoader(file_path=["data/hr.csv", "data/finance.csv"])</span></pre>
+    </div>
+
+    <h3 id="json-loader">JSON Loader — jq_schema Explained</h3>
+    <div class="code-block">
+      <span class="lang-label">python · JSON loader</span>
+      <pre><span class="cm"># Sample JSON structure:</span>
+<span class="cm"># [</span>
+<span class="cm">#   {"id": 1, "title": "Leave Policy", "content": "12 days per year..."},</span>
+<span class="cm">#   {"id": 2, "title": "Refund Policy", "content": "7 days return window..."},</span>
+<span class="cm">#   {"id": 3, "title": "Travel Policy",  "content": "₹5000 limit per month..."}</span>
+<span class="cm"># ]</span>
+
+json_loader = <span class="cls">JSONLoader</span>(
+    file_path   = <span class="str">"data/sample.json"</span>,
+    jq_schema   = <span class="str">".[  ]"</span>,     <span class="cm"># extract each item from the top-level list</span>
+    text_content = <span class="kw">False</span>      <span class="cm"># content is a dict/object, not a plain string</span>
+)
+json_docs = json_loader.<span class="fn">load</span>()
+
+<span class="fn">print</span>(f<span class="str">f"JSON documents: {len(json_docs)}"</span>)   <span class="cm"># 3 objects → 3 documents</span>
+<span class="fn">print</span>(json_docs[<span class="num">0</span>].page_content)
+<span class="cm"># {'id': 1, 'title': 'Leave Policy', 'content': '12 days per year...'}</span>
+<span class="fn">print</span>(json_docs[<span class="num">0</span>].metadata)
+<span class="cm"># {'source': 'data/sample.json', 'seq_num': 1}</span>
+
+<span class="cm"># jq_schema explained:</span>
+<span class="cm"># ".[]"         → extract each element from a top-level list</span>
+<span class="cm"># ".records[]"  → extract each item from {"records": [...]} structure</span>
+<span class="cm"># ".[].content" → extract only the 'content' field as text_content</span></pre>
+    </div>
+
+    <h3 id="other-loaders">DOCX, HTML, and TXT Loaders</h3>
+    <div class="code-block">
+      <span class="lang-label">python · DOCX / HTML / TXT</span>
+      <pre><span class="cm"># ── DOCX Loader ───────────────────────────────────────────────────</span>
+docx_loader = <span class="cls">Docx2txtLoader</span>(<span class="str">"data/company_policy.docx"</span>)
+docx_docs   = docx_loader.<span class="fn">load</span>()
+<span class="fn">print</span>(docx_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])   <span class="cm"># full text of the Word doc</span>
+<span class="fn">print</span>(docx_docs[<span class="num">0</span>].metadata)
+<span class="cm"># {'source': 'data/company_policy.docx'}</span>
+
+<span class="cm"># ── HTML Loader ───────────────────────────────────────────────────</span>
+html_loader = <span class="cls">UnstructuredHTMLLoader</span>(<span class="str">"data/webpage.html"</span>)
+html_docs   = html_loader.<span class="fn">load</span>()
+<span class="fn">print</span>(html_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])   <span class="cm"># clean text, HTML tags stripped</span>
+
+<span class="cm"># ── TXT Loader ────────────────────────────────────────────────────</span>
+txt_loader = <span class="cls">TextLoader</span>(<span class="str">"data/notes.txt"</span>)
+txt_docs   = txt_loader.<span class="fn">load</span>()
+<span class="fn">print</span>(txt_docs[<span class="num">0</span>].page_content)   <span class="cm"># entire file as one string</span>
+
+<span class="cm"># ── Same pattern for ALL loaders ──────────────────────────────────</span>
+<span class="cm"># 1. Instantiate with file_path</span>
+<span class="cm"># 2. Call .load() → returns list of Document objects</span>
+<span class="cm"># 3. Access .page_content and .metadata on each Document</span>
+<span class="cm"># This standardisation is the entire point of using LangChain!</span></pre>
+    </div>
+  </section>
+
+  <!-- PARSING LEVELS -->
+  <section id="parsing-levels">
+    <div class="section-eyebrow">05 — Key Distinction</div>
+    <h2>Simple Loading vs Real/Complex Parsing</h2>
+
+    <p>Sunny made this distinction very clearly during the class — calling the LangChain loaders "partial data parsing" or "data loading/extraction." The real definition of data parsing is more demanding:</p>
+
+    <div class="sunny-says">
+      "The definition of the data parsing is to fetch the important component, to arrange the data according to our requirement. That is the actual definition of the data parsing. Simply, we can say over here, it's a data loading, or data extraction — partial data parsing — it's a correct word for this one."
+    </div>
+
+    <div class="levels">
+      <div class="level-card level-simple">
+        <span class="level-badge" style="background:rgba(251,146,60,0.1); color:var(--accent2);">Simple / Partial</span>
+        <h4>LangChain Document Loaders</h4>
+        <p>Quick, standardised, plug-and-play. Returns raw text. Sufficient for clean, simple documents.</p>
+        <ul>
+          <li>Raw text extraction only</li>
+          <li>Tables returned as plain text</li>
+          <li>No image extraction</li>
+          <li>No structural preservation</li>
+          <li>Good for: simple PDFs, CSVs, JSON, DOCX</li>
+        </ul>
+      </div>
+      <div class="level-card level-complex">
+        <span class="level-badge" style="background:rgba(244,114,182,0.1); color:var(--accent4);">Complex / Real</span>
+        <h4>From-Scratch Parsing (PyMuPDF / Docling)</h4>
+        <p>Full structural understanding. Required for production real-world documents.</p>
+        <ul>
+          <li>Text per page with positions</li>
+          <li>Tables → structured Markdown + JSON</li>
+          <li>Images extracted as files (PNG/JPG)</li>
+          <li>Page screenshots for visual inspection</li>
+          <li>OCR on scanned images</li>
+          <li>Good for: real PDFs with charts, tables, images</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>Sunny's real-world insight:</strong> "If you're going to be working in any real-time project, you will also have to do the same thing. In real time, you will see a lot of complexity inside the PDF and the data. So I have done this thing a lot before creating a RAG."</p>
+    </div>
+  </section>
+
+  <!-- COMPLEX PARSING -->
+  <section id="complex-parsing">
+    <div class="section-eyebrow">06 — Part 2: Real Parsing</div>
+    <h2>Complex PDF Parsing — The Full Story</h2>
+
+    <h3 id="what-complex-means">What Makes a PDF "Complex"?</h3>
+    <p>Sunny opened a real-world PDF to demonstrate what students will encounter in production. A complex PDF can contain all of the following mixed on the same pages:</p>
+
+    <div class="extract-grid">
+      <div class="extract-item"><div class="ex-icon">📝</div><div class="ex-name">Plain Text</div><div class="ex-fmt">paragraphs, headings</div></div>
+      <div class="extract-item"><div class="ex-icon">📊</div><div class="ex-name">Simple Tables</div><div class="ex-fmt">standard grids</div></div>
+      <div class="extract-item"><div class="ex-icon">🗂</div><div class="ex-name">Complex Tables</div><div class="ex-fmt">merged / split cells</div></div>
+      <div class="extract-item"><div class="ex-icon">📈</div><div class="ex-name">Charts</div><div class="ex-fmt">bar, line, pie charts</div></div>
+      <div class="extract-item"><div class="ex-icon">🔥</div><div class="ex-name">Heat Maps</div><div class="ex-fmt">visual data grids</div></div>
+      <div class="extract-item"><div class="ex-icon">🔀</div><div class="ex-name">Flowcharts</div><div class="ex-fmt">diagrams, decision trees</div></div>
+      <div class="extract-item"><div class="ex-icon">🖼</div><div class="ex-name">Images</div><div class="ex-fmt">embedded pictures</div></div>
+      <div class="extract-item"><div class="ex-icon">🔍</div><div class="ex-name">Scanned / OCR</div><div class="ex-fmt">image-based text</div></div>
+    </div>
+
+    <div class="sunny-says">
+      "If you will look into this particular document, inside this document you will find out each and every kind of data. Text data is there, charts, tables, complex tables, flowcharts, OCR images. This is what, guys — this is a real parsing which we are doing."
+    </div>
+
+    <h3 id="pymupdf-scratch">PyMuPDF from Scratch — Complete Parser</h3>
+    <p>Sunny wrote a complete PDF parser from scratch using PyMuPDF (fitz) that extracts everything — text, tables (as Markdown and JSON), images, and page-level screenshots.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · complex PDF parser from scratch</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 30 — Complex PDF Parser (from scratch using PyMuPDF)
+## Extracts: text, tables (MD + JSON), images, page screenshots, OCR
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="kw">import</span> fitz           <span class="cm"># PyMuPDF</span>
+<span class="kw">import</span> json
+<span class="kw">import</span> os
+<span class="kw">from</span> pathlib <span class="kw">import</span> <span class="cls">Path</span>
+
+PDF_PATH   = <span class="str">"data/complex_document.pdf"</span>
+OUTPUT_DIR = <span class="str">"parse_complex_pdf_output"</span>
+os.<span class="fn">makedirs</span>(OUTPUT_DIR, exist_ok=<span class="kw">True</span>)
+os.<span class="fn">makedirs</span>(f<span class="str">"{OUTPUT_DIR}/images"</span>,      exist_ok=<span class="kw">True</span>)
+os.<span class="fn">makedirs</span>(f<span class="str">"{OUTPUT_DIR}/page_images"</span>, exist_ok=<span class="kw">True</span>)
+
+doc = fitz.<span class="fn">open</span>(PDF_PATH)
+<span class="fn">print</span>(f<span class="str">f"Total pages: {len(doc)}"</span>)
+
+page_records  = []
+table_records = []
+image_records = []
+all_markdown  = []
+
+<span class="kw">for</span> page_num, page <span class="kw">in</span> <span class="fn">enumerate</span>(doc):
+
+    <span class="cm"># ── 1. Extract Text ───────────────────────────────────────────</span>
+    page_text = page.<span class="fn">get_text</span>(<span class="str">"text"</span>).<span class="fn">strip</span>()
+
+    <span class="cm"># ── 2. Extract Page as Screenshot ─────────────────────────────</span>
+    mat  = fitz.<span class="cls">Matrix</span>(<span class="num">2.0</span>, <span class="num">2.0</span>)  <span class="cm"># 2x zoom for better resolution</span>
+    clip = page.<span class="fn">get_pixmap</span>(matrix=mat)
+    page_img_path = f<span class="str">"{OUTPUT_DIR}/page_images/page_{page_num+1}.png"</span>
+    clip.<span class="fn">save</span>(page_img_path)
+
+    <span class="cm"># ── 3. Extract Tables → Markdown + JSON ──────────────────────</span>
+    tables    = page.<span class="fn">find_tables</span>()
+    md_tables = []
+    for tbl_idx, table <span class="kw">in</span> <span class="fn">enumerate</span>(tables):
+        md_table = table.<span class="fn">to_markdown</span>()   <span class="cm"># Markdown format</span>
+        md_tables.<span class="fn">append</span>(md_table)
+
+        <span class="cm"># Store as JSON record too</span>
+        table_records.<span class="fn">append</span>({
+            <span class="str">"page"</span>:        page_num + <span class="num">1</span>,
+            <span class="str">"table_index"</span>: tbl_idx,
+            <span class="str">"markdown"</span>:    md_table,
+            <span class="str">"raw"</span>:         table.<span class="fn">extract</span>()   <span class="cm"># list of lists</span>
+        })
+
+    <span class="cm"># ── 4. Extract Embedded Images ────────────────────────────────</span>
+    img_list = page.<span class="fn">get_images</span>(full=<span class="kw">True</span>)
+    for img_idx, img_info <span class="kw">in</span> <span class="fn">enumerate</span>(img_list):
+        xref     = img_info[<span class="num">0</span>]
+        base_img = doc.<span class="fn">extract_image</span>(xref)
+        img_bytes = base_img[<span class="str">"image"</span>]
+        img_ext   = base_img[<span class="str">"ext"</span>]       <span class="cm"># "png", "jpeg", etc.</span>
+        img_path  = f<span class="str">"{OUTPUT_DIR}/images/page{page_num+1}_img{img_idx+1}.{img_ext}"</span>
+
+        <span class="kw">with</span> <span class="fn">open</span>(img_path, <span class="str">"wb"</span>) <span class="kw">as</span> f:
+            f.<span class="fn">write</span>(img_bytes)
+
+        <span class="cm"># Optional: OCR text from image using pytesseract</span>
+        <span class="cm"># from PIL import Image</span>
+        <span class="cm"># import pytesseract</span>
+        <span class="cm"># ocr_text = pytesseract.image_to_string(Image.open(img_path))</span>
+
+        image_records.<span class="fn">append</span>({
+            <span class="str">"page"</span>:        page_num + <span class="num">1</span>,
+            <span class="str">"image_index"</span>: img_idx,
+            <span class="str">"image_path"</span>:  img_path,
+            <span class="str">"format"</span>:      img_ext,
+            <span class="str">"ocr_text"</span>:    <span class="str">""</span>  <span class="cm"># fill with pytesseract if available</span>
+        })
+
+    <span class="cm"># ── 5. Build Markdown content for this page ───────────────────</span>
+    page_md = f<span class="str">"## Page {page_num+1}\n\n{page_text}\n\n"</span>
+    <span class="kw">if</span> md_tables:
+        page_md += <span class="str">"\n\n### Tables\n\n"</span> + <span class="str">"\n\n"</span>.<span class="fn">join</span>(md_tables)
+    all_markdown.<span class="fn">append</span>(page_md)
+
+    page_records.<span class="fn">append</span>({
+        <span class="str">"page"</span>:        page_num + <span class="num">1</span>,
+        <span class="str">"text"</span>:        page_text,
+        <span class="str">"image_path"</span>:  page_img_path,
+        <span class="str">"num_tables"</span>:  <span class="fn">len</span>(md_tables),
+        <span class="str">"num_images"</span>:  <span class="fn">len</span>(img_list),
+    })
+
+<span class="cm"># ── Save all outputs ──────────────────────────────────────────────</span>
+<span class="cm"># 1. RAG-ready Markdown file</span>
+<span class="kw">with</span> <span class="fn">open</span>(f<span class="str">"{OUTPUT_DIR}/rag_ready.md"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(<span class="str">"\n\n"</span>.<span class="fn">join</span>(all_markdown))
+
+<span class="cm"># 2. Page records JSON</span>
+<span class="kw">with</span> <span class="fn">open</span>(f<span class="str">"{OUTPUT_DIR}/page_record.json"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(page_records, f, indent=<span class="num">2</span>)
+
+<span class="cm"># 3. Table records JSON</span>
+<span class="kw">with</span> <span class="fn">open</span>(f<span class="str">"{OUTPUT_DIR}/table_record.json"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(table_records, f, indent=<span class="num">2</span>)
+
+<span class="cm"># 4. Image records JSON</span>
+<span class="kw">with</span> <span class="fn">open</span>(f<span class="str">"{OUTPUT_DIR}/image_record.json"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(image_records, f, indent=<span class="num">2</span>)
+
+<span class="fn">print</span>(f<span class="str">f"\n✓ Parsing complete!"</span>)
+<span class="fn">print</span>(f<span class="str">f"  Pages processed:  {len(page_records)}"</span>)
+<span class="fn">print</span>(f<span class="str">f"  Tables extracted: {len(table_records)}"</span>)
+<span class="fn">print</span>(f<span class="str">f"  Images extracted: {len(image_records)}"</span>)
+<span class="fn">print</span>(f<span class="str">f"  Output: {OUTPUT_DIR}/"</span>)</pre>
+    </div>
+
+    <h3 id="extraction-outputs">What the Parser Produces — Output Structure</h3>
+    <p>After running the complex parser, Sunny showed students the actual output folder. Here's what gets created:</p>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; margin:16px 0; line-height:2;">
+      <div style="color:var(--muted); font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:12px;">Output Directory Structure</div>
+      <div style="color:var(--accent);">parse_complex_pdf_output/</div>
+      <div style="padding-left:20px; color:#94a3b8;">
+        <span style="color:var(--accent3);">rag_ready.md</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Full document as Markdown (directly usable in RAG!)<br>
+        <span style="color:var(--accent6);">page_record.json</span> &nbsp;&nbsp;&nbsp;&nbsp; ← Per-page: text, image path, table/image counts<br>
+        <span style="color:var(--accent5);">table_record.json</span> &nbsp;&nbsp;&nbsp; ← All tables in Markdown + JSON format<br>
+        <span style="color:var(--accent4);">image_record.json</span> &nbsp;&nbsp;&nbsp; ← Image metadata + OCR text (if Tesseract available)<br>
+        <span style="color:var(--accent2);">images/</span><br>
+        <span style="padding-left:20px; color:#94a3b8;">page1_img1.png &nbsp; ← Extracted embedded images<br>
+        page1_img2.jpeg<br>
+        page3_img1.png &nbsp; ← (Sunny's photo was extracted here!)</span><br>
+        <span style="color:var(--accent2);">page_images/</span><br>
+        <span style="padding-left:20px; color:#94a3b8;">page_1.png &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Full page screenshots at 2x resolution<br>
+        page_2.png<br>
+        page_3.png</span>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>The <code>rag_ready.md</code> file is what you feed into your vector database.</strong> It contains all the text and structured table data from the PDF in clean Markdown format. Tables extracted as Markdown let the LLM read and reason about table data much more accurately than raw text strings.</p>
+    </div>
+
+    <h3 id="docling">Docling — The Unified Parsing Alternative</h3>
+    <p>After the PyMuPDF demo, Sunny introduced Docling as a higher-level library that does the same thing with less boilerplate. It's IBM's open-source document parsing framework.</p>
+
+    <div class="sunny-says">
+      "Docling is a library. It is a library for parsing the data. Now guys, Docling is what — Docling is a unified framework. It is not only for the PDF, or not only for the DOCX, it is for the multiple formats. Multi-modal capability, multi-document capability. Many things it can do. Even we can embed the images also."
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · Docling parser</span>
+      <pre><span class="cm"># !pip install docling</span>
+<span class="kw">from</span> docling.document_converter <span class="kw">import</span> <span class="cls">DocumentConverter</span>
+<span class="kw">from</span> docling.datamodel.base_models <span class="kw">import</span> <span class="cls">InputFormat</span>
+
+<span class="cm"># ── Option 1: Docling directly ────────────────────────────────────</span>
+converter = <span class="cls">DocumentConverter</span>()
+result    = converter.<span class="fn">convert</span>(<span class="str">"data/complex_document.pdf"</span>)
+
+<span class="cm"># Export to different formats</span>
+md_output   = result.document.<span class="fn">export_to_markdown</span>()   <span class="cm"># Markdown string</span>
+json_output = result.document.<span class="fn">export_to_dict</span>()        <span class="cm"># structured dict</span>
+
+<span class="cm"># Save the RAG-ready markdown</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"docling_output.md"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(md_output)
+
+<span class="cm"># ── Option 2: Docling via LangChain (wrapper) ────────────────────</span>
+<span class="cm"># !pip install langchain-docling</span>
+<span class="kw">from</span> langchain_docling <span class="kw">import</span> <span class="cls">DoclingLoader</span>
+
+langchain_loader = <span class="cls">DoclingLoader</span>(file_path=<span class="str">"data/complex_document.pdf"</span>)
+docling_docs     = langchain_loader.<span class="fn">load</span>()
+
+<span class="cm"># Returns standard LangChain Document objects!</span>
+<span class="fn">print</span>(f<span class="str">f"Docling via LangChain: {len(docling_docs)} documents"</span>)
+<span class="fn">print</span>(docling_docs[<span class="num">0</span>].page_content[:<span class="num">300</span>])
+<span class="fn">print</span>(docling_docs[<span class="num">0</span>].metadata)</pre>
+    </div>
+
+    <table class="compare-table" style="margin-top:20px;">
+      <thead><tr><th>Feature</th><th>LangChain PDF Loader</th><th>PyMuPDF (scratch)</th><th>Docling</th></tr></thead>
+      <tbody>
+        <tr><td>Setup complexity</td><td class="yes">Minimal</td><td class="mid">Medium</td><td class="yes">Low</td></tr>
+        <tr><td>Text extraction</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+        <tr><td>Table → Markdown</td><td class="no">No (raw text)</td><td class="yes">Yes (fitz)</td><td class="best">Yes (excellent)</td></tr>
+        <tr><td>Image extraction</td><td class="no">No</td><td class="yes">Yes</td><td class="best">Yes + embed</td></tr>
+        <tr><td>Multi-format support</td><td class="mid">Many (via wrappers)</td><td class="no">PDF only</td><td class="best">PDF, DOCX, HTML, PPT...</td></tr>
+        <tr><td>LangChain compatible</td><td class="best">Native</td><td class="mid">Manual</td><td class="yes">Via langchain-docling</td></tr>
+        <tr><td>OCR capability</td><td class="no">No</td><td class="mid">Via pytesseract</td><td class="best">Built-in</td></tr>
+        <tr><td>Best for</td><td>Simple docs</td><td>Custom production parsers</td><td class="best">Real-world RAG</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PRACTICE DATASETS -->
+  <section id="datasets">
+    <div class="section-eyebrow">07 — Practice Resources</div>
+    <h2>Practice Datasets for Data Parsing</h2>
+    <p>Sunny shared 4 real-world dataset sources for practising data parsing. These are the same ones linked in the GitHub repo:</p>
+
+    <div class="dataset-grid">
+      <div class="dataset-card">
+        <h4>📊 Coca-Cola Investor Relations</h4>
+        <p>Real-time invoicing, annual reports, financial documents. Download complex multi-page PDFs with real tables and charts.</p>
+        <div class="ds-url">investor.coca-colacompany.com</div>
+      </div>
+      <div class="dataset-card">
+        <h4>🏛 Government / Economic Reports</h4>
+        <p>Annual reports, quarterly economic data, regulatory documents from government websites. Free, public, diverse formats.</p>
+        <div class="ds-url">mospi.gov.in / rbi.org.in</div>
+      </div>
+      <div class="dataset-card">
+        <h4>🔍 DocVQA Dataset</h4>
+        <p>OCR-related document dataset for visual question answering. Contains scanned documents, complex layouts, and handwritten content.</p>
+        <div class="ds-url">huggingface.co/datasets/HuggingFaceM4/DocumentVQA</div>
+      </div>
+      <div class="dataset-card">
+        <h4>🧾 FUNSD Dataset</h4>
+        <p>Form Understanding in Noisy Scanned Documents — invoice data, OCR data, table-related data. Great for practising complex extraction.</p>
+        <div class="ds-url">huggingface.co/datasets/nielsr/FUNSD</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>Sunny's tip:</strong> "Even you can do the practice on top of different other datasets also. Download the data from here, and then, on top of that, you can perform some data parsing. You can create a RAG on top of the Coca-Cola data. That's a real-world scenario — company financial Q&A system."</p>
+    </div>
+  </section>
+
+  <!-- FULL CODE: PART 1 ALL LOADERS -->
+  <section id="full-code">
+    <div class="section-eyebrow">08 — Complete Reference</div>
+    <h2>Full Class 30 Code — All Loaders Together</h2>
+    <p>Complete notebook code for <code>data_parsing_part1_langchain_data_loader.ipynb</code> as demonstrated live:</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · complete Part 1 notebook</span>
+      <pre><span class="cm">## ═══════════════════════════════════════════════════════════════
+## CLASS 30 — Data Parsing Part 1: LangChain Data Loaders
+## File: data_parsing_part1_langchain_data_loader.ipynb
+## ═══════════════════════════════════════════════════════════════</span>
+
+<span class="cm"># CELL 1: Install</span>
+<span class="cm"># !pip install langchain langchain-community pymupdf unstructured</span>
+<span class="cm"># !pip install python-docx docx2txt jq</span>
+
+<span class="cm"># CELL 2: Imports — all loaders in one go</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> (
+    <span class="cls">PyMuPDFLoader</span>,
+    <span class="cls">CSVLoader</span>,
+    <span class="cls">JSONLoader</span>,
+    <span class="cls">Docx2txtLoader</span>,
+    <span class="cls">UnstructuredHTMLLoader</span>,
+    <span class="cls">TextLoader</span>,
+)
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+
+<span class="cm"># CELL 3: PDF Loader</span>
+pdf_docs = <span class="cls">PyMuPDFLoader</span>(<span class="str">"data/sample_document.pdf"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"PDF: {len(pdf_docs)} pages"</span>)
+<span class="fn">print</span>(pdf_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])
+<span class="fn">print</span>(pdf_docs[<span class="num">0</span>].metadata)
+
+<span class="cm"># CELL 4: CSV Loader</span>
+csv_docs = <span class="cls">CSVLoader</span>(file_path=<span class="str">"data/sample.csv"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"CSV: {len(csv_docs)} rows as documents"</span>)
+<span class="fn">print</span>(csv_docs[<span class="num">0</span>].page_content)     <span class="cm"># key:value format</span>
+<span class="fn">print</span>(csv_docs[<span class="num">0</span>].metadata)         <span class="cm"># {source, row}</span>
+
+<span class="cm"># CELL 5: JSON Loader</span>
+json_docs = <span class="cls">JSONLoader</span>(
+    file_path    = <span class="str">"data/sample.json"</span>,
+    jq_schema    = <span class="str">".[  ]"</span>,
+    text_content = <span class="kw">False</span>
+).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"JSON: {len(json_docs)} objects"</span>)
+<span class="fn">print</span>(json_docs[<span class="num">0</span>].page_content)
+<span class="fn">print</span>(json_docs[<span class="num">0</span>].metadata)
+
+<span class="cm"># CELL 6: DOCX Loader</span>
+docx_docs = <span class="cls">Docx2txtLoader</span>(<span class="str">"data/sample.docx"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"DOCX: {len(docx_docs)} documents"</span>)
+<span class="fn">print</span>(docx_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])
+
+<span class="cm"># CELL 7: HTML Loader</span>
+html_docs = <span class="cls">UnstructuredHTMLLoader</span>(<span class="str">"data/sample.html"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"HTML: {len(html_docs)} documents"</span>)
+<span class="fn">print</span>(html_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])
+
+<span class="cm"># CELL 8: TXT Loader</span>
+txt_docs = <span class="cls">TextLoader</span>(<span class="str">"data/sample.txt"</span>).<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"TXT: {len(txt_docs)} documents"</span>)
+<span class="fn">print</span>(txt_docs[<span class="num">0</span>].page_content[:<span class="num">200</span>])
+
+<span class="cm"># CELL 9: Custom Document Object</span>
+custom_doc = <span class="cls">Document</span>(
+    page_content = <span class="str">"Refunds are allowed within 7 days of purchase."</span>,
+    metadata     = {
+        <span class="str">"source"</span>:      <span class="str">"HR_portal"</span>,
+        <span class="str">"department"</span>:  <span class="str">"Customer Service"</span>,
+        <span class="str">"doc_type"</span>:    <span class="str">"policy"</span>,
+        <span class="str">"version"</span>:     <span class="str">"v2.1"</span>
+    }
+)
+<span class="fn">print</span>(custom_doc.page_content)
+<span class="fn">print</span>(custom_doc.metadata)
+
+<span class="cm"># CELL 10: Combine all documents for a RAG pipeline</span>
+all_docs = pdf_docs + csv_docs + json_docs + docx_docs + html_docs + txt_docs + [custom_doc]
+<span class="fn">print</span>(f<span class="str">f"\nTotal documents ready for RAG: {len(all_docs)}"</span>)
+<span class="cm"># These can now be passed to a TextSplitter → Embeddings → VectorDB</span></pre>
+    </div>
+  </section>
+
+  <!-- FAQ / CLASS Q&A -->
+  <section id="faq">
+    <div class="section-eyebrow">09 — From the Live Session</div>
+    <h2>Key Q&amp;A from the Class</h2>
+
+    <div style="display:flex; flex-direction:column; gap:16px; margin:20px 0;">
+
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">Q — Student (Krish)</div>
+        <p style="font-size:0.875rem; color:var(--text); margin-bottom:10px;">"When you split the PDF into text, table, and image — how do you bring it all together in the vector database without losing context integrity?"</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.1em;">A — Sunny</div>
+        <p style="font-size:0.84rem; color:#94a3b8; margin:0;">"We can do the semantic chunking, and then store page-wise information. We can add custom logic to aggregate information at chunk boundaries. There are many ways to keep data integrity — we'll cover this in the chunking classes."</p>
+      </div>
+
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">Q — Student (Amol)</div>
+        <p style="font-size:0.875rem; color:var(--text); margin-bottom:10px;">"Is Docling another alternative to PyPDF, or does it need to be used sequentially in the pipeline?"</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.1em;">A — Sunny</div>
+        <p style="font-size:0.84rem; color:#94a3b8; margin:0;">"Docling is a unified framework — it is not only for PDF, or only for DOCX. It is for multiple formats. Multi-modal capability. It's a kind of superset — you can think of it as a superset of the individual libraries like PyMuPDF, pdfplumber. You can capture data in any format — Markdown, JSON, XML."</p>
+      </div>
+
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">Q — Student (Amol)</div>
+        <p style="font-size:0.875rem; color:var(--text); margin-bottom:10px;">"If text is stored inside an image — can an incoming text query match/retrieve that image?"</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.1em;">A — Sunny</div>
+        <p style="font-size:0.84rem; color:#94a3b8; margin:0;">"Image to text is possible — we can fetch the text from the images using OCR, convert that text into embeddings, and fetch the relevant image. We can keep the image as metadata. Every sort of solution is possible — image embedding (image-to-image) is also supported."</p>
+      </div>
+
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.1em;">Q — Student (Krish)</div>
+        <p style="font-size:0.875rem; color:var(--text); margin-bottom:10px;">"What is the final efficient format to load data into the Vector DB — JSON, text, or something else?"</p>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.1em;">A — Sunny</div>
+        <p style="font-size:0.84rem; color:#94a3b8; margin:0;">"Vector DB is a different thing from the data format. Whatever I showed you today is just the intermediate way of collecting our data. Once we discuss the vector DB in the next classes, you will understand what goes in and how."</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">10 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 30 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What are the two fields in a LangChain Document object, and what does each contain?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer"><code>page_content</code>: the actual extracted text content from the file (full page text for PDFs, key:value row string for CSV, JSON object string for JSON, etc.). <code>metadata</code>: information about the data — source file path, page number, author, row number, creation date, and any other contextual information. This metadata is useful for source citation in RAG answers and for filtering during retrieval.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Sunny said LangChain "is a wrapper, not a parser." What does this mean in context of data loading?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">LangChain's document loaders don't do the actual low-level parsing themselves. Instead, they call actual parsing libraries internally: PyMuPDF for PDF loading, docx2txt for DOCX, jq for JSON, Unstructured.io for HTML, Python's built-in csv module for CSV. LangChain just provides a common interface (Document object with page_content + metadata) so all these different loaders work the same way in a pipeline. This is standardisation, not parsing.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. When you load a CSV with LangChain's CSVLoader, what format does the page_content come in? Give an example.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">The page_content comes in key:value format — one line per column with the column name and its value separated by a colon. For example, a row with columns policy_id, department, topic would become: <br><code>policy_id: 101\ndepartment: HR\ntopic: Leave Policy\ndetail: 12 casual leaves per year\nlast_update: 2026-01-01</code><br>Each row becomes a separate Document object. The metadata contains the source file path and the row index.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is jq_schema in JSONLoader and why is it needed? Give an example.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">jq_schema tells the JSONLoader which part of the JSON structure to extract as documents. JSON files can have data nested at different levels — in a list, inside a key, etc. For example, if your JSON is a list at the top level: <code>[{...}, {...}]</code>, you use <code>jq_schema=".[]"</code> to extract each item. If it's <code>{"records": [{...}, {...}]}</code>, you use <code>jq_schema=".records[]"</code>. Without specifying this, the loader doesn't know which part of the JSON to turn into Documents.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What is the key difference between "simple loading" (LangChain loaders) and "real/complex parsing" (PyMuPDF from scratch)? Give two concrete differences.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Simple loading: (1) Tables are returned as raw unstructured text — no table structure preserved. (2) Images embedded in PDFs are not extracted. Real/complex parsing: (1) Tables are extracted as proper Markdown tables (or JSON) — structure is preserved, LLMs can reason about them accurately. (2) Images are extracted as separate PNG/JPEG files that can be processed (OCR, passed to multimodal LLMs) or stored with the document. Complex parsing also extracts page-level screenshots, OCR text from scanned images, and allows fine-grained control of the entire document structure.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What output files does the PyMuPDF complex parser produce, and what is each used for in RAG?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">rag_ready.md: Complete document as clean Markdown (text + table structures) — directly fed into the vector database for text-based RAG. page_record.json: Per-page metadata including text content, image path, number of tables and images per page. table_record.json: All extracted tables in both Markdown and JSON formats — useful for structured data retrieval. image_record.json: Metadata for all extracted images including file path, format, and OCR text. images/ folder: Actual image files extracted from the PDF (PNG/JPEG) — can be passed to multimodal LLMs. page_images/ folder: Full-page screenshots at 2x resolution — fallback if text extraction misses content.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. How is Docling different from PyMuPDF as a parsing library, and can it be used with LangChain?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Docling (by IBM) is a unified, higher-level framework that handles multiple file formats (PDF, DOCX, HTML, PowerPoint) with one API, whereas PyMuPDF is specifically for PDFs. Docling includes built-in OCR capability, image embedding support, and can export to Markdown, JSON, or XML. PyMuPDF requires more manual code for complex extractions. Yes, Docling can be used with LangChain via the langchain-docling package (DoclingLoader class) — it returns the same standard LangChain Document format (page_content + metadata), making it a drop-in replacement in any LangChain RAG pipeline.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 30 · Data Parsing for RAG · 05 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0/tree/main/Class-29-RAG-Introduction" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

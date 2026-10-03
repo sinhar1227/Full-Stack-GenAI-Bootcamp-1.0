@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 34 — ChromaDB, Pinecone & Qdrant | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #f472b6;   /* pink — ChromaDB */
+  --accent2:     #34d399;   /* emerald — Pinecone */
+  --accent3:     #60a5fa;   /* blue — Qdrant */
+  --accent4:     #a78bfa;   /* violet — FAISS (previous) */
+  --accent5:     #fb923c;   /* orange — warning / production */
+  --accent6:     #facc15;   /* yellow — highlights */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(244,114,182,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(244,114,182,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(244,114,182,0.05); border: 1px solid rgba(244,114,182,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 34):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(96,165,250,0.07);  border: 1px solid rgba(96,165,250,0.22); }
+.callout.tip    { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #93c5fd; }
+.callout.tip p    { color: var(--accent2); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── DB SECTION HEADERS ── */
+.db-header { display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: 10px; margin-bottom: 24px; }
+.db-header .db-icon { font-size: 2rem; }
+.db-header h3 { margin: 0; font-size: 1.2rem; color: #fff; }
+.db-header .db-sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+/* ── FAISS vs CHROMA TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.83rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 12px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+.compare-table td { padding: 10px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .yes   { color: var(--accent2); font-weight: 500; }
+.compare-table .no    { color: #f87171; }
+.compare-table .mid   { color: var(--accent5); }
+.compare-table .best  { color: var(--accent6); font-weight: 600; }
+.compare-table .mono  { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── DATA MODEL VISUALS ── */
+.data-model { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; }
+.data-model .dm-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+.dm-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: stretch; flex-wrap: wrap; }
+.dm-cell { padding: 8px 12px; border-radius: 5px; border: 1px solid; font-size: 0.72rem; flex: 1; min-width: 80px; }
+.dm-header { background: var(--card); border-color: var(--border); color: var(--text); font-weight: 700; }
+.dm-id     { background: rgba(250,204,21,0.1);   border-color: rgba(250,204,21,0.3);   color: var(--accent6); }
+.dm-text   { background: rgba(52,211,153,0.1);   border-color: rgba(52,211,153,0.3);   color: var(--accent2); }
+.dm-embed  { background: rgba(167,139,250,0.1);  border-color: rgba(167,139,250,0.3);  color: var(--accent4); }
+.dm-meta   { background: rgba(34,211,238,0.1);   border-color: rgba(34,211,238,0.3);   color: #67e8f9; }
+
+/* ── QDRANT DATA HIERARCHY ── */
+.qdrant-hier { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.qh-level { display: flex; align-items: flex-start; gap: 12px; }
+.qh-badge { width: 100px; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; padding: 8px 10px; border-radius: 5px; text-align: center; }
+.qh-body { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+.qh-body h4 { font-size: 0.85rem; color: #fff; font-weight: 600; margin-bottom: 4px; }
+.qh-body p  { font-size: 0.78rem; color: var(--muted); margin: 0; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(244,114,182,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent3); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(244,114,182,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── ROADMAP ── */
+.roadmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+.roadmap-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.roadmap-item .ri-class { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 5px; }
+.roadmap-item h4 { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.roadmap-item.current { border-color: rgba(244,114,182,0.5); }
+.roadmap-item.current h4 { color: var(--accent); }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#roadmap">Course Roadmap</a></li>
+    <li><a href="#faiss-continued">FAISS — Continued</a></li>
+    <li class="sub"><a href="#hnsw-practical">HNSW Index Practical</a></li>
+    <li class="sub"><a href="#faiss-real-data">Real PDF Data in FAISS</a></li>
+    <li><a href="#faiss-vs-chroma">FAISS vs ChromaDB</a></li>
+    <li class="sub"><a href="#key-difference">Key Difference</a></li>
+    <li class="sub"><a href="#pq">Product Quantization</a></li>
+    <li><a href="#chromadb">ChromaDB</a></li>
+    <li class="sub"><a href="#chroma-concept">Concept</a></li>
+    <li class="sub"><a href="#chroma-data-model">Data Model</a></li>
+    <li class="sub"><a href="#chroma-setup">Setup & Code</a></li>
+    <li class="sub"><a href="#chroma-retriever">Retriever</a></li>
+    <li><a href="#pinecone">Pinecone</a></li>
+    <li class="sub"><a href="#pinecone-concept">Concept</a></li>
+    <li class="sub"><a href="#pinecone-setup">Setup & Code</a></li>
+    <li class="sub"><a href="#namespaces">Namespaces</a></li>
+    <li><a href="#qdrant">Qdrant</a></li>
+    <li class="sub"><a href="#qdrant-concept">Concept</a></li>
+    <li class="sub"><a href="#qdrant-hierarchy">Data Hierarchy</a></li>
+    <li class="sub"><a href="#qdrant-setup">Setup & Code</a></li>
+    <li><a href="#all-comparison">Full Comparison</a></li>
+    <li><a href="#when-to-use">When to Use Which</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 34</span></div>
+    <div class="hero-class-num">Class 34 · 25 July 2026</div>
+    <h1><em>ChromaDB · Pinecone</em><br>& Qdrant</h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> ChromaDB (Local + Cloud)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Pinecone (Managed)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> Qdrant (Cloud)</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> FAISS HNSW + Real Data</div>
+    </div>
+    <p class="hero-summary">
+      Class 34 continues where Class 33 left off — completing the FAISS section with HNSW indexing on a real PDF, then introducing three production-grade vector databases: ChromaDB (the POC/MVP favourite), Pinecone (fully managed SaaS), and Qdrant (Rust-based open-source cloud). By the end, you know when and how to use each one.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Complete FAISS practical — HNSW index on a real PDF (Llama 2 research paper, 77 pages → 175 chunks)</li>
+      <li><span class="chk">✓</span> Understand the key architectural difference between FAISS (library + LangChain wrapper) and ChromaDB (full-fledged DB)</li>
+      <li><span class="chk">✓</span> Understand Product Quantization (PQ) — vector compression for huge datasets</li>
+      <li><span class="chk">✓</span> Know ChromaDB's data model: stores vectors, documents, metadata, and unique IDs natively</li>
+      <li><span class="chk">✓</span> Build a ChromaDB vector store — create collection, add chunks, run retriever</li>
+      <li><span class="chk">✓</span> Understand Pinecone — fully managed, hosted on AWS, namespace-based organisation</li>
+      <li><span class="chk">✓</span> Configure a Pinecone index and store + retrieve documents via LangChain</li>
+      <li><span class="chk">✓</span> Understand Qdrant — Rust-based open-source vector DB, collection → point → payload hierarchy</li>
+      <li><span class="chk">✓</span> Set up a Qdrant cloud cluster and store 174 document chunks via LangChain</li>
+      <li><span class="chk">✓</span> Know when to use each database (POC vs production vs enterprise)</li>
+    </ul>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>Data used in this class:</strong> Llama 2 Research Paper (77 pages PDF) → loaded with PyPDF loader → split with RecursiveCharacterTextSplitter (chunk_size=2000, overlap=200) → 175 chunks → stored in FAISS, ChromaDB, Pinecone, and Qdrant.</p>
+    </div>
+  </section>
+
+  <!-- COURSE ROADMAP -->
+  <section id="roadmap">
+    <div class="section-eyebrow">02 — Where We Are</div>
+    <h2>RAG Chapter Roadmap</h2>
+    <p>Sunny opened Class 34 by recapping the overall RAG chapter plan. Here is the full upcoming sequence:</p>
+
+    <div class="roadmap">
+      <div class="roadmap-item" style="border-top:2px solid var(--muted);">
+        <div class="ri-class">Class 29</div>
+        <h4>RAG Introduction</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--muted);">
+        <div class="ri-class">Class 30</div>
+        <h4>Data Parsing</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--accent4);">
+        <div class="ri-class">Class 33</div>
+        <h4>Vector DB Intro + FAISS</h4>
+      </div>
+      <div class="roadmap-item current" style="border-top:2px solid var(--accent);">
+        <div class="ri-class">Class 34 ← here</div>
+        <h4>ChromaDB · Pinecone · Qdrant</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--accent2);">
+        <div class="ri-class">Class 35</div>
+        <h4>Chunking Strategies</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--accent3);">
+        <div class="ri-class">Coming</div>
+        <h4>Retrieval Techniques</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--accent5);">
+        <div class="ri-class">Coming</div>
+        <h4>Prompting for RAG</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--accent6);">
+        <div class="ri-class">Coming</div>
+        <h4>End-to-End RAG Project</h4>
+      </div>
+      <div class="roadmap-item" style="border-top:2px solid var(--muted);">
+        <div class="ri-class">Coming</div>
+        <h4>Agentic AI (LangGraph)</h4>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Next class, Class 35, which is on 26th of July, is about the chunking and the retriever. I will give you one assignment also — a quick short assignment. After that, we'll enter into the agent. Then we'll discuss the Agentic flow, Agentic RAG, multi-agentic system."
+    </div>
+  </section>
+
+  <!-- FAISS CONTINUED -->
+  <section id="faiss-continued">
+    <div class="section-eyebrow">03 — FAISS Completion</div>
+    <h2>FAISS — Completing the Practical</h2>
+
+    <h3 id="hnsw-practical">HNSW Index on Real Data</h3>
+    <p>In Class 33 Sunny used toy data. In Class 34 he loaded the actual <strong>Llama 2 research paper (77 pages)</strong> using PyPDF, chunked it with RecursiveCharacterTextSplitter, and stored it in FAISS using the HNSW index. Key insight: he used <strong>OpenAI embeddings</strong> instead of local HuggingFace because the Gemini model was causing resource exhaustion errors.</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · FAISS with HNSW on real PDF</span>
+      <pre><span class="kw">import</span> faiss
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyPDFLoader</span>
+<span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">FAISS</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+
+<span class="fn">load_dotenv</span>()
+
+<span class="cm"># ── Embedding model — OpenAI (3072-dim for text-embedding-3-large)</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(
+    model   = <span class="str">"text-embedding-3-large"</span>,
+    api_key = os.<span class="fn">getenv</span>(<span class="str">"OPENAI_API_KEY"</span>)
+)
+<span class="cm"># Dimension check</span>
+dim = <span class="fn">len</span>(embedding_model.<span class="fn">embed_query</span>(<span class="str">"test"</span>))
+<span class="fn">print</span>(f<span class="str">f"Embedding dimension: {dim}"</span>)   <span class="cm"># 3072</span>
+
+<span class="cm"># ── Load PDF ─────────────────────────────────────────────────────</span>
+loader = <span class="cls">PyPDFLoader</span>(<span class="str">"../data/llama2_research_paper.pdf"</span>)
+pages  = loader.<span class="fn">load</span>()
+<span class="fn">print</span>(f<span class="str">f"Total pages: {len(pages)}"</span>)   <span class="cm"># 77 pages</span>
+
+<span class="cm"># ── Chunking ─────────────────────────────────────────────────────</span>
+splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size    = <span class="num">2000</span>,
+    chunk_overlap = <span class="num">200</span>,
+    separators    = [<span class="str">"\n\n"</span>, <span class="str">"\n"</span>, <span class="str">"."</span>, <span class="str">""</span>]
+)
+chunks = splitter.<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"Total chunks: {len(chunks)}"</span>)  <span class="cm"># 175 chunks</span>
+
+<span class="cm"># ── Create HNSW Index (Approximate Nearest Neighbour) ─────────────</span>
+<span class="cm"># Parameters: dimension, M (connections per node)</span>
+<span class="cm"># M = 32 means each node connects to 32 others in the graph</span>
+<span class="cm"># Larger M = better accuracy, more memory</span>
+hnsw_index = faiss.<span class="fn">IndexHNSWFlat</span>(dim, <span class="num">32</span>)  <span class="cm"># HNSW with M=32, L2 metric</span>
+
+<span class="cm"># ── Create LangChain FAISS Vector Store with HNSW ─────────────────</span>
+vector_store = <span class="cls">FAISS</span>(
+    embedding_function   = embedding_model,
+    index                = hnsw_index,
+    docstore             = <span class="cls">FAISS</span>.<span class="fn">_InMemoryDocstore</span>({}),
+    index_to_docstore_id = {}
+)
+
+<span class="cm"># ── Store all chunks ──────────────────────────────────────────────</span>
+vector_store.<span class="fn">add_documents</span>(chunks)
+<span class="fn">print</span>(f<span class="str">f"✓ {len(chunks)} chunks stored in FAISS (HNSW index)"</span>)
+
+<span class="cm"># ── Similarity search ────────────────────────────────────────────</span>
+query   = <span class="str">"What safety measures does Llama 2 have?"</span>
+results = vector_store.<span class="fn">similarity_search</span>(query, k=<span class="num">3</span>)
+<span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(results):
+    <span class="fn">print</span>(f<span class="str">f"[{i+1}] Page {doc.metadata.get('page', '?')}: {doc.page_content[:150]}..."</span>)
+
+<span class="cm"># ── Save to disk ──────────────────────────────────────────────────</span>
+vector_store.<span class="fn">save_local</span>(<span class="str">"faiss_hnsw_index"</span>)</pre>
+    </div>
+  </section>
+
+  <!-- FAISS vs CHROMA -->
+  <section id="faiss-vs-chroma">
+    <div class="section-eyebrow">04 — Key Distinction</div>
+    <h2>FAISS vs ChromaDB — The Core Difference</h2>
+
+    <h3 id="key-difference">What Sunny Explained on the Blackboard</h3>
+
+    <div class="sunny-says">
+      "FAISS is a library provided by Meta. On top of it, we are using the LangChain FAISS wrapper to convert it into a Vector Store. Originally, FAISS can only contain the embedding. But if you are using the LangChain wrapper, in that case, along with the embedding, we can store the metadata, document ID, and different other things as a Vector Store. ChromaDB is not like that — ChromaDB is not a library. It is behaving like a full-fledged Vector DB. No need to manage it from your end. ChromaDB itself will manage everything for you."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent4);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">FAISS (Meta)</div>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0 0 10px;">A <strong>search library</strong>. Stores only raw embedding vectors. You manually manage: index type, dimensions, similarity metric, docstore (ID → text mapping), persistence. LangChain wrapper adds document + metadata management on top.</p>
+        <div style="font-size:0.75rem; color:var(--accent4);">→ Library + manual management + LangChain wrapper = Vector Store</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">ChromaDB</div>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0 0 10px;">A <strong>full-fledged Vector Database</strong>. Natively manages vectors, documents, metadata, IDs, collections, index, and persistent storage — all out of the box. No need to create an index manually or use a LangChain wrapper to get document management.</p>
+        <div style="font-size:0.75rem; color:var(--accent);">→ Complete Vector DB = manages everything itself</div>
+      </div>
+    </div>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Feature</th><th style="color:var(--accent4)">FAISS</th><th style="color:var(--accent)">ChromaDB</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Type</td><td>Vector search library (Meta)</td><td class="yes">Full-fledged vector database</td></tr>
+        <tr><td>Flat Index</td><td class="yes">✓ Supported (manual)</td><td class="no">✗ Not directly</td></tr>
+        <tr><td>IVF Index</td><td class="yes">✓ Supported (manual)</td><td class="no">✗ Not directly</td></tr>
+        <tr><td>HNSW Index</td><td class="yes">✓ Supported (manual)</td><td class="yes">✓ Default index</td></tr>
+        <tr><td>PQ (Product Quantization)</td><td class="yes">✓ Supported</td><td class="no">✗ Not supported</td></tr>
+        <tr><td>Manual index selection</td><td class="yes">✓ Full control</td><td class="no">✗ Auto-managed</td></tr>
+        <tr><td>Metadata filtering</td><td class="mid">Limited</td><td class="yes">Rich metadata filtering</td></tr>
+        <tr><td>Stores natively</td><td>Embeddings only (raw)</td><td class="yes">Embeddings + text + metadata + IDs</td></tr>
+        <tr><td>Requires LangChain wrapper?</td><td class="yes">Yes — to add doc management</td><td class="no">No — it's a complete system</td></tr>
+        <tr><td>Persistence</td><td class="mid">save_local() / load_local()</td><td class="yes">persist_directory parameter</td></tr>
+        <tr><td>Cloud variant</td><td class="no">No (local only)</td><td class="yes">Yes — Chroma Cloud (paid)</td></tr>
+        <tr><td>Best for</td><td>Understanding fundamentals, custom index control</td><td class="yes">POC, MVP, local development</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="pq">Product Quantization (PQ) — What It Is</h3>
+    <p>Sunny introduced PQ as an additional indexing technique he hadn't covered in Class 33:</p>
+
+    <div class="sunny-says">
+      "Product Quantization — we just compress the vector. If we have a large vector dataset and wanted to store it inside the memory for faster similarity search, we compress that vector. If we have a high-dimensional vector taking a lot of memory, instead of that, what we do — we convert to the quantized variant, and then we store it in memory. Use this when you have 1 million, 5 million, 10 million data points."
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">📦</span>
+      <p><strong>PQ in practice:</strong> PQ reduces vector size by splitting each vector into sub-vectors and quantising each sub-vector independently. A 3072-dim vector might be compressed to ~1/8th its size with minimal accuracy loss. In FAISS: <code>IndexIVFPQ(quantizer, dim, nlist, m, nbits)</code>. Works alongside IVF or HNSW, not as a standalone index. ChromaDB does not support PQ — this is FAISS-only.</p>
+    </div>
+  </section>
+
+  <!-- CHROMADB -->
+  <section id="chromadb">
+    <div class="section-eyebrow">05 — Database 1</div>
+    <h2>ChromaDB — The POC Favourite</h2>
+
+    <div class="db-header" style="background:rgba(244,114,182,0.07); border:1px solid rgba(244,114,182,0.2);">
+      <div class="db-icon">🟣</div>
+      <div>
+        <h3 style="color:var(--accent);">ChromaDB</h3>
+        <div class="db-sub">Open-source · Local + Cloud · HNSW default · SQLite3 backend locally</div>
+      </div>
+    </div>
+
+    <h3 id="chroma-concept">What ChromaDB Is</h3>
+
+    <div class="sunny-says">
+      "ChromaDB is an open-source vector database, designed for storing, managing, and retrieving the embedding. It is generally used inside the RAG pipeline, for normal semantic search, recommendation systems. ChromaDB can store the embedding, original document, metadata, and the unique ID. All this thing can be stored by ChromaDB."
+    </div>
+
+    <h3 id="chroma-data-model">ChromaDB Data Model</h3>
+    <p>Unlike FAISS which stores only raw vectors, ChromaDB natively stores 4 things per record:</p>
+
+    <div class="data-model">
+      <div class="dm-label">ChromaDB — What's Stored per Record</div>
+      <div class="dm-row">
+        <div class="dm-cell dm-header">Field</div>
+        <div class="dm-cell dm-header">Content</div>
+        <div class="dm-cell dm-header">Example</div>
+      </div>
+      <div class="dm-row">
+        <div class="dm-cell dm-id">id</div>
+        <div class="dm-cell dm-id">Unique document identifier</div>
+        <div class="dm-cell dm-id">"abc-123-def-456"</div>
+      </div>
+      <div class="dm-row">
+        <div class="dm-cell dm-text">document</div>
+        <div class="dm-cell dm-text">Original text content</div>
+        <div class="dm-cell dm-text">"Llama 2 is a collection of..."</div>
+      </div>
+      <div class="dm-row">
+        <div class="dm-cell dm-embed">embedding</div>
+        <div class="dm-cell dm-embed">Dense vector representation</div>
+        <div class="dm-cell dm-embed">[0.12, -0.44, 0.78, ...]  (3072d)</div>
+      </div>
+      <div class="dm-row">
+        <div class="dm-cell dm-meta">metadata</div>
+        <div class="dm-cell dm-meta">Custom key-value pairs</div>
+        <div class="dm-cell dm-meta">{"source": "llama2.pdf", "page": 3}</div>
+      </div>
+    </div>
+
+    <p>Locally, ChromaDB persists data as a <strong>SQLite3 database</strong> (<code>chroma.sqlite3</code>). This appears in your persist directory automatically when you add documents.</p>
+
+    <h3 id="chroma-setup">ChromaDB Setup & Code</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · ChromaDB complete</span>
+      <pre><span class="cm"># !pip install langchain-chroma chromadb</span>
+
+<span class="kw">from</span> langchain_chroma <span class="kw">import</span> <span class="cls">Chroma</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyPDFLoader</span>
+<span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+
+<span class="fn">load_dotenv</span>()
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-large"</span>)
+
+<span class="cm"># ── Load and chunk PDF (same as FAISS) ───────────────────────────</span>
+pages  = <span class="cls">PyPDFLoader</span>(<span class="str">"../data/llama2_research_paper.pdf"</span>).<span class="fn">load</span>()
+chunks = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size=<span class="num">2000</span>, chunk_overlap=<span class="num">200</span>
+).<span class="fn">split_documents</span>(pages)
+<span class="fn">print</span>(f<span class="str">f"Chunks ready: {len(chunks)}"</span>)   <span class="cm"># 175</span>
+
+<span class="cm"># ── Create ChromaDB Vector Store ─────────────────────────────────</span>
+<span class="cm"># Key differences from FAISS:</span>
+<span class="cm"># - No manual index creation needed</span>
+<span class="cm"># - No LangChain docstore wrapper needed</span>
+<span class="cm"># - ChromaDB manages everything internally</span>
+vector_store = <span class="cls">Chroma</span>(
+    collection_name     = <span class="str">"llama2_rag"</span>,         <span class="cm"># name your collection</span>
+    embedding_function  = embedding_model,
+    persist_directory   = <span class="str">"./chroma_db"</span>,        <span class="cm"># auto-persists to disk!</span>
+    collection_metadata = {<span class="str">"hnsw:space"</span>: <span class="str">"cosine"</span>}  <span class="cm"># similarity metric</span>
+)
+
+<span class="cm"># ── Add documents — ChromaDB handles embedding + storage ─────────</span>
+vector_store.<span class="fn">add_documents</span>(chunks)
+<span class="fn">print</span>(<span class="str">"✓ Documents stored in ChromaDB (./chroma_db/chroma.sqlite3)"</span>)
+
+<span class="cm"># ── Similarity Search ─────────────────────────────────────────────</span>
+results = vector_store.<span class="fn">similarity_search</span>(
+    <span class="str">"What are the safety features of Llama 2?"</span>,
+    k = <span class="num">5</span>
+)
+<span class="kw">for</span> doc <span class="kw">in</span> results:
+    <span class="fn">print</span>(f<span class="str">f"Page {doc.metadata.get('page')}: {doc.page_content[:100]}..."</span>)</pre>
+    </div>
+
+    <h3 id="chroma-retriever">Creating a Retriever from ChromaDB</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · ChromaDB retriever</span>
+      <pre><span class="cm"># ── Convert to LangChain Retriever ───────────────────────────────</span>
+<span class="cm"># search_type options: "similarity", "mmr", "similarity_score_threshold"</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(
+    search_type   = <span class="str">"similarity"</span>,
+    search_kwargs = {<span class="str">"k"</span>: <span class="num">5</span>}
+)
+
+<span class="cm"># ── Invoke the retriever ──────────────────────────────────────────</span>
+query   = <span class="str">"What datasets were used to train Llama 2?"</span>
+results = retriever.<span class="fn">invoke</span>(query)
+
+<span class="fn">print</span>(f<span class="str">f"Retrieved {len(results)} documents:"</span>)
+<span class="kw">for</span> i, doc <span class="kw">in</span> <span class="fn">enumerate</span>(results):
+    <span class="fn">print</span>(f<span class="str">f"\n[{i+1}] Page {doc.metadata.get('page', '?')}:"</span>)
+    <span class="fn">print</span>(f<span class="str">f"     {doc.page_content[:200]}..."</span>)
+
+<span class="cm"># ── Retriever search types explained ─────────────────────────────</span>
+<span class="cm"># "similarity"               → standard cosine/L2 similarity (default)</span>
+<span class="cm"># "mmr"                      → Maximum Marginal Relevance</span>
+<span class="cm">#                              balances relevance AND diversity</span>
+<span class="cm">#                              avoids returning near-duplicate chunks</span>
+<span class="cm"># "similarity_score_threshold" → only return docs above a score threshold</span>
+<span class="cm">#                              e.g. search_kwargs={"score_threshold": 0.8}</span>
+<span class="cm"># NOTE: MMR and score_threshold will be covered in the Retrieval chapter</span>
+
+<span class="cm"># ── Load existing ChromaDB from disk ─────────────────────────────</span>
+<span class="cm"># No need to re-embed! Just point to the persist_directory</span>
+<span class="cm"># loaded_store = Chroma(</span>
+<span class="cm">#     collection_name    = "llama2_rag",</span>
+<span class="cm">#     embedding_function = embedding_model,</span>
+<span class="cm">#     persist_directory  = "./chroma_db"</span>
+<span class="cm"># )</span></pre>
+    </div>
+
+    <div class="callout pink">
+      <span class="callout-icon">🌸</span>
+      <p><strong>Sunny's recommendation:</strong> "Use ChromaDB a lot for POCs, MVPs, and small practicals. Later on, you can migrate your solution to anywhere — OpenSearch, Azure AI Search, Qdrant, Pinecone, anywhere. For small practicals and all, we use ChromaDB. As we will enter into the project, at that time basically you will get more understanding."</p>
+    </div>
+  </section>
+
+  <!-- PINECONE -->
+  <section id="pinecone">
+    <div class="section-eyebrow">06 — Database 2</div>
+    <h2>Pinecone — Fully Managed SaaS</h2>
+
+    <div class="db-header" style="background:rgba(52,211,153,0.07); border:1px solid rgba(52,211,153,0.2);">
+      <div class="db-icon">🌲</div>
+      <div>
+        <h3 style="color:var(--accent2);">Pinecone</h3>
+        <div class="db-sub">Managed SaaS · Hosted on AWS · Namespace-based · Paid (free tier available)</div>
+      </div>
+    </div>
+
+    <h3 id="pinecone-concept">What Pinecone Is</h3>
+
+    <div class="sunny-says">
+      "Pinecone is a managed vector database. It is a complete managed system — Pinecone is hosting the server over the AWS. If you are using it in a production system, in that case, you will get some billing. You can do CRUD operations — you can delete that document, delete the namespace, delete that index. Everything is possible. It is a complete managed system."
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">💳</span>
+      <p><strong>Cost note:</strong> Pinecone has a free tier (1 index, 2GB storage) but is paid for production use. For POC/development, use the free tier. For large-scale production, budget accordingly. Sunny explicitly said: "Today I will show you how to configure Pinecone — if you are using it in a production system, you will get billing."</p>
+    </div>
+
+    <h3 id="pinecone-setup">Pinecone Setup & Code</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · Pinecone setup + store + retrieve</span>
+      <pre><span class="cm"># !pip install langchain-pinecone pinecone-client</span>
+
+<span class="kw">from</span> langchain_pinecone <span class="kw">import</span> <span class="cls">PineconeVectorStore</span>
+<span class="kw">from</span> pinecone <span class="kw">import</span> <span class="cls">Pinecone</span>, <span class="cls">ServerlessSpec</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+
+<span class="fn">load_dotenv</span>()
+
+<span class="cm"># ── Step 1: Initialize Pinecone client ───────────────────────────</span>
+<span class="cm"># Get API key from: https://app.pinecone.io/ → API Keys</span>
+pc = <span class="cls">Pinecone</span>(api_key=os.<span class="fn">getenv</span>(<span class="str">"PINECONE_API_KEY"</span>))
+
+<span class="cm"># ── Step 2: Create or connect to an Index ────────────────────────</span>
+<span class="cm"># An Index in Pinecone = a collection of vectors</span>
+index_name = <span class="str">"langchain-llama-index"</span>
+dimension  = <span class="num">3072</span>   <span class="cm"># must match your embedding model output</span>
+
+<span class="kw">if</span> index_name <span class="kw">not in</span> [idx.name <span class="kw">for</span> idx <span class="kw">in</span> pc.<span class="fn">list_indexes</span>()]:
+    pc.<span class="fn">create_index</span>(
+        name      = index_name,
+        dimension = dimension,
+        metric    = <span class="str">"cosine"</span>,         <span class="cm"># cosine / euclidean / dotproduct</span>
+        spec      = <span class="cls">ServerlessSpec</span>(   <span class="cm"># serverless (no server to manage)</span>
+            cloud  = <span class="str">"aws"</span>,
+            region = <span class="str">"us-east-1"</span>
+        )
+    )
+    <span class="fn">print</span>(f<span class="str">f"✓ Created Pinecone index: {index_name}"</span>)
+
+<span class="cm"># ── Step 3: Create LangChain Vector Store ────────────────────────</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-large"</span>)
+
+vector_store = <span class="cls">PineconeVectorStore</span>(
+    index     = pc.<span class="fn">Index</span>(index_name),
+    embedding = embedding_model,
+    namespace = <span class="str">"demo_documents"</span>    <span class="cm"># namespace = logical separation within index</span>
+)
+
+<span class="cm"># ── Step 4: Add documents ────────────────────────────────────────</span>
+<span class="cm"># Same as FAISS and Chroma — just use add_documents()</span>
+docs = [
+    <span class="cls">Document</span>(<span class="str">"Llama 2 is a family of LLMs trained by Meta."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"llama2.pdf"</span>, <span class="str">"page"</span>: <span class="num">1</span>}),
+    <span class="cls">Document</span>(<span class="str">"RLHF was used to align Llama 2 Chat models."</span>,
+             metadata={<span class="str">"source"</span>: <span class="str">"llama2.pdf"</span>, <span class="str">"page"</span>: <span class="num">4</span>}),
+]
+vector_store.<span class="fn">add_documents</span>(docs)
+<span class="fn">print</span>(<span class="str">"✓ Documents stored in Pinecone"</span>)
+<span class="cm"># Check Pinecone UI: app.pinecone.io → your index → namespace "demo_documents"</span>
+<span class="cm"># You can see: embedding vector, metadata, text, ID for each stored record</span>
+
+<span class="cm"># ── Step 5: Similarity search ────────────────────────────────────</span>
+results = vector_store.<span class="fn">similarity_search</span>(
+    <span class="str">"How was Llama 2 trained?"</span>,
+    k = <span class="num">2</span>
+)
+<span class="kw">for</span> doc <span class="kw">in</span> results:
+    <span class="fn">print</span>(doc.page_content)
+
+<span class="cm"># ── Step 6: Use as retriever ─────────────────────────────────────</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">3</span>})
+results   = retriever.<span class="fn">invoke</span>(<span class="str">"What is RLHF?"</span>)
+
+<span class="cm"># ── CRUD Operations ──────────────────────────────────────────────</span>
+<span class="cm"># Delete specific documents by ID</span>
+<span class="cm"># vector_store.delete(ids=["doc-id-1", "doc-id-2"])</span>
+
+<span class="cm"># Delete an entire namespace</span>
+<span class="cm"># pc.Index(index_name).delete(delete_all=True, namespace="demo_documents")</span>
+
+<span class="cm"># Delete the entire index</span>
+<span class="cm"># pc.delete_index(index_name)</span></pre>
+    </div>
+
+    <h3 id="namespaces">Pinecone Namespaces</h3>
+    <p>A key Pinecone concept Sunny explained:</p>
+
+    <div class="sunny-says">
+      "You can create as many namespaces inside the index. It is all about the segregation of the data. You will have to think — how many namespaces you are going to create. Let's say I have a company with different departments: HR policies in one namespace, Finance documents in another, Technical docs in a third. Same index, different namespaces — logical separation without separate infrastructure."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.78rem;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Pinecone Hierarchy</div>
+      <div style="color:var(--accent2); margin-bottom:8px;">Index: "company-knowledge-base" (dimension=3072, metric=cosine)</div>
+      <div style="padding-left:20px; color:#94a3b8; line-height:2.2;">
+        <span style="color:var(--accent6);">Namespace: "hr-policies"</span> → all HR documents<br>
+        <span style="color:var(--accent6);">Namespace: "finance-docs"</span> → all financial documents<br>
+        <span style="color:var(--accent6);">Namespace: "tech-manuals"</span> → all technical documentation<br>
+        <span style="color:var(--accent6);">Namespace: "demo_documents"</span> → demo/test data
+      </div>
+    </div>
+  </section>
+
+  <!-- QDRANT -->
+  <section id="qdrant">
+    <div class="section-eyebrow">07 — Database 3</div>
+    <h2>Qdrant — Rust-Powered Open-Source</h2>
+
+    <div class="db-header" style="background:rgba(96,165,250,0.07); border:1px solid rgba(96,165,250,0.2);">
+      <div class="db-icon">🔷</div>
+      <div>
+        <h3 style="color:var(--accent3);">Qdrant</h3>
+        <div class="db-sub">Open-source · Built in Rust · Cloud + Local (Docker) · HNSW default</div>
+      </div>
+    </div>
+
+    <h3 id="qdrant-concept">What Qdrant Is</h3>
+
+    <div class="sunny-says">
+      "Qdrant is a managed vector database. We can use it for a very huge amount of data, and it will work very fast, because it has been created on top of the Rust language. Rust is a programming language — everything in Qdrant is built on top of that SDK. It is an open-source vector database. It helps us quickly find semantic, similar information. It is working very fast, and that's why most of the people are using this Qdrant inside their solution."
+    </div>
+
+    <h3 id="qdrant-hierarchy">Qdrant Data Hierarchy</h3>
+    <p>Qdrant uses different terminology from other databases. Sunny explained this clearly:</p>
+
+    <div class="qdrant-hier">
+      <div class="qh-level">
+        <div class="qh-badge" style="background:rgba(96,165,250,0.12); color:var(--accent3); border:1px solid rgba(96,165,250,0.3);">Cluster</div>
+        <div class="qh-body">
+          <h4>Cluster</h4>
+          <p>The top-level grouping. You create one cluster (e.g. "GenAI Bootcamp"). Free tier: 1 cluster, 1GB storage, cloud-hosted.</p>
+        </div>
+      </div>
+      <div class="qh-level" style="padding-left:20px;">
+        <div class="qh-badge" style="background:rgba(96,165,250,0.1); color:var(--accent3); border:1px solid rgba(96,165,250,0.25);">Collection</div>
+        <div class="qh-body">
+          <h4>Collection (= Index in FAISS / Pinecone)</h4>
+          <p>Inside a cluster, you create collections. Each collection stores vectors of a fixed dimension. Similar to a "table" in a database. You configure: vector size, distance metric (Cosine/Dot/Euclidean).</p>
+        </div>
+      </div>
+      <div class="qh-level" style="padding-left:40px;">
+        <div class="qh-badge" style="background:rgba(96,165,250,0.08); color:var(--accent3); border:1px solid rgba(96,165,250,0.2);">Point</div>
+        <div class="qh-body">
+          <h4>Point (= Document record)</h4>
+          <p>Inside a collection, data is stored as "points." Each point has a unique ID, a vector, and a payload.</p>
+        </div>
+      </div>
+      <div class="qh-level" style="padding-left:60px;">
+        <div class="qh-badge" style="background:rgba(96,165,250,0.06); color:var(--accent3); border:1px solid rgba(96,165,250,0.15);">Payload</div>
+        <div class="qh-body">
+          <h4>Payload (= Metadata + original text)</h4>
+          <p>The data stored alongside each vector — page content, source, page number, any custom metadata fields. Queryable as metadata filters.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Where the data is going to be stored inside the Qdrant? The data is going to be stored inside the collection. Inside the collection, it's going to be create multiple points. Inside the point only, it's going to be keep what? The payload. First, we'll have to create a collection. Inside that, we'll have to create a point. And inside the point only, the data will be available."
+    </div>
+
+    <h3 id="qdrant-setup">Qdrant Setup & Code</h3>
+
+    <div class="code-block">
+      <span class="lang-label">python · Qdrant cloud setup</span>
+      <pre><span class="cm"># !pip install langchain-qdrant qdrant-client</span>
+
+<span class="kw">from</span> qdrant_client <span class="kw">import</span> <span class="cls">QdrantClient</span>
+<span class="kw">from</span> qdrant_client.models <span class="kw">import</span> <span class="cls">Distance</span>, <span class="cls">VectorParams</span>
+<span class="kw">from</span> langchain_qdrant <span class="kw">import</span> <span class="cls">QdrantVectorStore</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">OpenAIEmbeddings</span>
+<span class="kw">from</span> langchain.schema <span class="kw">import</span> <span class="cls">Document</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+
+<span class="fn">load_dotenv</span>()
+
+<span class="cm"># ── Qdrant Cloud credentials ──────────────────────────────────────</span>
+<span class="cm"># 1. Go to: https://cloud.qdrant.io/</span>
+<span class="cm"># 2. Sign in with Google or GitHub</span>
+<span class="cm"># 3. Create a free cluster (e.g. "GenAI Bootcamp")</span>
+<span class="cm"># 4. Copy: API Key + Cluster Endpoint URL</span>
+<span class="cm"># 5. Add to .env: QDRANT_API_KEY and QDRANT_CLUSTER_ENDPOINT</span>
+
+QDRANT_API_KEY  = os.<span class="fn">getenv</span>(<span class="str">"QDRANT_API_KEY"</span>)
+QDRANT_URL      = os.<span class="fn">getenv</span>(<span class="str">"QDRANT_CLUSTER_ENDPOINT"</span>)  <span class="cm"># e.g. "https://xxx.qdrant.io"</span>
+COLLECTION_NAME = <span class="str">"llama2_collection"</span>
+DIMENSION       = <span class="num">3072</span>
+
+<span class="cm"># ── Step 1: Create Qdrant Cloud client ───────────────────────────</span>
+client = <span class="cls">QdrantClient</span>(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+
+<span class="cm"># ── Step 2: Create Collection (if not exists) ─────────────────────</span>
+existing = [c.name <span class="kw">for</span> c <span class="kw">in</span> client.<span class="fn">get_collections</span>().collections]
+<span class="kw">if</span> COLLECTION_NAME <span class="kw">not in</span> existing:
+    client.<span class="fn">create_collection</span>(
+        collection_name = COLLECTION_NAME,
+        vectors_config  = <span class="cls">VectorParams</span>(
+            size     = DIMENSION,
+            distance = <span class="cls">Distance</span>.COSINE   <span class="cm"># COSINE / DOT / EUCLID</span>
+        )
+    )
+    <span class="fn">print</span>(f<span class="str">f"✓ Collection '{COLLECTION_NAME}' created"</span>)
+
+<span class="cm"># ── Step 3: Embedding model ───────────────────────────────────────</span>
+embedding_model = <span class="cls">OpenAIEmbeddings</span>(model=<span class="str">"text-embedding-3-large"</span>)
+
+<span class="cm"># ── Step 4: Create LangChain Vector Store ────────────────────────</span>
+vector_store = <span class="cls">QdrantVectorStore</span>(
+    client          = client,
+    collection_name = COLLECTION_NAME,
+    embedding       = embedding_model,
+)
+
+<span class="cm"># ── Step 5: Add documents ────────────────────────────────────────</span>
+<span class="cm"># Using the real chunked data from the PDF (same as ChromaDB demo)</span>
+<span class="cm"># chunks = split_documents(pages) → 175 chunks</span>
+<span class="cm"># Each chunk gets a unique ID generated automatically</span>
+<span class="kw">import</span> uuid
+chunk_ids = [str(uuid.<span class="fn">uuid4</span>()) <span class="kw">for</span> _ <span class="kw">in</span> chunks]
+vector_store.<span class="fn">add_documents</span>(chunks, ids=chunk_ids)
+<span class="fn">print</span>(f<span class="str">f"✓ Inserted {len(chunks)} chunks into Qdrant"</span>)
+<span class="cm"># Sunny's output: "Inserted 174 chunk"</span>
+<span class="cm"># Check Qdrant dashboard → GenAI Bootcamp cluster → manage collection</span>
+
+<span class="cm"># ── Step 6: Similarity search ────────────────────────────────────</span>
+results = vector_store.<span class="fn">similarity_search</span>(
+    <span class="str">"What safety training was done for Llama 2?"</span>,
+    k = <span class="num">3</span>
+)
+<span class="kw">for</span> doc <span class="kw">in</span> results:
+    <span class="fn">print</span>(f<span class="str">f"Page {doc.metadata.get('page', '?')}: {doc.page_content[:150]}..."</span>)
+
+<span class="cm"># ── Step 7: Use as retriever ─────────────────────────────────────</span>
+retriever = vector_store.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">5</span>})
+results   = retriever.<span class="fn">invoke</span>(<span class="str">"Explain the RLHF process"</span>)
+
+<span class="cm"># ── Local Qdrant (Docker alternative) ────────────────────────────</span>
+<span class="cm"># If you want to run Qdrant locally (not cloud):</span>
+<span class="cm"># docker run -p 6333:6333 qdrant/qdrant</span>
+<span class="cm"># Then use: QdrantClient(host="localhost", port=6333)</span>
+<span class="cm"># NOTE: Windows users → Docker is recommended, not native install</span></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🐳</span>
+      <p><strong>Qdrant local setup:</strong> Sunny noted that native Qdrant installation on Windows is problematic. The recommended local approach is Docker: <code>docker run -p 6333:6333 qdrant/qdrant</code>. Then connect with <code>QdrantClient(host="localhost", port=6333)</code>. For the class demo Sunny used Qdrant Cloud (free tier) to avoid the Windows installation issues.</p>
+    </div>
+  </section>
+
+  <!-- ALL COMPARISON -->
+  <section id="all-comparison">
+    <div class="section-eyebrow">08 — Decision Guide</div>
+    <h2>Full 4-Way Comparison</h2>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th style="color:var(--accent4)">FAISS</th>
+          <th style="color:var(--accent)">ChromaDB</th>
+          <th style="color:var(--accent2)">Pinecone</th>
+          <th style="color:var(--accent3)">Qdrant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Type</td>
+          <td>Vector library</td>
+          <td>Open-source VDB</td>
+          <td>Managed SaaS VDB</td>
+          <td class="yes">Open-source managed VDB</td>
+        </tr>
+        <tr>
+          <td>Provider</td>
+          <td>Meta (Facebook)</td>
+          <td>Chroma Inc.</td>
+          <td>Pinecone Systems</td>
+          <td>Qdrant Inc.</td>
+        </tr>
+        <tr>
+          <td>Index types</td>
+          <td class="best">Flat, IVF, HNSW, PQ — all</td>
+          <td class="mid">HNSW default, limited</td>
+          <td class="mid">Managed internally</td>
+          <td class="yes">HNSW default, configurable</td>
+        </tr>
+        <tr>
+          <td>Manual index control</td>
+          <td class="yes">Full manual control</td>
+          <td class="no">Auto-managed</td>
+          <td class="no">Abstracted away</td>
+          <td class="mid">Some configuration</td>
+        </tr>
+        <tr>
+          <td>Metadata filtering</td>
+          <td class="mid">Limited</td>
+          <td class="yes">Rich</td>
+          <td class="yes">Rich (namespace + filter)</td>
+          <td class="best">Very rich payload filters</td>
+        </tr>
+        <tr>
+          <td>Local persistence</td>
+          <td class="mid">save_local() manual</td>
+          <td class="yes">Auto (persist_directory)</td>
+          <td class="no">Cloud only</td>
+          <td class="yes">Local (Docker) + Cloud</td>
+        </tr>
+        <tr>
+          <td>Cloud variant</td>
+          <td class="no">No</td>
+          <td class="mid">Yes (paid)</td>
+          <td class="yes">Yes (native)</td>
+          <td class="yes">Yes (free tier)</td>
+        </tr>
+        <tr>
+          <td>Language / Performance</td>
+          <td>C++ / Python</td>
+          <td>Python</td>
+          <td>Managed</td>
+          <td class="best">Rust (very fast)</td>
+        </tr>
+        <tr>
+          <td>Free tier?</td>
+          <td class="yes">Yes (fully free)</td>
+          <td class="yes">Yes (local is free)</td>
+          <td class="mid">Yes (1 index, limited)</td>
+          <td class="yes">Yes (1GB free cluster)</td>
+        </tr>
+        <tr>
+          <td>CRUD operations</td>
+          <td class="no">Limited</td>
+          <td class="yes">Full</td>
+          <td class="yes">Full (+ namespace management)</td>
+          <td class="best">Full (collections + points)</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Learning fundamentals</td>
+          <td class="yes">POC / MVP / Dev</td>
+          <td class="mid">Production (managed)</td>
+          <td class="yes">Production (self-hosted or cloud)</td>
+        </tr>
+        <tr>
+          <td>LangChain integration</td>
+          <td class="yes">langchain-community</td>
+          <td class="yes">langchain-chroma</td>
+          <td class="yes">langchain-pinecone</td>
+          <td class="yes">langchain-qdrant</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- WHEN TO USE WHICH -->
+  <section id="when-to-use">
+    <div class="section-eyebrow">09 — Practical Guidance</div>
+    <h2>When to Use Which Database</h2>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px; border-top:2px solid var(--accent4);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent4); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Use FAISS when…</div>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2;">
+          <li>→ Learning vector DB fundamentals</li>
+          <li>→ Need full manual control over index type</li>
+          <li>→ Exploring IVF or PQ quantisation</li>
+          <li>→ Academic or research use-cases</li>
+          <li>→ No cloud dependency desired</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:18px; border-top:2px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Use ChromaDB when…</div>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2;">
+          <li>→ Building a POC or MVP quickly</li>
+          <li>→ Local development (no API keys)</li>
+          <li>→ Need rich metadata filtering locally</li>
+          <li>→ Small to medium dataset (dev/staging)</li>
+          <li>→ Plan to migrate later to Pinecone/Qdrant</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(52,211,153,0.3); border-radius:8px; padding:18px; border-top:2px solid var(--accent2);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Use Pinecone when…</div>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2;">
+          <li>→ Need fully managed, zero-ops solution</li>
+          <li>→ Building production systems on AWS</li>
+          <li>→ Need namespace-based data segregation</li>
+          <li>→ Team lacks DevOps for self-hosting</li>
+          <li>→ Budget available for managed SaaS</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(96,165,250,0.3); border-radius:8px; padding:18px; border-top:2px solid var(--accent3);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Use Qdrant when…</div>
+        <ul style="list-style:none; font-size:0.82rem; color:#94a3b8; line-height:2;">
+          <li>→ Need high performance on large data</li>
+          <li>→ Want open-source + cloud flexibility</li>
+          <li>→ Need rich payload filtering</li>
+          <li>→ Self-hosting preferred (Docker/Kubernetes)</li>
+          <li>→ Cost-efficiency at scale important</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>Sunny's migration path advice:</strong> "Start with ChromaDB for POC/MVP. It's easy, free, local, and integrates seamlessly with LangChain. Once you're ready for production — migrate to OpenSearch, Azure AI Search, Qdrant, or Pinecone. The LangChain interface stays identical — just change the vector store class. No other code changes needed."</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">10 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 34 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is the architectural difference between FAISS and ChromaDB? How does LangChain's role differ?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">FAISS is a vector search library (Meta) that natively stores only raw embedding vectors. LangChain's FAISS wrapper adds document and metadata management on top, turning it into a Vector Store — it's library + wrapper = vector store. ChromaDB is a full-fledged vector database that natively manages everything itself: vectors, original documents, metadata, unique IDs, collections, index, and persistence. No LangChain wrapper is needed to make ChromaDB a complete Vector Store — it already is one.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is Product Quantization (PQ) and when should you use it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Product Quantization is a vector compression technique. It splits high-dimensional vectors into sub-vectors and quantises (compresses) each sub-vector independently, reducing memory usage significantly. Use PQ when you have very large datasets (1 million+ documents) where storing full-precision vectors would be too expensive in memory. PQ trades a small amount of accuracy for a large reduction in memory footprint and faster similarity search. It works alongside flat, IVF, or HNSW indexes in FAISS. ChromaDB does not support PQ.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What 4 things does ChromaDB store natively per record, and how does this differ from raw FAISS?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">ChromaDB stores: (1) id — unique document identifier, (2) document — the original text content, (3) embedding — the dense vector representation, (4) metadata — custom key-value pairs (source, page, date, etc.). Raw FAISS only stores the embedding vector — it has no concept of document text or metadata. To store these alongside embeddings in FAISS, you need LangChain's FAISS wrapper which adds a docstore (id → Document mapping) separately from the FAISS index.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is a Pinecone Namespace, and give a practical example of when you'd use multiple namespaces?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A Pinecone Namespace is a logical partition within a single Pinecone Index that separates data into groups while sharing the same infrastructure. Example: A company builds a single index "company-knowledge-base" with namespaces: "hr-policies" (all HR documents), "finance-docs" (financial reports), "tech-manuals" (technical documentation). When a query comes from the HR chatbot, you filter to the "hr-policies" namespace only — so retrieval is faster and doesn't return irrelevant results from finance or tech documents.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Explain the Qdrant data hierarchy: Cluster → Collection → Point → Payload.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Cluster: Top-level grouping (e.g., "GenAI Bootcamp"). One cluster can host multiple collections. Collection: Like a "table" — stores vectors of a fixed dimension with a configured distance metric. Equivalent to an "Index" in Pinecone or FAISS. Point: A single record inside a collection. Has a unique ID and an embedding vector. Equivalent to a "document" in FAISS/ChromaDB. Payload: Data stored alongside each point — the original text content + any metadata fields (source, page, etc.). Equivalent to "metadata" in other databases.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. Why is Qdrant fast, and how should Windows users run it locally?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Qdrant is fast because its entire SDK and server are built in Rust — a systems programming language known for near-C performance with memory safety. This makes Qdrant significantly faster than Python-based alternatives for large-scale vector operations. Windows users should NOT try to install Qdrant natively — it gives many compatibility issues. The recommended approach is Docker: run <code>docker run -p 6333:6333 qdrant/qdrant</code> and connect with <code>QdrantClient(host="localhost", port=6333)</code>. Alternatively, use Qdrant Cloud (free tier) which avoids local installation entirely.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. What is the MMR search type in ChromaDB retriever, and why would you use it?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">MMR stands for Maximum Marginal Relevance. It's a retrieval strategy that balances two goals: relevance (documents should match the query) AND diversity (documents shouldn't be near-duplicates of each other). Without MMR, if your top-5 chunks all come from the same paragraph of a document, they're highly redundant — the LLM gets repetitive context. MMR penalises documents that are too similar to already-selected documents, so the retrieved chunks cover a broader range of relevant information. Configure with: <code>as_retriever(search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20})</code>. Sunny mentioned this will be covered in depth in the upcoming Retrieval Techniques class.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 34 · ChromaDB · Pinecone · Qdrant · 25 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

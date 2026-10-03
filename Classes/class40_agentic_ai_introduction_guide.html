@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 40 — Agentic AI Introduction | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #a78bfa;   /* violet — Agentic AI */
+  --accent2:     #22d3ee;   /* cyan — LangGraph */
+  --accent3:     #4ade80;   /* green — success / agent */
+  --accent4:     #fb923c;   /* orange — tools / action */
+  --accent5:     #f472b6;   /* pink — multi-agent */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(167,139,250,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(167,139,250,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 40):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── SYSTEM PROGRESSION VISUAL ── */
+.system-progression { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 20px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.sp-card { padding: 20px; border-right: 1px solid var(--border); }
+.sp-card:last-child { border-right: none; }
+.sp-card .sp-level { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.sp-card h4 { font-size: 0.92rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.sp-card p { font-size: 0.78rem; color: var(--muted); margin: 0 0 8px; line-height: 1.55; }
+
+/* ── AGENTIC FLOW VISUAL ── */
+.agent-flow { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 20px 0; }
+.af-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 20px; }
+.af-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.af-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.af-body h4 { font-size: 0.88rem; color: #fff; font-weight: 600; margin-bottom: 4px; }
+.af-body p { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.af-loop { background: rgba(167,139,250,0.08); border: 1px dashed rgba(167,139,250,0.3); border-radius: 6px; padding: 12px 16px; margin-top: 12px; font-size: 0.8rem; color: var(--accent); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── AGENT TYPE TAXONOMY ── */
+.taxonomy-tree { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; line-height: 2.4; }
+.tx-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+
+/* ── MULTIAGENT EXAMPLE ── */
+.multiagent-example { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 16px 0; }
+.mae-task { background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.25); border-radius: 6px; padding: 12px 16px; font-style: italic; font-size: 0.9rem; color: var(--accent6); margin-bottom: 16px; }
+.mae-agents { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.mae-agent { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px; border-left: 3px solid; }
+.mae-agent .ma-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 700; margin-bottom: 5px; }
+.mae-agent p { font-size: 0.78rem; color: var(--muted); margin: 0; }
+
+/* ── TERMS GRID ── */
+.terms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.term-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; border-top: 2px solid; }
+.term-card .tc-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; font-weight: 700; margin-bottom: 6px; }
+.term-card p { font-size: 0.78rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* ── LANGGRAPH VISUAL ── */
+.lg-concepts { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+.lg-concept { background: var(--card); border: 1px solid rgba(34,211,238,0.2); border-radius: 8px; padding: 14px; border-top: 2px solid var(--accent2); }
+.lg-concept .lc-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; color: var(--accent2); font-weight: 700; margin-bottom: 6px; }
+.lg-concept p { font-size: 0.76rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(167,139,250,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA BLOCKS ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent2); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(167,139,250,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .system-progression, .mae-agents { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#module-context">New Module Context</a></li>
+    <li><a href="#seven-definitions">7 Key Definitions</a></li>
+    <li class="sub"><a href="#ai-assistant">1. AI Assistant</a></li>
+    <li class="sub"><a href="#rag-assistant">2. RAG-Based Assistant</a></li>
+    <li class="sub"><a href="#what-is-agent">3. What is an Agent?</a></li>
+    <li class="sub"><a href="#agentic-ai">4. Agentic AI</a></li>
+    <li class="sub"><a href="#multi-agent">5. Multi-Agent System</a></li>
+    <li class="sub"><a href="#deep-agent">6. Deep Agentic System</a></li>
+    <li class="sub"><a href="#when-to-use">7. When to Use an Agent</a></li>
+    <li><a href="#taxonomy">AI Application Taxonomy</a></li>
+    <li><a href="#agentic-flow">Agentic Flow</a></li>
+    <li class="sub"><a href="#deterministic">Deterministic Flow</a></li>
+    <li class="sub"><a href="#dynamic">Dynamic Flow</a></li>
+    <li><a href="#practical-prerequisites">Practical Prerequisites</a></li>
+    <li><a href="#langgraph-intro">LangGraph Introduction</a></li>
+    <li class="sub"><a href="#why-langgraph">Why LangGraph?</a></li>
+    <li class="sub"><a href="#lg-concepts">Key Concepts</a></li>
+    <li class="sub"><a href="#lg-vs-langchain">LangGraph vs LangChain</a></li>
+    <li class="sub"><a href="#lg-install">Install & First Program</a></li>
+    <li><a href="#ecosystem">LangChain Ecosystem Map</a></li>
+    <li><a href="#chapter-roadmap">6–8 Class Roadmap</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 40</span></div>
+    <div class="hero-class-num">Class 40 · 22 August 2026</div>
+    <h1>Agentic AI<br><em>Introduction</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> 7 Core Definitions</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> LangGraph Overview</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Multi-Agent Systems</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> New Chapter Kickoff</div>
+    </div>
+    <p class="hero-summary">
+      Class 40 marks the start of a new chapter: Agentic AI. Sunny opens by mapping the entire Agentic AI landscape on the blackboard — 7 foundational definitions (AI assistant → RAG assistant → agent → Agentic AI → multi-agent → deep agent → when to use), the full taxonomy of AI applications, the two types of Agentic flow (deterministic vs dynamic), every practical prerequisite (Pydantic, async, tool calling, memory, state), and a first look at LangGraph as the orchestration framework.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Context: RAG chapter complete, Multimodal RAG project done — entering Module 9 (Agentic AI)</li>
+      <li><span class="chk">✓</span> Course timeline: 22 August → development complete by 22 October; 1 month Agentic + 1 month project</li>
+      <li><span class="chk">✓</span> 7 foundational definitions that must be clear before writing any agent code</li>
+      <li><span class="chk">✓</span> AI application taxonomy: simple assistant → RAG assistant → Agentic system (mono/multi/deep)</li>
+      <li><span class="chk">✓</span> Agentic flow: Input → LLM reasoning → planning → action → observe → adapt (repeat) → output</li>
+      <li><span class="chk">✓</span> Deterministic flow vs Dynamic flow — the two categories of Agentic implementation</li>
+      <li><span class="chk">✓</span> Implementation approaches: Pure Python, LangGraph, other frameworks (Google ADK, OpenAI SDK)</li>
+      <li><span class="chk">✓</span> Practical prerequisites for Agentic development: Pydantic, JSON schema, async Python, structured output, tool calling, memory management, state management, context engineering, MCP, A2A protocol, evaluation, observability, guardrails, caching</li>
+      <li><span class="chk">✓</span> LangGraph introduction — why it's the preferred framework, Graph API vs Functional API, StateGraph</li>
+      <li><span class="chk">✓</span> LangGraph ecosystem: LangChain + LangGraph + LangSmith (observability) + LangFuse + LangFlow</li>
+      <li><span class="chk">✓</span> First LangGraph program setup (practical deferred to next class — Graph import changed to StateGraph)</li>
+      <li><span class="chk">✓</span> Q&A: when to start interviewing, RAG types in Agentic context, LangSmith vs LangFlow vs LangFuse</li>
+    </ul>
+  </section>
+
+  <!-- MODULE CONTEXT -->
+  <section id="module-context">
+    <div class="section-eyebrow">02 — Chapter Start</div>
+    <h2>Starting Module 9 — Agentic AI</h2>
+
+    <div class="sunny-says">
+      "Today, guys, we'll start with a new module. We have completed the advanced RAG and Multimodal RAG system. Now my focus will be on the agent, multi-agent, deep agent, and the other concepts related to GenAI — that is evaluation, guardrails, and MCP. Within next one month, we'll try to complete our agent, MCP, guardrails, evaluation. After that, one more month for the project. By 22nd October, guys, we can complete 95% of this syllabus."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Bootcamp Timeline (from 22 Aug 2026)</div>
+      <div style="color:var(--accent3);">✓ Complete: RAG (29–38), Fine-Tuning (21–24), Embeddings (08), Multimodal RAG Project (39)</div>
+      <div style="color:var(--accent); margin-top:8px;">→ Month 1 (Aug–Sep): Agentic AI · Multi-Agent · LangGraph · MCP · A2A · Evaluation · Guardrails</div>
+      <div style="color:var(--accent2); margin-top:6px;">→ Month 2 (Sep–Oct): End-to-End Projects · Deployment · Remaining advanced concepts</div>
+      <div style="color:var(--muted); margin-top:6px;">→ After Oct: Claude Skills · Advanced ANN · Any extra topics added from community requests</div>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">🗺</span>
+      <p><strong>Sunny's Agentic AI Roadmap video:</strong> For a broader overview, search "Sunny Savita Agentic AI Roadmap" on YouTube — ~1-hour video covering the full landscape of Agentic AI from a production perspective. Complements the bootcamp's focused, practical approach.</p>
+    </div>
+  </section>
+
+  <!-- 7 DEFINITIONS -->
+  <section id="seven-definitions">
+    <div class="section-eyebrow">03 — Foundations</div>
+    <h2>7 Foundational Definitions</h2>
+
+    <p>Sunny spent the first half of class writing and explaining these 7 terms on the blackboard. He said: "If you know these 7 definitions, your fundamentals of Agent and Agentic AI will be clear."</p>
+
+    <!-- AI ASSISTANT -->
+    <h3 id="ai-assistant">1. AI Assistant (Simple)</h3>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:14px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">Definition</div>
+      <p style="font-size:0.9rem; color:#fff; font-weight:600; margin-bottom:10px;">A system with an LLM at its core. User passes input → LLM generates output based on its training knowledge.</p>
+      <div style="font-size:0.8rem; color:#94a3b8; border-left:3px solid var(--muted); padding-left:12px;">No external knowledge source. No tools. No memory beyond the context window. Answer comes entirely from what the model was trained on.</div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.76rem; color:var(--muted); margin-top:10px; background:rgba(0,0,0,0.2); border-radius:4px; padding:8px 12px;">Q: "What is Tesla?"  →  A: "Tesla is an EV company."  ← from model training, not from any external DB</div>
+    </div>
+
+    <!-- RAG ASSISTANT -->
+    <h3 id="rag-assistant">2. RAG-Based Assistant</h3>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:14px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">Definition</div>
+      <p style="font-size:0.9rem; color:#fff; font-weight:600; margin-bottom:10px;">An AI assistant that retrieves relevant external knowledge and uses that information to generate grounded responses.</p>
+      <div style="font-size:0.8rem; color:#94a3b8; border-left:3px solid var(--muted); padding-left:12px;">User query → Vector DB retrieval → context → LLM → grounded output. Connects to an external knowledge base maintained from a data source. Reduces hallucination by grounding answers in retrieved facts.</div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔑</span>
+      <p><strong>Important:</strong> "A RAG-based system is NOT an Agentic system." RAG is knowledge retrieval — the LLM receives context and generates an answer. There is no autonomous decision-making, no tool calling, no iterative planning. RAG can be a component inside an Agentic system, but by itself it is not one.</p>
+    </div>
+
+    <!-- WHAT IS AN AGENT -->
+    <h3 id="what-is-agent">3. What is an Agent?</h3>
+
+    <div style="background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.22); border-radius:8px; padding:20px; margin:14px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">Definition</div>
+      <p style="font-size:0.95rem; color:#fff; font-weight:600; margin-bottom:12px;">An AI system that <span style="color:var(--accent)">perceives</span> its environment, <span style="color:var(--accent4)">reasons</span> about it, <span style="color:var(--accent3)">takes actions</span> (uses tools), <span style="color:var(--accent2)">observes</span> results, and <span style="color:var(--accent5)">adapts</span> iteratively to achieve a goal.</p>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; font-size:0.8rem;">
+        <div style="color:#94a3b8;"><span style="color:var(--accent);">Think</span> — LLM reasons about the input and plans what to do</div>
+        <div style="color:#94a3b8;"><span style="color:var(--accent4);">Act</span> — Takes an action (calls a tool, queries a DB, writes code)</div>
+        <div style="color:#94a3b8;"><span style="color:var(--accent2);">Observe</span> — Reviews the result of the action</div>
+        <div style="color:#94a3b8;"><span style="color:var(--accent5);">Adapt</span> — Updates its plan and repeats if needed (iterative refinement)</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "An AI agent is an autonomous system that can perceive its environment, make decisions, take actions using tools or APIs, and observe the outcome. Then it keeps on repeating this think-act-observe loop until it generates the final output. A normal AI assistant just generates; an agent also acts and observes."
+    </div>
+
+    <!-- AGENTIC AI -->
+    <h3 id="agentic-ai">4. Agentic AI</h3>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:14px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">Definition</div>
+      <p style="font-size:0.9rem; color:#fff; font-weight:600; margin-bottom:10px;">The broader paradigm of AI systems designed to act autonomously, use tools, manage state and memory, and pursue goals across multiple steps.</p>
+      <p style="font-size:0.8rem; color:#94a3b8; margin:0;">Agentic AI is the umbrella term. Whether you have a single agent or a network of multiple agents — if it has autonomous decision-making, iterative execution, and tool use — it falls under Agentic AI.</p>
+    </div>
+
+    <!-- MULTI-AGENT -->
+    <h3 id="multi-agent">5. Multi-Agent System</h3>
+
+    <div class="multiagent-example">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent5); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.1em;">Tesla Investment Research Report — Multi-Agent Example</div>
+      <div class="mae-task">"Analyse Tesla and prepare a detailed investment research report."</div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-bottom:10px;">One Supervisor Agent receives the task → delegates to 4 specialised agents:</div>
+      <div class="mae-agents">
+        <div class="mae-agent" style="border-left-color:var(--accent);">
+          <div class="ma-name" style="color:var(--accent);">Research Agent</div>
+          <p>Collects background info, history, products, market position</p>
+        </div>
+        <div class="mae-agent" style="border-left-color:var(--accent2);">
+          <div class="ma-name" style="color:var(--accent2);">Financial Agent</div>
+          <p>Analyses financials: revenue, P&L, debt, growth metrics</p>
+        </div>
+        <div class="mae-agent" style="border-left-color:var(--accent4);">
+          <div class="ma-name" style="color:var(--accent4);">Risk Agent</div>
+          <p>Evaluates regulatory, competitive, market, and execution risks</p>
+        </div>
+        <div class="mae-agent" style="border-left-color:var(--accent5);">
+          <div class="ma-name" style="color:var(--accent5);">Market Agent</div>
+          <p>Analyses market sentiment, competitor landscape, industry trends</p>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,0.06); border:1px solid rgba(74,222,128,0.2); border-radius:5px; padding:10px 14px; font-size:0.8rem; color:var(--accent3);">Supervisor Agent combines all outputs → final investment research report ✓</div>
+    </div>
+
+    <p>Instead of one general agent doing everything, a Multi-Agent system uses <strong>multiple specialised agents</strong> collaborating — each an expert in its own domain, operating independently, sharing results toward a common goal.</p>
+
+    <!-- DEEP AGENT -->
+    <h3 id="deep-agent">6. Deep Agentic System</h3>
+
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px; margin:14px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.1em;">One-line Definition</div>
+      <p style="font-size:1rem; color:#fff; font-weight:600; margin-bottom:12px;">A large, long-running system — for complex to very complex problems — with extensive planning, multiple task decomposition, multiple tools, sub-agents, and a repeating process until final deliverables are produced.</p>
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; font-size:0.8rem; color:#94a3b8;">
+        <div>→ Extensive planning phase</div>
+        <div>→ Task decomposition (complex → sub-tasks)</div>
+        <div>→ Multiple tools called in sequence</div>
+        <div>→ Multiple sub-agents may run</div>
+        <div>→ Iterative refinement until done</div>
+        <div>→ Long task execution (minutes to hours)</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Deep agent is not a different paradigm. It's not some magic. It's just a variant: large and long-running. If I define it in one term — it is a large and a long-running system for the complex problem. Both a single agent and a multi-agent system can be a deep agent. The word 'deep' just means it's running in-depth, for a longer time, with extensive planning. That's it."
+    </div>
+
+    <!-- WHEN TO USE -->
+    <h3 id="when-to-use">7. When and Why to Use an Agent</h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--accent3);">
+        <h4 style="font-size:0.88rem; color:var(--accent3); margin-bottom:8px;">✅ Use an Agent when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Task requires multiple sequential steps</li>
+          <li>→ External tools / APIs need to be called</li>
+          <li>→ Decision-making is dynamic, not pre-coded</li>
+          <li>→ Output of one step feeds input of the next</li>
+          <li>→ Human-in-the-loop checks are needed</li>
+          <li>→ Long-running autonomous workflows</li>
+        </ul>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px; border-top:2px solid var(--muted);">
+        <h4 style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;">✗ Don't use an Agent when…</h4>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li>→ Task is a simple single-turn Q&A</li>
+          <li>→ Fixed deterministic logic is sufficient</li>
+          <li>→ Latency is critical (agents are slower)</li>
+          <li>→ No external data or tool access needed</li>
+          <li>→ LLM knowledge alone is sufficient</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAXONOMY -->
+  <section id="taxonomy">
+    <div class="section-eyebrow">04 — Full Picture</div>
+    <h2>AI Application Taxonomy</h2>
+
+    <p>Sunny drew this full picture to show how every type of AI system we've learned fits into the bigger landscape:</p>
+
+    <div class="taxonomy-tree">
+      <div class="tx-label">AI Application — Complete Taxonomy</div>
+      <div style="color:var(--accent); font-weight:700;">AI Application</div>
+      <div style="padding-left:20px; color:#94a3b8; line-height:2.4;">
+        ├── <span style="color:var(--muted);">Simple AI Assistant</span>  <span style="color:var(--muted); font-size:0.7rem;">(LLM only, model knowledge, no tools)</span><br>
+        ├── <span style="color:var(--muted);">RAG-Based Assistant</span>  <span style="color:var(--muted); font-size:0.7rem;">(LLM + external knowledge base retrieval)</span><br>
+        └── <span style="color:var(--accent); font-weight:700;">Agentic System</span>  <span style="color:var(--muted); font-size:0.7rem;">(LLM + tools + memory + decision loop)</span>
+        <div style="padding-left:24px; color:#94a3b8; line-height:2.4;">
+          ├── <span style="color:var(--accent2);">Mono-Agentic (Single Agent)</span>  <span style="color:var(--muted); font-size:0.7rem;">(one agent handles everything)</span><br>
+          └── <span style="color:var(--accent5);">Multi-Agentic System</span>  <span style="color:var(--muted); font-size:0.7rem;">(multiple specialised agents collaborate)</span>
+          <div style="padding-left:24px; color:#94a3b8; line-height:2.4;">
+            └── <span style="color:var(--accent3);">Deep Agentic System</span>  <span style="color:var(--muted); font-size:0.7rem;">(large, long-running, complex problems)</span><br>
+            <span style="color:var(--muted); font-size:0.72rem; padding-left:4px;">↑ both Mono and Multi can be Deep</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENTIC FLOW -->
+  <section id="agentic-flow">
+    <div class="section-eyebrow">05 — Architecture</div>
+    <h2>The Agentic Flow</h2>
+
+    <p>Every Agentic system — regardless of which framework you use — follows this core loop:</p>
+
+    <div class="agent-flow">
+      <div class="af-label">Universal Agentic Flow — Sunny's Blackboard</div>
+
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); color:var(--accent6);">→</div>
+        <div class="af-body"><h4>Input</h4><p>User query, task description, or trigger event arrives at the system</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); color:var(--accent);">1</div>
+        <div class="af-body"><h4>LLM Reasoning / Decision</h4><p>The LLM thinks about the input. What does it need to do? It reasons and takes a decision on the approach.</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); color:var(--accent2);">2</div>
+        <div class="af-body"><h4>Planning (if necessary)</h4><p>For complex tasks, the LLM decomposes the goal into sub-tasks and creates a plan of action.</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">3</div>
+        <div class="af-body"><h4>Take Appropriate Action</h4><p>Execute the plan: call a tool (web search, code executor, database query, API), delegate to a sub-agent, or generate text.</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent3);">4</div>
+        <div class="af-body"><h4>Observe the Result</h4><p>Examine the output of the action. Did it succeed? Is the result correct? Does it move toward the goal?</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); color:var(--accent5);">5</div>
+        <div class="af-body"><h4>Adapt Based on Feedback (Iterative Refinement)</h4><p>Update the plan. If the task is not complete, repeat steps 1–4 with updated context. Also called feedback-driven adaption or iterative refinement.</p></div>
+      </div>
+      <div class="af-step">
+        <div class="af-num" style="background:rgba(74,222,128,0.2); border:1px solid rgba(74,222,128,0.5); color:var(--accent3); font-weight:700;">✓</div>
+        <div class="af-body"><h4>Final Output</h4><p>When the goal is achieved or a stopping condition is met, the final answer or deliverable is produced.</p></div>
+      </div>
+
+      <div class="af-loop">↻ Repeat steps 1–5 until final output is ready (iterative refinement loop)</div>
+    </div>
+
+    <h3 id="deterministic">Deterministic Flow (Workflow)</h3>
+    <div style="background:var(--card); border:1px solid rgba(34,211,238,0.2); border-radius:8px; padding:16px; margin:12px 0;">
+      <p style="font-size:0.88rem; color:#fff; font-weight:600; margin-bottom:8px;">Fixed, pre-coded sequence of steps. LLM role is guided by explicit program logic.</p>
+      <p style="font-size:0.82rem; color:#94a3b8; margin:0;">The flow is pre-determined by the developer. Step A always leads to step B, then step C. No dynamic decision-making — the path is fixed. Also called: deterministic agent, workflow. Example: a document processing pipeline that always runs: parse → chunk → embed → store → retrieve → generate. LangGraph represents this as nodes and edges with fixed connections.</p>
+    </div>
+
+    <h3 id="dynamic">Dynamic Flow (True Agent)</h3>
+    <div style="background:var(--card); border:1px solid rgba(167,139,250,0.2); border-radius:8px; padding:16px; margin:12px 0;">
+      <p style="font-size:0.88rem; color:#fff; font-weight:600; margin-bottom:8px;">LLM dynamically decides what to do next at each step — not pre-coded.</p>
+      <p style="font-size:0.82rem; color:#94a3b8; margin:0;">The LLM reasons about the current state and decides: which tool to call, whether to retry, whether to delegate, when to stop. The path is not fixed — it emerges from the LLM's reasoning. This is the "true" Agentic system. Much harder to debug (non-deterministic) but far more flexible for open-ended tasks.</p>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">📐</span>
+      <p><strong>Three implementation paths:</strong> (1) Pure Python — from scratch, no framework, maximum control but high development effort. (2) LangGraph — low-level control with graph orchestration, preferred for production. (3) High-level frameworks (LangChain agent classes, Google ADK, OpenAI Agents SDK) — fast to build, but higher abstraction = less visibility into what's happening under the hood.</p>
+    </div>
+  </section>
+
+  <!-- PRACTICAL PREREQUISITES -->
+  <section id="practical-prerequisites">
+    <div class="section-eyebrow">06 — What You Need to Know</div>
+    <h2>Practical Prerequisites for Agentic Development</h2>
+
+    <p>Sunny listed these on the blackboard as things every Agentic AI developer needs to understand:</p>
+
+    <div class="terms-grid">
+      <div class="term-card" style="border-top-color:var(--accent);">
+        <div class="tc-name" style="color:var(--accent);">Pydantic + Type Hints</div>
+        <p>Schema validation for agent inputs/outputs and tool parameters. Essential for structured communication between agents.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent2);">
+        <div class="tc-name" style="color:var(--accent2);">JSON Schema</div>
+        <p>How to define tool schemas that the LLM uses to understand what each tool accepts and returns.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent4);">
+        <div class="tc-name" style="color:var(--accent4);">Async Python</div>
+        <p>Concurrency for running multiple tool calls or agent actions in parallel. Reduces latency in multi-step flows.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent3);">
+        <div class="tc-name" style="color:var(--accent3);">Structured Output</div>
+        <p>Forcing the LLM to output valid JSON or typed data instead of free text. Critical for agents that chain output to next steps.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent5);">
+        <div class="tc-name" style="color:var(--accent5);">Tool Calling / Tool Engineering</div>
+        <p>Defining tools (functions, APIs, DBs), binding them to the LLM, and handling tool call/response cycles.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent6);">
+        <div class="tc-name" style="color:var(--accent6);">Memory Management</div>
+        <p>Short-term (within session), long-term (across sessions), persistent (stored in DB), transient. Agents need memory to stay on task.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent);">
+        <div class="tc-name" style="color:var(--accent);">State Management</div>
+        <p>Tracking what the agent has done, what it knows, and what step it's on. LangGraph's StateGraph is built around this concept.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent2);">
+        <div class="tc-name" style="color:var(--accent2);">Context Engineering</div>
+        <p>Managing what information goes into the LLM's context window efficiently — avoiding token waste while keeping enough context for the agent to reason correctly.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent4);">
+        <div class="tc-name" style="color:var(--accent4);">MCP & A2A Protocol</div>
+        <p>Model Context Protocol (tool standardisation) and Agent-to-Agent protocols for multi-agent communication. Covered later in the module.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent3);">
+        <div class="tc-name" style="color:var(--accent3);">Evaluation & Testing</div>
+        <p>How to test an Agentic system — does it reliably reach the goal? Metrics: task completion rate, tool call accuracy, latency, safety.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent5);">
+        <div class="tc-name" style="color:var(--accent5);">Observability</div>
+        <p>Tracing every agent step, tool call, and LLM interaction. LangSmith, LangFuse, OpenTelemetry for production monitoring.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent);">
+        <div class="tc-name" style="color:var(--accent);">Guardrails & Security</div>
+        <p>Preventing agents from taking harmful actions, bypassing safety, leaking data, or going off-course. Prompt-level and system-level safeguards.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent6);">
+        <div class="tc-name" style="color:var(--accent6);">Caching</div>
+        <p>Caching LLM responses, tool results, and embeddings to reduce cost and latency in repeated agentic flows.</p>
+      </div>
+      <div class="term-card" style="border-top-color:var(--accent2);">
+        <div class="tc-name" style="color:var(--accent2);">Prompt Engineering</div>
+        <p>System prompts for agents are more complex — they define the agent's persona, capabilities, constraints, and output format.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANGGRAPH INTRO -->
+  <section id="langgraph-intro">
+    <div class="section-eyebrow">07 — Primary Framework</div>
+    <h2>LangGraph — Introduction</h2>
+
+    <h3 id="why-langgraph">Why LangGraph?</h3>
+
+    <div class="sunny-says">
+      "If you wanted to build an agent from scratch, if you wanted to build an agent with low-level control, which framework will you use? LangGraph. LangGraph gives you the control where you can develop the framework from the starting. Inside the LangGraph, you will have the low-level control over the program. If you use LangChain's agent classes directly, it's high-level abstraction — you won't see what's happening under the hood."
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(100,116,139,0.3); border-radius:8px; padding:16px; opacity:0.75;">
+        <h4 style="font-size:0.88rem; color:var(--muted); margin-bottom:8px;">LangChain Agent Classes (high-level)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Pre-coded classes for implementing basic React-style agents. Fast to set up but limited control. You can't see what's happening inside. For POC and simple flows.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px;">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">LangGraph (low-level control)</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Graph-based framework for building Agentic systems from scratch. You define every node, edge, state, and condition. Full visibility into every step. Preferred for production systems.</p>
+      </div>
+    </div>
+
+    <h3 id="lg-concepts">LangGraph Core Concepts</h3>
+
+    <div class="lg-concepts">
+      <div class="lg-concept">
+        <div class="lc-name">StateGraph</div>
+        <p>The main graph class. Contains nodes (functions), edges (connections), and maintains state at each step. Everything flows through this.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">Node</div>
+        <p>A Python function that does one unit of work — calls an LLM, executes a tool, processes data. Nodes receive and return state.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">Edge</div>
+        <p>Connection between nodes. Can be fixed (always go from A to B) or conditional (go to B or C based on state value).</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">State</div>
+        <p>A TypedDict (Pydantic model) that flows through the graph. Each node can read from and write to it. The central data structure.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">START / END</div>
+        <p>Special sentinel nodes marking the entry and exit points of the graph.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">Conditional Edge</div>
+        <p>A routing function that decides which node to go to next based on the current state — enables dynamic decision-making.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">Checkpointer</div>
+        <p>Persistent state storage — saves graph state after each step. Enables resumability, fault tolerance, and human-in-the-loop pauses.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">SubGraph</div>
+        <p>Nested graph within a node — enables modular multi-agent systems where each agent is its own graph.</p>
+      </div>
+      <div class="lg-concept">
+        <div class="lc-name">Graph API vs Functional API</div>
+        <p>Two styles: Graph API (explicit node/edge definition) and Functional API (decorator-based, more Pythonic). Both produce the same graph.</p>
+      </div>
+    </div>
+
+    <h3 id="lg-vs-langchain">LangGraph + LangChain — How They Work Together</h3>
+
+    <div class="sunny-says">
+      "Along with LangGraph, guys, we can use LangChain in our application. LangChain provides us the embedding model, the chat model, the vector database integration, the component chaining capability, the output parser. So LangChain supports us in so many ways. LangGraph provides us the orchestration — how the flow will work. LangChain provides the actual AI components that nodes in that flow will use."
+    </div>
+
+    <h3 id="lg-install">Install & First Program</h3>
+
+    <div class="code-block">
+      <span class="lang-label">bash · install LangGraph</span>
+      <pre><span class="cm"># Install LangGraph (using uv package manager)</span>
+uv pip install langgraph
+
+<span class="cm"># Also install supporting packages</span>
+uv pip install langchain langchain-openai langsmith python-dotenv</pre>
+    </div>
+
+    <div class="code-block">
+      <span class="lang-label">python · first LangGraph program (StateGraph)</span>
+      <pre><span class="cm">## File: class40/langgraph_introduction.ipynb
+## Note: Sunny found that the simple `Graph` import was removed from LangGraph.
+## Everything now uses StateGraph. This is the corrected working version.</span>
+
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">START</span>, <span class="cls">END</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">TypedDict</span>
+
+<span class="cm"># ── 1. Define the State ───────────────────────────────────────────</span>
+<span class="cm"># State flows through every node in the graph</span>
+<span class="kw">class</span> <span class="cls">GraphState</span>(<span class="cls">TypedDict</span>):
+    input_data:  str   <span class="cm"># input passed into the graph</span>
+    output_data: str   <span class="cm"># output collected at the end</span>
+
+<span class="cm"># ── 2. Define nodes (Python functions) ───────────────────────────</span>
+<span class="cm"># Each node receives state and returns updated state dict</span>
+<span class="kw">def</span> <span class="fn">function_1</span>(state: <span class="cls">GraphState</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing function_1..."</span>)
+    result = state[<span class="str">"input_data"</span>] + <span class="str">" → processed by function_1"</span>
+    <span class="kw">return</span> {<span class="str">"output_data"</span>: result}
+
+<span class="kw">def</span> <span class="fn">function_2</span>(state: <span class="cls">GraphState</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing function_2..."</span>)
+    result = state[<span class="str">"output_data"</span>] + <span class="str">" → processed by function_2"</span>
+    <span class="kw">return</span> {<span class="str">"output_data"</span>: result}
+
+<span class="kw">def</span> <span class="fn">function_3</span>(state: <span class="cls">GraphState</span>) -> dict:
+    <span class="fn">print</span>(<span class="str">"Executing function_3..."</span>)
+    result = state[<span class="str">"output_data"</span>] + <span class="str">" → processed by function_3"</span>
+    <span class="kw">return</span> {<span class="str">"output_data"</span>: result}
+
+<span class="cm"># ── 3. Build the Graph ────────────────────────────────────────────</span>
+workflow = <span class="cls">StateGraph</span>(<span class="cls">GraphState</span>)
+
+<span class="cm"># Add nodes (name → function mapping)</span>
+workflow.<span class="fn">add_node</span>(<span class="str">"node_1"</span>, function_1)
+workflow.<span class="fn">add_node</span>(<span class="str">"node_2"</span>, function_2)
+workflow.<span class="fn">add_node</span>(<span class="str">"node_3"</span>, function_3)
+
+<span class="cm"># Add edges (connections between nodes)</span>
+workflow.<span class="fn">add_edge</span>(<span class="cls">START</span>, <span class="str">"node_1"</span>)    <span class="cm"># entry point</span>
+workflow.<span class="fn">add_edge</span>(<span class="str">"node_1"</span>, <span class="str">"node_2"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"node_2"</span>, <span class="str">"node_3"</span>)
+workflow.<span class="fn">add_edge</span>(<span class="str">"node_3"</span>, <span class="cls">END</span>)      <span class="cm"># exit point</span>
+
+<span class="cm"># ── 4. Compile the graph ──────────────────────────────────────────</span>
+app = workflow.<span class="fn">compile</span>()
+
+<span class="cm"># ── 5. Run the graph ──────────────────────────────────────────────</span>
+result = app.<span class="fn">invoke</span>({<span class="str">"input_data"</span>: <span class="str">"Hello from user"</span>, <span class="str">"output_data"</span>: <span class="str">""</span>})
+<span class="fn">print</span>(f<span class="str">f"\nFinal output: {result['output_data']}"</span>)
+<span class="cm"># → Hello from user → processed by function_1 → processed by function_2 → processed by function_3</span>
+
+<span class="cm"># ── What LangGraph adds vs pure function calls ────────────────────</span>
+<span class="cm"># Pure Python:  function_1(input) → function_2(output1) → function_3(output2)</span>
+<span class="cm"># LangGraph:    orchestrated graph with state, checkpointing, conditional routing,</span>
+<span class="cm">#               parallelism, sub-graphs, human-in-the-loop, streaming, and observability</span>
+<span class="cm"># The REAL power comes in next classes with conditional edges, memory, and tool calling</span></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Import change Sunny discovered live:</strong> In the latest LangGraph version, the simple <code>Graph</code> class has been removed. Everything is now a <code>StateGraph</code>. If you see <code>ImportError: cannot import name 'Graph' from 'langgraph.graph'</code>, switch to <code>from langgraph.graph import StateGraph</code>. This is what Sunny confirmed after checking the docs during the live session.</p>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="ecosystem">
+    <div class="section-eyebrow">08 — Tool Landscape</div>
+    <h2>LangChain Ecosystem Map</h2>
+
+    <p>Sunny walked through the full LangChain product family during the session to clarify what each tool does:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent2);">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">LangChain</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">The core framework. Provides: chat models, embedding models, vector store integrations, prompt templates, LCEL chaining, output parsers. Used alongside LangGraph to build the actual AI logic inside each node.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent);">
+        <h4 style="font-size:0.88rem; color:var(--accent); margin-bottom:8px;">LangGraph</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Orchestration framework built on LangChain. Defines agent workflows as graphs (nodes + edges + state). Low-level control, production-grade, built-in checkpointing and fault tolerance.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent3);">
+        <h4 style="font-size:0.88rem; color:var(--accent3); margin-bottom:8px;">LangSmith</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Observability and tracing platform. See every LLM call, tool call, token count, latency, and agent step. Like CloudWatch or MLflow — but for LangChain/LangGraph apps. Debugging, monitoring, testing.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent4);">
+        <h4 style="font-size:0.88rem; color:var(--accent4); margin-bottom:8px;">LangFuse</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Alternative observability platform (open-source). Tracing, monitoring, debugging — similar to LangSmith. Can be self-hosted. Good for teams that want full control of their telemetry.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent5);">
+        <h4 style="font-size:0.88rem; color:var(--accent5); margin-bottom:8px;">LangFlow</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Visual workflow builder. Drag-and-drop interface to build and visualise LangChain/LangGraph flows. Good for demos and no-code prototyping. Doesn't replace code for production.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:16px; border-left:4px solid var(--accent2);">
+        <h4 style="font-size:0.88rem; color:var(--accent2); margin-bottom:8px;">LangGraph Studio</h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Visual debugger for LangGraph specifically. See graph nodes connected, run the graph interactively, inspect execution at each node. Like a visual IDE for Agentic flows. Comes with LangGraph Desktop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="chapter-roadmap">
+    <div class="section-eyebrow">09 — What's Coming</div>
+    <h2>Agentic AI — 6 to 8 Class Roadmap</h2>
+
+    <div class="sunny-says">
+      "Just be with me for the next 5 to 8 classes, and you will become a master in the Agentic AI. Whatever I have written over the board — we are going to learn all this thing. And whatever I will be teaching in this chapter, know that most of the interview questions you will get from here itself. How did you design this system, that system?"
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--accent); margin-bottom:6px; text-transform:uppercase;">Class 40 ← here</div>
+        <h4 style="font-size:0.82rem; color:#fff;">Agentic AI Theory</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">7 definitions, taxonomy, flow, LangGraph intro</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Next</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">LangGraph Fundamentals</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">StateGraph, nodes, edges, conditional routing</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Coming</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">Tool Calling & ReAct</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">Defining tools, tool schemas, ReAct loop</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Coming</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">Memory & State</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">Short/long-term memory, checkpointing</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Coming</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">Multi-Agent Systems</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">Supervisor, subgraphs, agent communication</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Coming</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">Agentic RAG</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">Corrective RAG, Adaptive RAG, query retry loop</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; border-top:2px solid var(--muted);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Coming</div>
+        <h4 style="font-size:0.82rem; color:var(--muted);">MCP & A2A</h4>
+        <p style="font-size:0.74rem; color:var(--muted); margin:4px 0 0;">Model Context Protocol, agent-to-agent communication</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Q&A HIGHLIGHTS -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">10 — Live Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Susanta</div>
+      <div class="qa-question">"Can we start interviewing now that the RAG chapter is done?"</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Wait at least 1–2 more months until the end-to-end project is complete. Most interviews for senior GenAI roles require both RAG AND Agentic AI experience. Entering the job market too early — before completing the project — means you'll struggle with system design questions.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Mayank</div>
+      <div class="qa-question">"We've completed RAG. There are other RAG types like Corrective RAG, Adaptive RAG, Speculative RAG, Conversational RAG — are these separate topics we need to cover?"</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Those are all part of Agentic RAG — covered inside the Agentic AI chapter, not as separate RAG sessions. Corrective RAG = retry loop when retrieval fails. Adaptive RAG = dynamically choose retrieval strategy. Conversational RAG = RAG with memory management and multi-turn conversation support. Speculative RAG = experimental. All of these are just different orchestration patterns inside a LangGraph Agentic flow. "If you understand the RAG fundamentals and then you understand the Agentic AI, you can implement any kind of flow."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">"LangGraph, LangChain, LangSmith, LangFlow — where does each fit?"</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">LangChain = core framework (models, embeddings, VDB, chains). LangGraph = orchestration framework for Agentic flows (built on LangChain). LangSmith = observability — like MLflow or CloudWatch, trace every LLM call, tool call, token usage. LangFuse = open-source alternative to LangSmith for tracing/monitoring. LangFlow = visual drag-and-drop workflow builder (like a GUI for LangChain). LangGraph Studio = visual debugger specifically for LangGraph — see nodes, run interactively, inspect execution at each step.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Student</div>
+      <div class="qa-question">"Should we use Google ADK or OpenAI Agents SDK instead of LangGraph?"</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">The main curriculum uses LangGraph. Sunny may show one additional framework (Google ADK or OpenAI Agents SDK) as a supplementary example to show the landscape. The key issue with high-level frameworks: "There's a next level of abstraction — you won't see what's happening in the backend." For production and interviews, LangGraph gives you the low-level control and visibility that matters. Learn LangGraph first, then explore others.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">11 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 40 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What are the 3 main levels of AI application, and what makes each different?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Level 1 — Simple AI Assistant: An LLM receives input and generates output based purely on its training knowledge. No external data, no tools, no memory beyond context. Example: asking "What is Tesla?" and getting an answer from the model's training data. Level 2 — RAG-Based Assistant: LLM retrieves relevant external context from a knowledge base (vector DB) and uses it to generate grounded responses. Still generates, doesn't act autonomously. Level 3 — Agentic System: LLM reasons, plans, calls tools, observes outcomes, adapts iteratively. Has autonomous decision-making. Can be single-agent (mono-agentic), multi-agent, or deep (large, long-running, complex tasks).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Walk through the 5 steps of the universal Agentic flow. What happens at each step?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Step 1 — Input: User query or task arrives. Step 2 — LLM Reasoning/Decision: LLM thinks about the input, decides what needs to be done, selects an approach. Step 3 — Planning (if needed): For complex tasks, decomposes the goal into sub-tasks and creates a plan. Step 4 — Take Action: Execute the plan — call a tool, query a database, write code, generate text, delegate to a sub-agent. Step 5 — Observe and Adapt: Review the result of the action. If the task is not complete, update the plan and repeat steps 2–5 (iterative refinement / feedback-driven adaptation). Loop continues until the final deliverable is produced.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What is the difference between Deterministic flow and Dynamic flow in an Agentic system?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Deterministic flow (also called Workflow): The sequence of steps is pre-coded by the developer. Step A always leads to step B, then C. The path is fixed regardless of what happens. No dynamic decision-making by the LLM — the LLM executes within a predefined structure. Also called a "deterministic agent." Example: document processing pipeline where every document always goes through parse → chunk → embed → store → retrieve → generate. Dynamic flow (True Agent): The LLM dynamically decides what to do next at each step based on the current state. Path is NOT pre-determined — it emerges from the LLM's reasoning. Much more flexible but non-deterministic — harder to debug. This is the "true" Agentic system.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is a Deep Agentic System? Is it a separate concept from single-agent or multi-agent?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">A Deep Agentic System is a large, long-running system designed for complex to very complex problems. It's characterised by extensive planning, multiple task decomposition, multiple tool calls, potential sub-agents, and a repeating process until final deliverables are produced. It is NOT a separate paradigm — "deep" describes the depth/scale of execution, not a different architecture. Both a single-agent system AND a multi-agent system can be deep agentic systems. If a single agent is running for a long time with extensive planning (e.g. research + write + validate + publish a long-form report), that's a deep agentic system too.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Why does Sunny recommend LangGraph over LangChain's built-in agent classes?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">LangChain's built-in agent classes (like AgentExecutor, ReAct) are high-level abstractions — pre-coded classes for basic agent patterns. They're fast to set up but offer limited control and limited visibility into what's happening under the hood. LangGraph offers low-level control: you define every node (function), every edge (connection), every state transition, and every routing condition yourself. This means: full visibility into the flow, easier debugging, ability to implement any custom logic, and production-grade features (checkpointing, fault tolerance, human-in-the-loop, parallelism, sub-graphs). For learning and production, LangGraph is preferred because it teaches you what's actually happening, not just how to use a wrapper.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. What are LangSmith, LangFuse, and LangFlow — and how are they different from LangGraph?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">LangSmith: Observability platform by LangChain. Traces every LLM call, tool call, token usage, and agent step in production. Similar to MLflow or CloudWatch but for LangChain/LangGraph apps. Used for debugging, monitoring, and performance analysis. LangFuse: Open-source alternative to LangSmith for tracing and monitoring. Can be self-hosted — gives teams full control of their telemetry. LangFlow: Visual drag-and-drop workflow builder. Lets you build and visualise LangChain flows without writing much code. Good for demos and non-technical stakeholders. All three are observability/tooling tools — NOT Agentic frameworks. LangGraph is the framework used to build the actual Agentic system; LangSmith/LangFuse/LangFlow are tools to observe, visualise, or build on top of it.</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 40 · Agentic AI Introduction · 22 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

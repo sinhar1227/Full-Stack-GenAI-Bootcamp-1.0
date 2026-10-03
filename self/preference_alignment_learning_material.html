@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preference Alignment for Large Language Models</title>
+<style>
+:root {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --text: #202124;
+  --muted: #5f6368;
+  --primary: #3157d5;
+  --primary-light: #eef2ff;
+  --border: #e1e4e8;
+  --code: #17191c;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.65;
+}
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  position: fixed;
+  width: 300px;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 20px;
+  background: #111827;
+  color: #e5e7eb;
+}
+.sidebar h2 { margin: 0 0 8px; color: #fff; font-size: 20px; }
+.sidebar p { color: #9ca3af; font-size: 13px; margin-top: 0; }
+.sidebar a {
+  display: block;
+  color: #d1d5db;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.sidebar a:hover { background: #1f2937; color: #fff; }
+.content {
+  margin-left: 300px;
+  width: calc(100% - 300px);
+  max-width: 1100px;
+  padding: 50px 60px 100px;
+}
+.hero {
+  background: linear-gradient(135deg, #3157d5, #6b46c1);
+  color: white;
+  border-radius: 18px;
+  padding: 46px;
+  margin-bottom: 34px;
+}
+.hero h1 { font-size: 42px; line-height: 1.15; margin: 0 0 14px; }
+.hero p { font-size: 18px; opacity: .92; margin: 0; }
+h2 {
+  margin-top: 54px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+  font-size: 28px;
+}
+h3 { margin-top: 30px; font-size: 21px; }
+h4 { margin-top: 24px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin: 18px 0;
+}
+.callout {
+  background: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 18px 20px;
+  margin: 22px 0;
+  border-radius: 0 8px 8px 0;
+}
+pre {
+  background: var(--code);
+  color: #e5e7eb;
+  padding: 20px;
+  border-radius: 10px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: .9em;
+}
+:not(pre) > code {
+  background: #eef0f3;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: white;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 11px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #f0f2f5; }
+blockquote {
+  margin: 20px 0;
+  padding: 14px 20px;
+  border-left: 4px solid #9ca3af;
+  background: #f3f4f6;
+}
+details {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 10px 0;
+  padding: 12px 16px;
+}
+summary { cursor: pointer; font-weight: 600; }
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 24px;
+}
+.footer {
+  margin-top: 70px;
+  padding-top: 25px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (max-width: 900px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+  .layout { display: block; }
+  .content {
+    margin-left: 0;
+    width: 100%;
+    padding: 25px 20px 60px;
+  }
+  .toc-grid { grid-template-columns: 1fr; }
+  .hero { padding: 30px 24px; }
+  .hero h1 { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <h2>Preference Alignment</h2>
+  <p>LLM Fine-Tuning Learning Material</p>
+  <nav>
+    <a href="#intro">1. Introduction</a>
+    <a href="#lifecycle">2. LLM Training Lifecycle</a>
+    <a href="#sft">3. SFT</a>
+    <a href="#why-sft">4. Why SFT Is Not Enough</a>
+    <a href="#preference">5. Preference Alignment</a>
+    <a href="#rlhf">6. RLHF</a>
+    <a href="#dpo">7. DPO</a>
+    <a href="#dpo-math">8. DPO Mathematics</a>
+    <a href="#orpo">9. ORPO</a>
+    <a href="#comparison">10. DPO vs ORPO</a>
+    <a href="#datasets">11. Preference Datasets</a>
+    <a href="#annotation">12. Annotation & LLM Judges</a>
+    <a href="#lora">13. LoRA / QLoRA</a>
+    <a href="#trl">14. Hugging Face TRL</a>
+    <a href="#implementation">15. Implementation</a>
+    <a href="#evaluation">16. Evaluation</a>
+    <a href="#failures">17. Failure Modes</a>
+    <a href="#rag">18. RAG + Preference Tuning</a>
+    <a href="#project">19. Practical Project</a>
+    <a href="#exercises">20. Exercises</a>
+    <a href="#summary">21. Summary</a>
+    <a href="#references">22. References</a>
+  </nav>
+</aside>
+
+<main class="content">
+
+<section class="hero">
+  <h1>Preference Alignment for Large Language Models</h1>
+  <p>SFT, RLHF, DPO and ORPO — From Fundamentals to Practical Fine-Tuning</p>
+</section>
+
+<section id="intro">
+<h2>1. Introduction</h2>
+<p>Large Language Models can generate text, answer questions, summarize documents, write code and perform reasoning tasks. However, capability and behavior are different things.</p>
+<p>A model may know how to answer a question but still produce an answer that is too verbose, poorly structured, insufficiently helpful, factually unreliable, incomplete, or inappropriate for the intended audience.</p>
+<div class="callout"><strong>Core question:</strong> How do we teach an already capable language model which answers humans prefer?</div>
+<p>This is the problem addressed by <strong>preference alignment</strong>.</p>
+<pre><code>Pretraining
+    ↓
+Supervised Fine-Tuning (SFT)
+    ↓
+Instruction Model
+    ↓
+Preference Optimization
+    ↓
+Evaluation
+    ↓
+Deployment</code></pre>
+</section>
+
+<section id="lifecycle">
+<h2>2. The LLM Training Lifecycle</h2>
+<h3>2.1 Pretraining</h3>
+<p>During pretraining, a model learns from a huge corpus of text. For a causal language model, the basic objective is to predict the next token.</p>
+<pre><code>The capital of France is → Paris</code></pre>
+<p>The model learns language, grammar, facts, concepts, patterns, coding patterns and reasoning patterns. It does not necessarily learn to behave like a useful assistant.</p>
+
+<h3>2.2 Supervised Fine-Tuning</h3>
+<p>SFT provides examples of instructions and desired answers:</p>
+<pre><code>User:
+What is photosynthesis?
+
+Assistant:
+Photosynthesis is the process by which green plants...</code></pre>
+<p>The model learns:</p>
+<pre><code>instruction → desired response</code></pre>
+</section>
+
+<section id="sft">
+<h2>3. Supervised Fine-Tuning (SFT)</h2>
+<p>The SFT objective can be expressed as:</p>
+<div class="card">
+<strong>L<sub>SFT</sub> = − Σ<sub>t</sub> log P(y<sub>t</sub> | y<sub>&lt;t</sub>, x)</strong>
+</div>
+<p>Where <code>x</code> is the input and <code>y</code> is the target response.</p>
+<p>SFT answers:</p>
+<blockquote>“Given this input, what response should I generate?”</blockquote>
+</section>
+
+<section id="why-sft">
+<h2>4. Why SFT Is Not Enough</h2>
+<p>Consider two possible answers:</p>
+<div class="card">
+<strong>Response A</strong><br>
+Photosynthesis is the process by which plants convert light energy into chemical energy.
+</div>
+<div class="card">
+<strong>Response B</strong><br>
+Photosynthesis is a very complicated process involving many different biological and chemical things...
+</div>
+<p>Both could be valid training responses, but a human may clearly prefer A.</p>
+<p>SFT represents:</p>
+<pre><code>Prompt → A</code></pre>
+<p>Preference learning represents:</p>
+<pre><code>Prompt
+  ├── A  ← chosen
+  └── B  ← rejected</code></pre>
+</section>
+
+<section id="preference">
+<h2>5. What Is Preference Alignment?</h2>
+<p>Preference alignment teaches a model using comparisons between responses.</p>
+<pre><code>{
+  "prompt": "Explain photosynthesis.",
+  "chosen": "Photosynthesis is the process by which plants...",
+  "rejected": "Photosynthesis is basically when plants..."
+}</code></pre>
+<p>The essential relationship is:</p>
+<div class="callout"><strong>chosen &gt; rejected</strong></div>
+<p>The objective is to make the model prefer the chosen response relative to the rejected response.</p>
+</section>
+
+<section id="rlhf">
+<h2>6. RLHF — The Traditional Approach</h2>
+<p>Reinforcement Learning from Human Feedback traditionally uses several stages.</p>
+<pre><code>Base Model
+    ↓
+SFT
+    ↓
+SFT Model
+    ↓
+Generate Responses
+    ↓
+Human Preferences
+    ↓
+Reward Model
+    ↓
+PPO
+    ↓
+Aligned Model</code></pre>
+<h3>Key components</h3>
+<ul>
+<li><strong>Policy model:</strong> the model being optimized.</li>
+<li><strong>Reference model:</strong> a reference policy used to constrain optimization.</li>
+<li><strong>Reward model:</strong> predicts human preference.</li>
+<li><strong>PPO:</strong> reinforcement-learning algorithm used to optimize the policy.</li>
+</ul>
+<h3>Why is RLHF complicated?</h3>
+<ul>
+<li>Multiple models and training stages.</li>
+<li>Reward-model quality affects the final result.</li>
+<li>Reinforcement-learning optimization can be sensitive.</li>
+<li>Generation and rollout can be computationally expensive.</li>
+</ul>
+</section>
+
+<section id="dpo">
+<h2>7. Direct Preference Optimization (DPO)</h2>
+<p>DPO was introduced as a way to optimize a language model directly from preference data without explicitly training a separate reward model and running PPO.</p>
+<pre><code>Traditional RLHF:
+
+Preference Data
+      ↓
+Reward Model
+      ↓
+PPO
+      ↓
+Policy
+
+DPO:
+
+Preference Data
+      ↓
+DPO Loss
+      ↓
+Policy</code></pre>
+
+<h3>DPO intuition</h3>
+<p>Suppose the model receives a prompt and two answers. A human prefers A over B.</p>
+<pre><code>Prompt
+  ├── Response A ← preferred
+  └── Response B ← rejected</code></pre>
+<p>DPO increases the relative preference for A over B.</p>
+</section>
+
+<section id="dpo-math">
+<h2>8. DPO Mathematics</h2>
+<p>A commonly used form of the DPO objective is:</p>
+<div class="card">
+<p><strong>L<sub>DPO</sub>(θ) = − E[ log σ( β [ log(π<sub>θ</sub>(y<sub>w</sub>|x) / π<sub>ref</sub>(y<sub>w</sub>|x)) − log(π<sub>θ</sub>(y<sub>l</sub>|x) / π<sub>ref</sub>(y<sub>l</sub>|x)) ] ) ]</strong></p>
+</div>
+<table>
+<tr><th>Symbol</th><th>Meaning</th></tr>
+<tr><td>x</td><td>Prompt</td></tr>
+<tr><td>y<sub>w</sub></td><td>Chosen / winning response</td></tr>
+<tr><td>y<sub>l</sub></td><td>Rejected / losing response</td></tr>
+<tr><td>π<sub>θ</sub></td><td>Trainable policy model</td></tr>
+<tr><td>π<sub>ref</sub></td><td>Reference model</td></tr>
+<tr><td>β</td><td>Preference / regularization parameter</td></tr>
+<tr><td>σ</td><td>Sigmoid function</td></tr>
+</table>
+<p>The key idea is to compare how strongly the current model favors the chosen answer versus the rejected answer, relative to the reference model.</p>
+
+<h3>Why does DPO need a reference model?</h3>
+<p>The reference model acts as an anchor. It helps prevent the optimized model from moving arbitrarily far from its original behavior.</p>
+<pre><code>Reference Model
+      │
+      │ anchor
+      ▼
+Current Policy
+      │
+      ▼
+Preference Update</code></pre>
+
+<h3>Important DPO hyperparameters</h3>
+<ul>
+<li><strong>β:</strong> controls the strength/scaling of the preference objective.</li>
+<li><strong>Learning rate:</strong> should be chosen carefully to avoid overfitting or unstable updates.</li>
+<li><strong>Maximum sequence length:</strong> must accommodate prompt and response content.</li>
+<li><strong>Batch size:</strong> affects optimization stability and memory.</li>
+</ul>
+</section>
+
+<section id="orpo">
+<h2>9. Odds Ratio Preference Optimization (ORPO)</h2>
+<p>ORPO combines the supervised fine-tuning objective with a preference objective in a single training process.</p>
+<pre><code>SFT Loss
+   +
+Preference Loss
+   =
+ORPO Loss</code></pre>
+<p>A simplified representation is:</p>
+<div class="card"><strong>L<sub>ORPO</sub> = L<sub>SFT</sub> + λ L<sub>OR</sub></strong></div>
+
+<h3>ORPO intuition</h3>
+<p>Instead of first teaching the model the task and then performing preference optimization, ORPO simultaneously learns the desired response and the preference relationship.</p>
+<pre><code>Prompt
+  │
+  ├───────────────┐
+  ▼               ▼
+Chosen          Rejected
+  │               │
+  ▼               ▼
+SFT objective   Preference objective
+  │               │
+  └───────┬───────┘
+          ▼
+       ORPO Loss
+          │
+          ▼
+       Model Update</code></pre>
+
+<h3>Understanding odds</h3>
+<p>For a probability p:</p>
+<div class="card"><strong>Odds = p / (1 − p)</strong></div>
+<p>For example, if p = 0.8, the odds are 0.8 / 0.2 = 4.</p>
+</section>
+
+<section id="comparison">
+<h2>10. DPO vs ORPO</h2>
+<table>
+<tr>
+<th>Feature</th><th>SFT</th><th>DPO</th><th>ORPO</th>
+</tr>
+<tr><td>Instruction data</td><td>Yes</td><td>Usually</td><td>Yes</td></tr>
+<tr><td>Chosen response</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Rejected response</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Preference optimization</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Reward model</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Reference model</td><td>No</td><td>Yes</td><td>No</td></tr>
+<tr><td>SFT loss</td><td>Yes</td><td>Usually separate</td><td>Integrated</td></tr>
+<tr><td>Typical stages</td><td>1</td><td>2</td><td>1</td></tr>
+</table>
+
+<h3>DPO pipeline</h3>
+<pre><code>Base Model
+    ↓
+SFT
+    ↓
+Instruction Model
+    ↓
+DPO
+    ↓
+Aligned Model</code></pre>
+
+<h3>ORPO pipeline</h3>
+<pre><code>Base Model
+    ↓
+ORPO
+    ↓
+Aligned Model</code></pre>
+
+<div class="callout"><strong>Important:</strong> ORPO is not automatically “better” than DPO. The appropriate method depends on the model, data, compute budget and evaluation results.</div>
+</section>
+
+<section id="datasets">
+<h2>11. Preference Dataset Design</h2>
+<p>Preference data quality is one of the most important factors in successful alignment.</p>
+
+<h3>Standard explicit preference format</h3>
+<pre><code>{
+  "prompt": "What causes leaf yellowing?",
+  "chosen": "Leaf yellowing can have several causes...",
+  "rejected": "It is always caused by nitrogen deficiency."
+}</code></pre>
+
+<h3>Conversational format</h3>
+<pre><code>{
+  "prompt": [
+    {"role": "user", "content": "Explain recursion."}
+  ],
+  "chosen": [
+    {"role": "assistant", "content": "Recursion is..."}
+  ],
+  "rejected": [
+    {"role": "assistant", "content": "It is complicated..."}
+  ]
+}</code></pre>
+
+<h3>What makes a good chosen response?</h3>
+<ul>
+<li>Accurate</li>
+<li>Relevant</li>
+<li>Complete</li>
+<li>Clear</li>
+<li>Actionable when appropriate</li>
+<li>Well grounded in evidence</li>
+<li>Appropriate for the target audience</li>
+<li>Safe</li>
+</ul>
+
+<h3>What makes a poor preference dataset?</h3>
+<ul>
+<li>Incorrect chosen/rejected labels</li>
+<li>Ambiguous preferences</li>
+<li>Strong formatting bias</li>
+<li>Length bias</li>
+<li>Duplicate examples</li>
+<li>Low-quality generated answers</li>
+<li>Inconsistent annotation criteria</li>
+</ul>
+</section>
+
+<section id="annotation">
+<h2>12. Preference Annotation and LLM-as-a-Judge</h2>
+<h3>Human annotation</h3>
+<pre><code>Question
+   ↓
+Generate A + B
+   ↓
+Human / Domain Expert
+   ↓
+A preferred OR B preferred</code></pre>
+
+<h3>Recommended annotation dimensions</h3>
+<table>
+<tr><th>Dimension</th><th>Example Weight</th></tr>
+<tr><td>Accuracy</td><td>30%</td></tr>
+<tr><td>Completeness</td><td>20%</td></tr>
+<tr><td>Relevance</td><td>20%</td></tr>
+<tr><td>Actionability</td><td>15%</td></tr>
+<tr><td>Clarity</td><td>10%</td></tr>
+<tr><td>Style</td><td>5%</td></tr>
+</table>
+
+<h3>LLM-as-a-Judge</h3>
+<p>An LLM can compare two responses using a structured rubric.</p>
+<pre><code>Prompt:
+...
+
+Response A:
+...
+
+Response B:
+...
+
+Evaluate:
+- Accuracy
+- Relevance
+- Completeness
+- Actionability
+
+Return:
+preferred = A or B</code></pre>
+
+<div class="callout"><strong>Important:</strong> Validate an LLM judge against human or domain-expert annotations. A judge can have systematic biases.</div>
+
+<h3>Hybrid annotation</h3>
+<pre><code>Candidate Responses
+       ↓
+LLM Judge
+       ↓
+Preliminary Label
+       ↓
+Expert Review
+       ↓
+Final Preference</code></pre>
+</section>
+
+<section id="lora">
+<h2>13. LoRA and QLoRA</h2>
+<p>Preference training can be memory intensive. Parameter-efficient fine-tuning reduces the number of trainable parameters.</p>
+<pre><code>Base Model
+████████████████████  frozen
+
+LoRA Adapter
+██                  trainable</code></pre>
+<p>QLoRA combines low-rank adapters with quantized base-model weights to reduce memory requirements.</p>
+
+<h3>DPO + LoRA architecture</h3>
+<pre><code>Base Model
+   │
+   ├── Frozen weights
+   │
+   └── LoRA adapters
+          │
+          ▼
+         DPO
+          │
+          ▼
+    Trained Adapter</code></pre>
+</section>
+
+<section id="trl">
+<h2>14. Hugging Face TRL</h2>
+<p>Hugging Face TRL provides trainers for modern post-training workflows, including SFT, DPO and ORPO.</p>
+<p>Trainer APIs can change between releases, so the installed TRL version and its matching documentation should be treated as the implementation reference.</p>
+</section>
+
+<section id="implementation">
+<h2>15. Practical Implementation</h2>
+
+<h3>15.1 DPO</h3>
+<pre><code>from datasets import load_dataset
+from trl import DPOTrainer
+
+dataset = load_dataset(
+    "trl-lib/ultrafeedback_binarized",
+    split="train"
+)
+
+trainer = DPOTrainer(
+    model="Qwen/Qwen2.5-0.5B-Instruct",
+    train_dataset=dataset,
+)
+
+trainer.train()</code></pre>
+
+<h3>15.2 DPO configuration</h3>
+<pre><code>from trl import DPOConfig, DPOTrainer
+
+config = DPOConfig(
+    output_dir="./dpo-output",
+    beta=0.1,
+    learning_rate=5e-6,
+    num_train_epochs=1,
+    per_device_train_batch_size=2,
+)
+
+trainer = DPOTrainer(
+    model="Qwen/Qwen2.5-0.5B-Instruct",
+    args=config,
+    train_dataset=dataset,
+)
+
+trainer.train()</code></pre>
+
+<h3>15.3 ORPO</h3>
+<pre><code>from trl.experimental.orpo import ORPOTrainer
+from trl.experimental.orpo import ORPOConfig
+
+config = ORPOConfig(
+    output_dir="./orpo-output",
+    beta=0.1,
+)
+
+trainer = ORPOTrainer(
+    model="Qwen/Qwen2.5-0.5B-Instruct",
+    args=config,
+    train_dataset=dataset,
+)
+
+trainer.train()</code></pre>
+<p><strong>Note:</strong> ORPO support and import paths may vary by TRL release. Verify the API against the version installed in your environment.</p>
+</section>
+
+<section id="evaluation">
+<h2>16. Evaluation</h2>
+<p>Do not judge alignment only by training loss.</p>
+<p>Compare:</p>
+<pre><code>Base
+SFT
+SFT + DPO
+ORPO</code></pre>
+
+<h3>Evaluation dimensions</h3>
+<ul>
+<li>Accuracy</li>
+<li>Relevance</li>
+<li>Completeness</li>
+<li>Helpfulness</li>
+<li>Actionability</li>
+<li>Style</li>
+<li>Safety</li>
+<li>Citation quality</li>
+<li>Preference win rate</li>
+</ul>
+
+<h3>Preference win rate</h3>
+<p>A simple metric is:</p>
+<div class="card"><strong>Win Rate = Model Wins / Total Comparisons</strong></div>
+<p>If a model wins 720 of 1000 comparisons:</p>
+<div class="card"><strong>Win Rate = 72%</strong></div>
+
+<h3>Evaluation matrix</h3>
+<table>
+<tr><th>Dimension</th><th>Base</th><th>SFT</th><th>DPO</th><th>ORPO</th></tr>
+<tr><td>Accuracy</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Relevance</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Completeness</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Helpfulness</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Actionability</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Citation quality</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Safety</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>Preference win rate</td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h3>Avoid data leakage</h3>
+<pre><code>Training questions ∩ Evaluation questions ≈ ∅</code></pre>
+<p>Keep evaluation questions separate from preference-training examples whenever possible.</p>
+</section>
+
+<section id="failures">
+<h2>17. Common Failure Modes</h2>
+
+<h3>17.1 Overfitting</h3>
+<p>High training preference accuracy but poor evaluation performance can indicate overfitting.</p>
+<ul>
+<li>Dataset too small</li>
+<li>Too many epochs</li>
+<li>Learning rate too high</li>
+<li>Noisy preferences</li>
+<li>Insufficient diversity</li>
+</ul>
+
+<h3>17.2 Preference hacking</h3>
+<p>The model may learn superficial properties such as “longer is better” or “more headings is better”.</p>
+
+<h3>17.3 Incorrect preferences</h3>
+<p>Preference optimization amplifies the preference signal you provide. Incorrect labels can therefore produce undesirable behavior.</p>
+
+<h3>17.4 Capability regression</h3>
+<p>A model can improve on preference-style behavior while becoming worse on general reasoning, coding or factual tasks. Always compare against the base model.</p>
+
+<h3>17.5 Domain mismatch</h3>
+<p>Generic preference data may not teach the specialized behavior required by a domain-specific assistant.</p>
+</section>
+
+<section id="rag">
+<h2>18. RAG + Preference Fine-Tuning</h2>
+<p>Fine-tuning and RAG solve different problems.</p>
+<table>
+<tr><th>Technique</th><th>Best suited for</th></tr>
+<tr><td>Fine-tuning</td><td>Behavior, style, formatting, instruction following, task patterns and preferences</td></tr>
+<tr><td>RAG</td><td>External knowledge, current information, large document collections, citations and traceability</td></tr>
+</table>
+
+<pre><code>User
+  ↓
+Router / Query Analysis
+  ↓
+Retrieval / Tools
+  ↓
+Context Fusion
+  ↓
+Preference-Aligned LLM
+  ↓
+Guardrails
+  ↓
+Answer</code></pre>
+
+<p>DPO or ORPO can improve the behavior of the LLM component, but they do not replace retrieval when the system needs external or dynamic knowledge.</p>
+
+<h3>Example for a domain assistant</h3>
+<pre><code>Question
+   ↓
+Retrieve authoritative sources
+   ↓
+Generate candidate answers
+   ↓
+Compare answers
+   ↓
+Preferred evidence-grounded answer
+   ↓
+Preference training</code></pre>
+</section>
+
+<section id="project">
+<h2>19. Practical End-to-End Project</h2>
+<h3>Project: Align a Small Qwen Model</h3>
+<p>Build and compare four models:</p>
+<pre><code>Base
+SFT
+SFT + DPO
+ORPO</code></pre>
+
+<h3>Step 1 — Select a model</h3>
+<p>Use a relatively small instruction model for experimentation, such as <code>Qwen/Qwen2.5-0.5B-Instruct</code>.</p>
+
+<h3>Step 2 — Prepare SFT data</h3>
+<pre><code>{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Explain recursion."
+    },
+    {
+      "role": "assistant",
+      "content": "Recursion is..."
+    }
+  ]
+}</code></pre>
+
+<h3>Step 3 — Prepare preference data</h3>
+<pre><code>{
+  "prompt": [
+    {"role": "user", "content": "Explain recursion."}
+  ],
+  "chosen": [
+    {"role": "assistant", "content": "Recursion is..."}
+  ],
+  "rejected": [
+    {"role": "assistant", "content": "Recursion is something complicated..."}
+  ]
+}</code></pre>
+
+<h3>Step 4 — Train SFT</h3>
+<pre><code>Base Model
+    ↓
+SFT Dataset
+    ↓
+SFTTrainer
+    ↓
+SFT Model</code></pre>
+
+<h3>Step 5 — Train DPO</h3>
+<pre><code>SFT Model
+    ↓
+Preference Dataset
+    ↓
+DPOTrainer
+    ↓
+DPO Model</code></pre>
+
+<h3>Step 6 — Train ORPO</h3>
+<pre><code>Base Model
+    ↓
+Preference Dataset
+    ↓
+ORPOTrainer
+    ↓
+ORPO Model</code></pre>
+
+<h3>Step 7 — Evaluate</h3>
+<p>Run the same hidden evaluation set through all models.</p>
+<table>
+<tr><th>Model</th><th>Accuracy</th><th>Helpfulness</th><th>Relevance</th><th>Win Rate</th></tr>
+<tr><td>Base</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SFT</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>DPO</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>ORPO</td><td></td><td></td><td></td><td></td></tr>
+</table>
+
+<h3>Experiment report</h3>
+<p>Record:</p>
+<ul>
+<li>Base model</li>
+<li>Dataset sizes</li>
+<li>Sequence length</li>
+<li>LoRA rank</li>
+<li>Learning rate</li>
+<li>Epochs</li>
+<li>Batch size</li>
+<li>DPO beta / ORPO preference weight</li>
+<li>Hardware</li>
+<li>Training time</li>
+<li>Evaluation results</li>
+</ul>
+
+<p>Then answer:</p>
+<ol>
+<li>Did SFT improve the model?</li>
+<li>Did DPO improve over SFT?</li>
+<li>Did ORPO improve over SFT?</li>
+<li>Which method generalized best?</li>
+<li>Did either method cause regressions?</li>
+<li>Which preference categories improved?</li>
+<li>Did verbosity change?</li>
+<li>Did hallucinations increase or decrease?</li>
+</ol>
+</section>
+
+<section id="exercises">
+<h2>20. Exercises</h2>
+
+<details>
+<summary>Exercise 1 — Which method?</summary>
+<p>You have only prompt + ideal response examples. Which method should you start with?</p>
+<p><strong>Answer:</strong> SFT.</p>
+</details>
+
+<details>
+<summary>Exercise 2 — Preference pairs</summary>
+<p>You have prompt + chosen + rejected. Which methods can use this data?</p>
+<p><strong>Answer:</strong> DPO and ORPO, among other preference-optimization methods.</p>
+</details>
+
+<details>
+<summary>Exercise 3 — DPO reference model</summary>
+<p>Why does standard DPO use a reference model?</p>
+<p><strong>Answer:</strong> It provides a reference policy that anchors the optimization and forms part of the DPO objective.</p>
+</details>
+
+<details>
+<summary>Exercise 4 — ORPO</summary>
+<p>What is the major architectural difference between DPO and ORPO?</p>
+<p><strong>Answer:</strong> DPO traditionally uses a reference model, while ORPO combines SFT and preference optimization into one objective without a separate reference model.</p>
+</details>
+
+<details>
+<summary>Exercise 5 — Bad labels</summary>
+<p>Your preference dataset contains many incorrect chosen/rejected labels. Should you increase the number of training epochs?</p>
+<p><strong>Answer:</strong> No. Improve the preference dataset first.</p>
+</details>
+</section>
+
+<section id="summary">
+<h2>21. Final Summary</h2>
+
+<div class="card">
+<h3>SFT</h3>
+<p><strong>Question:</strong> What response should the model imitate?</p>
+</div>
+
+<div class="card">
+<h3>DPO</h3>
+<p><strong>Question:</strong> Which response should the model prefer?</p>
+</div>
+
+<div class="card">
+<h3>ORPO</h3>
+<p><strong>Question:</strong> Can the model learn the desired response and preference simultaneously?</p>
+</div>
+
+<pre><code>Pretraining
+    ↓
+Learn language and knowledge
+
+SFT
+    ↓
+Learn the task / instruction
+
+DPO
+    ↓
+Learn which behavior is preferred
+
+ORPO
+    ↓
+Learn desired behavior + preference together</code></pre>
+
+<div class="callout">
+<strong>Most important lesson:</strong> Preference optimization does not automatically make a model truthful, knowledgeable or better. It optimizes the preference signal you provide. High-quality preference data and rigorous evaluation are therefore fundamental.
+</div>
+</section>
+
+<section id="references">
+<h2>22. References</h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a></li>
+<li><a href="https://huggingface.co/docs/trl/dpo_trainer" target="_blank" rel="noopener">Hugging Face TRL — DPO Trainer</a></li>
+<li><a href="https://huggingface.co/docs/trl/orpo_trainer" target="_blank" rel="noopener">Hugging Face TRL — ORPO Trainer</a></li>
+<li><a href="https://huggingface.co/docs/trl/quickstart" target="_blank" rel="noopener">Hugging Face TRL — Quickstart</a></li>
+<li><a href="https://medium.com/@jakubstrawadev/dpo-orpo-overview-of-preference-alignment-algorithms-for-llm-finetuning-c4837fed0153" target="_blank" rel="noopener">DPO & ORPO — Overview of Preference Alignment Algorithms for LLM Fine-Tuning</a></li>
+</ul>
+</section>
+
+<footer class="footer">
+<p><strong>Preference Alignment for Large Language Models</strong> — Learning Material</p>
+<p>Concepts and implementation examples should be checked against the documentation version of the libraries installed in your environment.</p>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

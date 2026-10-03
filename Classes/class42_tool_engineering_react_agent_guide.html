@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 42 — Tool Engineering & ReAct Agent | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090f;
+  --surface:     #0d1120;
+  --card:        #121829;
+  --border:      #1c2640;
+  --accent:      #4ade80;   /* green — tools */
+  --accent2:     #22d3ee;   /* cyan — LangGraph */
+  --accent3:     #f472b6;   /* pink — React loop */
+  --accent4:     #fb923c;   /* orange — tool creation */
+  --accent5:     #a78bfa;   /* violet — Pydantic */
+  --accent6:     #facc15;   /* yellow — highlight */
+  --text:        #e2e8f0;
+  --muted:       #64748b;
+  --code-bg:     #0f172a;
+  --code-border: #1e3a5f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(74,222,128,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 10% 50%, rgba(74,222,128,0.05) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+.sunny-says { background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.2); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; font-style: italic; font-size: 0.875rem; color: #94a3b8; }
+.sunny-says::before { content: '🎙 Sunny (Class 42):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── TOOL CREATION TABLE ── */
+.tool-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.82rem; }
+.tool-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.tool-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.tool-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.tool-table .method { font-family: 'IBM Plex Mono', monospace; color: var(--accent4); font-weight: 600; font-size: 0.76rem; }
+.tool-table .use-case { color: #94a3b8; }
+
+/* ── REACT LOOP VISUAL ── */
+.react-loop { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 24px; margin: 16px 0; }
+.rl-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 18px; }
+.rl-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.rl-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.rl-body h4 { font-size: 0.88rem; color: #fff; font-weight: 600; margin-bottom: 3px; }
+.rl-body p  { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.rl-loop-note { background: rgba(244,114,182,0.07); border: 1px dashed rgba(244,114,182,0.3); border-radius: 6px; padding: 12px 16px; margin-top: 12px; font-size: 0.8rem; color: var(--accent3); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── GRAPH ARCHITECTURE ── */
+.graph-visual { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0; }
+.gv-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
+.gv-nodes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; }
+.gv-node { padding: 8px 14px; border-radius: 6px; border: 1px solid; text-align: center; }
+.gv-arrow { color: var(--muted); }
+
+/* ── COMPARISON TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.83rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; }
+.compare-table td { padding: 9px 14px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .label { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 0.78rem; }
+
+/* ── CODE ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(74,222,128,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QA ── */
+.qa-block { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+.qa-qlabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-question { font-size: 0.875rem; color: var(--text); margin-bottom: 10px; }
+.qa-alabel { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+.qa-answer { font-size: 0.84rem; color: #94a3b8; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(74,222,128,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#session-context">Session Context</a></li>
+    <li><a href="#tool-creation-revision">Tool Creation Revision</a></li>
+    <li class="sub"><a href="#creation-methods">All Creation Methods</a></li>
+    <li class="sub"><a href="#bind-tool-structured">bind_tools & with_structured_output</a></li>
+    <li><a href="#pydantic-tools">Pydantic + Tool</a></li>
+    <li class="sub"><a href="#pydantic-code">Code & Schema Enforcement</a></li>
+    <li><a href="#tool-vs-node">Tool Node vs Normal Node</a></li>
+    <li class="sub"><a href="#why-tools">Why Tools Over Nodes?</a></li>
+    <li class="sub"><a href="#node-vs-tool-compare">Comparison Table</a></li>
+    <li><a href="#react-agent">ReAct Agent</a></li>
+    <li class="sub"><a href="#what-is-react">What is ReAct?</a></li>
+    <li class="sub"><a href="#react-loop">The Reason-Act Loop</a></li>
+    <li><a href="#graph-architecture">Graph Architecture</a></li>
+    <li class="sub"><a href="#imports">Imports</a></li>
+    <li class="sub"><a href="#tool-definitions">5 Math Tools</a></li>
+    <li class="sub"><a href="#llm-node">LLM Agent Node</a></li>
+    <li class="sub"><a href="#tool-node-setup">ToolNode Setup</a></li>
+    <li class="sub"><a href="#tool-condition">ToolCondition / should_continue</a></li>
+    <li class="sub"><a href="#graph-assembly">Full Graph Assembly</a></li>
+    <li><a href="#multi-step-walkthrough">Multi-Step Walkthrough</a></li>
+    <li><a href="#tool-vs-deterministic">Dynamic vs Deterministic</a></li>
+    <li><a href="#next-class">What's Next</a></li>
+    <li><a href="#qa-highlights">Q&A Highlights</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 42</span></div>
+    <div class="hero-class-num">Class 42 · 30 August 2026</div>
+    <h1>Tool Engineering<br>&amp; <em>ReAct Agent</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Tool Creation Methods</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Pydantic Schema Enforcement</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent3)"></span> ReAct Reason-Act Loop</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> Dynamic vs Deterministic</div>
+    </div>
+    <p class="hero-summary">
+      A two-part session: Part 1 revises all tool creation methods (decorator, Pydantic, async, base tool, toolkit, MCP) and the two key LLM API methods (<code>bind_tools</code> and <code>with_structured_output</code>). Part 2 builds a complete ReAct agent with tool calling in LangGraph — 5 math tools, an LLM agent node, ToolNode, conditional edge logic, and a live walkthrough of multi-step tool-chaining (add → multiply → end). Ends with a deep conceptual comparison of Dynamic (tool-based) vs Deterministic (node-based) orchestration.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Revision of all tool creation methods from Class 41 — decorator, Pydantic, async, base tool, toolkit, MCP, retriever-as-tool</li>
+      <li><span class="chk">✓</span> Two critical LLM API methods: <code>bind_tools()</code> and <code>with_structured_output()</code> — when and why each is used</li>
+      <li><span class="chk">✓</span> Pydantic schema enforcement with tools — what happens when wrong types are passed</li>
+      <li><span class="chk">✓</span> Tool creation vs tool calling — two different things</li>
+      <li><span class="chk">✓</span> Why we need tool nodes at all vs using regular graph nodes (the key insight)</li>
+      <li><span class="chk">✓</span> ToolMessage — 4th message type alongside HumanMessage, AIMessage, SystemMessage</li>
+      <li><span class="chk">✓</span> LangGraph pre-built <code>ToolNode</code> class — wraps tools to fit inside the workflow</li>
+      <li><span class="chk">✓</span> <code>tools_condition</code> — LangGraph pre-built conditional edge function for ReAct loop</li>
+      <li><span class="chk">✓</span> ReAct loop step by step: input → LLM reasons → tool call? or end? → tool executes → result back to LLM → repeat</li>
+      <li><span class="chk">✓</span> Live walkthrough: query "(2+2) × 10" → add tool (4) → LLM → multiply tool (40) → LLM → end</li>
+      <li><span class="chk">✓</span> MessagesState: why the state accumulates ALL messages (HumanMessage + ToolCall + ToolMessage + AIMessage) in a list</li>
+      <li><span class="chk">✓</span> Dynamic tool-based flow (open-ended agent) vs Deterministic node-based flow — when to use each</li>
+      <li><span class="chk">✓</span> Next class: Pydantic deep dive, async programming, LangGraph memory, checkpointer, human-in-the-loop</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">📁</span>
+      <p><strong>Notebooks from this class (GitHub):</strong> <code>tool_engineering.ipynb</code> (tool creation methods revision — pushed during Part 1) and <code>react_agent_with_tool_calling.ipynb</code> (the new ReAct agent practical — pushed during Part 2). Both are in the Agentic AI folder of the bootcamp repo.</p>
+    </div>
+  </section>
+
+  <!-- SESSION CONTEXT -->
+  <section id="session-context">
+    <div class="section-eyebrow">02 — Context</div>
+    <h2>Session Context</h2>
+
+    <div class="sunny-says">
+      "So, the main purpose of teaching you this ReAct agent — using this ReAct agent, basically, we can understand how our LLM can perform the tool calling. We can understand how our LLM is performing tool calling. The tool calling flow is going to be clear. From the next workflow onwards, we are going to be integrating tool calling also in every sort of workflow."
+    </div>
+
+    <div style="background:var(--code-bg); border:1px solid var(--code-border); border-radius:8px; padding:20px; margin:16px 0; font-family:'IBM Plex Mono',monospace; font-size:0.76rem; line-height:2.2;">
+      <div style="color:var(--muted); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;">Class 42 Plan</div>
+      <div style="color:var(--accent3);">Part 1 (tool_engineering.ipynb) — revision + Pydantic examples</div>
+      <div style="color:var(--accent); margin-top:6px;">Part 2 (react_agent_with_tool_calling.ipynb) — live build from scratch</div>
+      <div style="color:var(--muted); margin-top:8px;">Note: 20-minute break between parts (Zoom disconnected, class resumed)</div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">📌</span>
+      <p><strong>Assignment update:</strong> Sunny mentioned providing solutions for all 5 assignments so far (including the Multimodal RAG assignment). Solutions will be pushed to GitHub for students who haven't completed them. Also mentioned a coming LangGraph assignment where students implement the same flows in other frameworks (Google ADK, OpenAI SDK, AutoGen, Crew.ai).</p>
+    </div>
+  </section>
+
+  <!-- TOOL CREATION REVISION -->
+  <section id="tool-creation-revision">
+    <div class="section-eyebrow">03 — Revision</div>
+    <h2>Tool Creation Methods — Full Revision</h2>
+
+    <div class="sunny-says">
+      "Tool creation is one thing, and tool calling is the another thing. We have different, different methods for the tool creation. Don't think that if I've given stars, these methods are being used in the industry — it's based on priority, means if you're learning the thing, you can learn in this particular sequence. But if you're going to perform tool engineering in real time, explore each and every methodology."
+    </div>
+
+    <h3 id="creation-methods">All Tool Creation Methods</h3>
+
+    <table class="tool-table">
+      <thead><tr><th>Method</th><th>Stars</th><th>Best For</th><th>Key Characteristic</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="method">@tool decorator</td>
+          <td style="color:var(--accent6);">★★★★★</td>
+          <td class="use-case">Simple custom functions — beginner default</td>
+          <td class="use-case">Any Python function decorated with @tool becomes a LangChain tool. Docstring becomes the tool description.</td>
+        </tr>
+        <tr>
+          <td class="method">@tool + Pydantic schema</td>
+          <td style="color:var(--accent6);">★★★★★</td>
+          <td class="use-case">Complex validated business input</td>
+          <td class="use-case">Attach a Pydantic BaseModel schema to the tool decorator. Schema is enforced — wrong types raise ValidationError immediately.</td>
+        </tr>
+        <tr>
+          <td class="method">Async tool (async def)</td>
+          <td style="color:var(--accent6);">★★★★</td>
+          <td class="use-case">Multiple concurrent tool calls</td>
+          <td class="use-case">For concurrency — running many tools simultaneously. Reduces latency when tools can execute in parallel.</td>
+        </tr>
+        <tr>
+          <td class="method">create_retriever_tool()</td>
+          <td style="color:var(--accent6);">★★★★</td>
+          <td class="use-case">Agentic RAG — RAG pipeline as a tool</td>
+          <td class="use-case">Converts any LangChain retriever directly into a tool. The agent calls the retriever as it would any other tool.</td>
+        </tr>
+        <tr>
+          <td class="method">Pre-built integrations</td>
+          <td style="color:var(--accent6);">★★★★</td>
+          <td class="use-case">Ready-to-use external services</td>
+          <td class="use-case">LangChain ships tools for: Tavily search, Google Search, Bright Data, Perplexity, Crawlee, and many more. Check docs.</td>
+        </tr>
+        <tr>
+          <td class="method">MCP (Model Context Protocol)</td>
+          <td style="color:var(--accent6);">★★★★</td>
+          <td class="use-case">External enterprise tool standardisation</td>
+          <td class="use-case">Expose tools as MCP servers; consume them in any Agentic pipeline. Covered in a separate upcoming class.</td>
+        </tr>
+        <tr>
+          <td class="method">Tool runtime (configurable)</td>
+          <td style="color:var(--accent6);">★★★</td>
+          <td class="use-case">Dynamic tool modification at runtime</td>
+          <td class="use-case">Modify tool behaviour based on graph state context during execution. Used in specific advanced flows.</td>
+        </tr>
+        <tr>
+          <td class="method">StructuredTool</td>
+          <td style="color:var(--accent6);">★★★</td>
+          <td class="use-case">Explicit structure construction</td>
+          <td class="use-case">More explicit and verbose than @tool decorator. Gives more granular control over schema and metadata.</td>
+        </tr>
+        <tr>
+          <td class="method">Tool constructor</td>
+          <td style="color:var(--accent6);">★★★</td>
+          <td class="use-case">Simple, explicit wrapper</td>
+          <td class="use-case">Instantiate a Tool object directly: Tool(name="...", func=..., description="...").</td>
+        </tr>
+        <tr>
+          <td class="method">BaseTool (class inheritance)</td>
+          <td style="color:var(--accent6);">★★★</td>
+          <td class="use-case">Advanced custom integration — maximum authority</td>
+          <td class="use-case">Inherit from BaseTool and override _run()/_arun(). Sunny used this in production for maximum control over tool behaviour.</td>
+        </tr>
+        <tr>
+          <td class="method">Toolkit (BaseToolkit)</td>
+          <td style="color:var(--accent6);">★★★</td>
+          <td class="use-case">Grouping multiple related tools</td>
+          <td class="use-case">Bundle related tools into a toolkit class. Provides a .get_tools() method to retrieve the full list.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="bind-tool-structured">Two Critical LLM API Methods</h3>
+    <p>When you initialise any LLM using LangChain, two methods are always available. These are used heavily in Agentic workflows:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:18px; border-top:3px solid var(--accent);">
+        <h4 style="font-size:0.9rem; color:var(--accent); margin-bottom:8px;"><code>llm.bind_tools(tools)</code></h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Attaches tool schemas to the LLM. The LLM now knows what tools are available and can choose to call them. When the LLM decides to use a tool, it returns an AI message with empty content but a <code>tool_calls</code> field containing the tool name and arguments. The actual tool has NOT been called yet — only the intent has been expressed.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:18px; border-top:3px solid var(--accent5);">
+        <h4 style="font-size:0.9rem; color:var(--accent5); margin-bottom:8px;"><code>llm.with_structured_output(schema)</code></h4>
+        <p style="font-size:0.82rem; color:#94a3b8; margin:0;">Forces the LLM to respond only in the format defined by a Pydantic model or TypedDict. Output is automatically parsed and validated. Used in Class 41's routing supervisor agent to force route decisions into a typed <code>RouteDecision</code> schema. Not for tool calling — for constraining the LLM's free-text output.</p>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🔑</span>
+      <p><strong>Key distinction:</strong> <code>bind_tools</code> = "LLM, here are tools you can call if needed." <code>with_structured_output</code> = "LLM, your output MUST match this schema exactly." You'll see both used throughout the Agentic chapter. Sunny: "Just remember these two functions. We are going to be using these a lot."</p>
+    </div>
+  </section>
+
+  <!-- PYDANTIC + TOOL -->
+  <section id="pydantic-tools">
+    <div class="section-eyebrow">04 — Schema Enforcement</div>
+    <h2>Pydantic + Tool — Schema Enforcement</h2>
+
+    <p>When building production-grade Agentic systems, always pair tool definitions with Pydantic schemas. This ensures the LLM provides exactly the right type and structure of arguments — and raises an immediate error if it doesn't.</p>
+
+    <h3 id="pydantic-code">Pydantic Tool Code</h3>
+    <div class="code-block">
+      <span class="lang-label">python · Pydantic schema + tool</span>
+      <pre><span class="kw">from</span> langchain_core.tools <span class="kw">import</span> tool
+<span class="kw">from</span> pydantic <span class="kw">import</span> <span class="cls">BaseModel</span>, <span class="cls">Field</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Optional</span>
+
+<span class="cm"># ── Define a Pydantic schema for the tool's input ─────────────────</span>
+<span class="cm"># This enforces type validation on every call to the tool</span>
+<span class="kw">class</span> <span class="cls">WeatherInput</span>(<span class="cls">BaseModel</span>):
+    location:    str   = <span class="cls">Field</span>(description=<span class="str">"City name or 'city, country' format"</span>)
+    unit:        str   = <span class="cls">Field</span>(default=<span class="str">"celsius"</span>, description=<span class="str">"Temperature unit: 'celsius' or 'fahrenheit'"</span>)
+    include_forecast: <span class="cls">Optional</span>[bool] = <span class="cls">Field</span>(default=<span class="kw">False</span>, description=<span class="str">"Include 5-day forecast"</span>)
+
+<span class="cm"># ── Create tool with Pydantic schema ─────────────────────────────</span>
+<span class="cm"># Pass the Pydantic class as args_schema — schema is enforced</span>
+<span class="kw">@</span><span class="fn">tool</span>(args_schema=<span class="cls">WeatherInput</span>)
+<span class="kw">def</span> <span class="fn">get_weather</span>(location: str, unit: str = <span class="str">"celsius"</span>, include_forecast: bool = <span class="kw">False</span>) -> str:
+    <span class="str">"""Get current weather for a given location."""</span>
+    <span class="cm"># In practice, call a real weather API here</span>
+    <span class="kw">return</span> f<span class="str">f"Weather in {location}: 28°{unit[0].upper()}, partly cloudy"</span>
+
+<span class="cm"># ── Correct call — works fine ─────────────────────────────────────</span>
+result = get_weather.<span class="fn">invoke</span>({<span class="str">"location"</span>: <span class="str">"Delhi"</span>, <span class="str">"unit"</span>: <span class="str">"celsius"</span>})
+<span class="fn">print</span>(result)   <span class="cm"># Weather in Delhi: 28°C, partly cloudy</span>
+
+<span class="cm"># ── Wrong type call — Pydantic raises ValidationError ────────────</span>
+<span class="kw">try</span>:
+    get_weather.<span class="fn">invoke</span>({<span class="str">"location"</span>: <span class="num">12345</span>})  <span class="cm"># location must be str, not int</span>
+<span class="kw">except</span> <span class="cls">Exception</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(f<span class="str">f"ValidationError: {e}"</span>)
+<span class="cm"># → Pydantic immediately raises before the tool function is even called</span>
+
+<span class="cm"># ── View tool schema (what the LLM sees) ─────────────────────────</span>
+<span class="fn">print</span>(get_weather.name)        <span class="cm"># "get_weather"</span>
+<span class="fn">print</span>(get_weather.description) <span class="cm"># "Get current weather for a given location."</span>
+<span class="fn">print</span>(get_weather.args_schema.model_json_schema())
+<span class="cm"># → JSON schema that the LLM reads to know what arguments to provide</span>
+
+<span class="cm"># ── Why Pydantic matters ──────────────────────────────────────────</span>
+<span class="cm"># Sunny: "Schema enforcing is very much required. Otherwise my LLM</span>
+<span class="cm"># might distract — it can give you the wrong output. We have to</span>
+<span class="cm"># validate those input and output. Otherwise my Agentic flow can</span>
+<span class="cm"># provide you the wrong answer."</span></pre>
+    </div>
+  </section>
+
+  <!-- TOOL VS NODE -->
+  <section id="tool-vs-node">
+    <div class="section-eyebrow">05 — Key Distinction</div>
+    <h2>Tool Node vs Normal Node — The Key Difference</h2>
+
+    <h3 id="why-tools">Why Use Tools at All — Sunny's Explanation</h3>
+
+    <div class="sunny-says">
+      "Suppose the user can ask: 'What is the weather in Bangalore?' or 'Search my company policy' or 'Calculate this'. Now your agent has weather, calculator, retriever, web search, database, email — if everything is only nodes, you need explicit routing for each and everything. You will have to do the routing manually. But if you are giving a capability to the LLM so that it can decide which tool node needs to be executed — where this tool calling is the important one."
+    </div>
+
+    <h3 id="node-vs-tool-compare">Node vs ToolNode — Comparison</h3>
+    <table class="compare-table">
+      <thead><tr><th>Aspect</th><th class="label" style="color:var(--accent2);">Normal Node</th><th class="label" style="color:var(--accent);">Tool Node</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">Who decides to execute?</td>
+          <td>Developer — hardcoded in graph edges/routing</td>
+          <td>LLM — dynamically decides at runtime</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">How many can you have?</td>
+          <td>One node per functionality. 5 operations = 5 nodes.</td>
+          <td>One ToolNode holds all tools. 5 or 100 tools — still one ToolNode.</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">Routing</td>
+          <td>Manual conditional edges. You write every routing rule.</td>
+          <td>LLM selects the right tool from its bound list automatically.</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">Flow type</td>
+          <td>Deterministic orchestration</td>
+          <td>Dynamic (Agentic) capability</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">Best for</td>
+          <td>Known, fixed workflows with few steps. More controllable.</td>
+          <td>Open-ended queries where the LLM should reason about which capability to use.</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600; color:var(--text);">Risk</td>
+          <td>More effort to build. Less flexible.</td>
+          <td>LLM might make wrong tool selection. Less predictable.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Sunny's production advice:</strong> "If you are able to perform this entire thing with the deterministic approach, do it, because it is a more deterministic, more secure approach. Use the dynamic tool approach when the LLM should dynamically choose the capability. But be very cautious — in the open-ended approach, we are leaving everything to the LLM, and LLM can make a mistake."</p>
+    </div>
+  </section>
+
+  <!-- REACT AGENT -->
+  <section id="react-agent">
+    <div class="section-eyebrow">06 — The Pattern</div>
+    <h2>ReAct Agent — What and Why</h2>
+
+    <h3 id="what-is-react">What is ReAct?</h3>
+    <p><strong>ReAct</strong> stands for <strong>Re</strong>asoning + <strong>Act</strong>ing. It's a prompting pattern where the LLM interleaves reasoning steps ("I need to add first, then multiply") with action steps (calling the add tool, then the multiply tool). The result of each action feeds back into the LLM's reasoning for the next step.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>Sunny's framing:</strong> "The main purpose of teaching you this ReAct agent — using this React agent, basically, we can understand how our LLM can perform the tool calling. This is the entry point to understanding the full Agentic tool-calling flow. All subsequent, more complex workflows build on top of this same pattern."</p>
+    </div>
+
+    <h3 id="react-loop">The Reason-Act Loop</h3>
+
+    <div class="react-loop">
+      <div class="rl-label">ReAct Loop — Step by Step</div>
+
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); color:var(--accent6);">→</div>
+        <div class="rl-body"><h4>User Input</h4><p>A question arrives. Passed to the graph as a HumanMessage in the state.</p></div>
+      </div>
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); color:var(--accent);">1</div>
+        <div class="rl-body"><h4>LLM Agent Node — Reason</h4><p>LLM reads the user message, system prompt, and all prior messages/tool results in the state. It reasons: "Do I need a tool? Which one? Or can I answer directly and end?"</p></div>
+      </div>
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); color:var(--accent2);">2</div>
+        <div class="rl-body"><h4>Conditional Edge — ToolCondition</h4><p>Check: does the LLM's output contain a <code>tool_calls</code> field? If YES → go to ToolNode. If NO → go to END.</p></div>
+      </div>
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--accent4);">3</div>
+        <div class="rl-body"><h4>ToolNode — Act</h4><p>Execute the tool the LLM selected. Tool receives the arguments the LLM extracted from the query. Returns result as a ToolMessage. ToolMessage is appended to the state messages list.</p></div>
+      </div>
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); color:var(--accent3);">4</div>
+        <div class="rl-body"><h4>Back to LLM — Observe</h4><p>ToolNode loops back to LLM Agent Node. The LLM now has the original question + the tool result. It reasons again: is the task done? Do I need another tool call?</p></div>
+      </div>
+      <div class="rl-step">
+        <div class="rl-num" style="background:rgba(74,222,128,0.2); border:1px solid rgba(74,222,128,0.5); color:var(--accent); font-weight:700;">✓</div>
+        <div class="rl-body"><h4>Final Answer → END</h4><p>When LLM decides the task is complete, it generates a final answer (non-empty content, no tool_calls) → conditional edge routes to END.</p></div>
+      </div>
+
+      <div class="rl-loop-note">↻ Steps 1–4 repeat until the task is complete. This loop is the "Reason-Act" cycle.</div>
+    </div>
+  </section>
+
+  <!-- GRAPH ARCHITECTURE -->
+  <section id="graph-architecture">
+    <div class="section-eyebrow">07 — Implementation</div>
+    <h2>Building the ReAct Agent Graph</h2>
+
+    <div class="graph-visual">
+      <div class="gv-label">ReAct Graph Architecture — Visualised</div>
+      <div class="gv-nodes">
+        <div class="gv-node" style="background:rgba(250,204,21,0.1); border-color:rgba(250,204,21,0.3); color:var(--accent6);">START</div>
+        <span class="gv-arrow">→</span>
+        <div class="gv-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent);">LLM Agent Node<br><small>(reasons + decides)</small></div>
+        <span class="gv-arrow">→ if tool_calls →</span>
+        <div class="gv-node" style="background:rgba(251,146,60,0.1); border-color:rgba(251,146,60,0.3); color:var(--accent4);">Tool Node<br><small>(5 tools inside)</small></div>
+        <span class="gv-arrow">→ always back to →</span>
+        <div class="gv-node" style="background:rgba(74,222,128,0.1); border-color:rgba(74,222,128,0.3); color:var(--accent);">LLM Agent Node</div>
+        <span class="gv-arrow">→ if no tool_calls →</span>
+        <div class="gv-node" style="background:rgba(74,222,128,0.15); border-color:rgba(74,222,128,0.5); color:var(--accent); font-weight:700;">END</div>
+      </div>
+    </div>
+
+    <h3 id="imports">Imports</h3>
+    <div class="code-block">
+      <span class="lang-label">python · imports</span>
+      <pre><span class="kw">from</span> dotenv <span class="kw">import</span> <span class="fn">load_dotenv</span>
+<span class="fn">load_dotenv</span>()
+
+<span class="kw">from</span> langchain_groq <span class="kw">import</span> <span class="cls">ChatGroq</span>
+<span class="kw">from</span> langchain_core.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> (
+    <span class="cls">HumanMessage</span>,
+    <span class="cls">SystemMessage</span>,
+    <span class="cls">AIMessage</span>,
+    <span class="cls">ToolMessage</span>           <span class="cm"># ← 4th message type: tool result</span>
+)
+<span class="kw">from</span> langgraph.graph <span class="kw">import</span> <span class="cls">StateGraph</span>, <span class="cls">MessagesState</span>, <span class="cls">START</span>, <span class="cls">END</span>
+<span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> <span class="cls">ToolNode</span>, <span class="fn">tools_condition</span>
+<span class="cm"># ToolNode  → wraps tools to fit inside a LangGraph workflow node</span>
+<span class="cm"># tools_condition → pre-built routing function: tool_calls? → tools; else → END</span></pre>
+    </div>
+
+    <h3 id="tool-definitions">5 Math Tools</h3>
+    <div class="code-block">
+      <span class="lang-label">python · tool definitions</span>
+      <pre><span class="cm"># 5 simple math tools — kept simple to focus on the flow, not the logic</span>
+<span class="cm"># In real projects these would call APIs, databases, web search, etc.</span>
+
+<span class="kw">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">add</span>(a: float, b: float) -> float:
+    <span class="str">"""Add two numbers and return the result."""</span>
+    <span class="kw">return</span> a + b
+
+<span class="kw">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">multiply</span>(a: float, b: float) -> float:
+    <span class="str">"""Multiply two numbers and return the result."""</span>
+    <span class="kw">return</span> a * b
+
+<span class="kw">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">subtract</span>(a: float, b: float) -> float:
+    <span class="str">"""Subtract b from a and return the result."""</span>
+    <span class="kw">return</span> a - b
+
+<span class="kw">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">divide</span>(a: float, b: float) -> float:
+    <span class="str">"""Divide a by b and return the result. Returns error if b is 0."""</span>
+    <span class="kw">if</span> b == <span class="num">0</span>:
+        <span class="kw">return</span> <span class="str">"Error: Division by zero"</span>
+    <span class="kw">return</span> a / b
+
+<span class="kw">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">power</span>(base: float, exponent: float) -> float:
+    <span class="str">"""Raise base to the power of exponent."""</span>
+    <span class="kw">return</span> base ** exponent
+
+<span class="cm"># Collect all tools in a list</span>
+tools = [add, multiply, subtract, divide, power]
+
+<span class="cm"># ── LLM setup ────────────────────────────────────────────────────</span>
+<span class="cm"># temperature=0 → deterministic/predictable answers (no creativity in calculations)</span>
+<span class="cm"># reasoning_format="hidden" → hides internal chain-of-thought in reasoning models</span>
+llm = <span class="cls">ChatGroq</span>(model=<span class="str">"llama-3.1-8b-instant"</span>, temperature=<span class="num">0</span>)
+
+<span class="cm"># ── Bind all tools to the LLM ─────────────────────────────────────</span>
+<span class="cm"># Now the LLM knows about add, multiply, subtract, divide, power</span>
+<span class="cm"># When a math question comes in, it can choose to call the appropriate tool</span>
+llm_with_tools = llm.<span class="fn">bind_tools</span>(tools)</pre>
+    </div>
+
+    <h3 id="llm-node">LLM Agent Node</h3>
+    <div class="code-block">
+      <span class="lang-label">python · agent node function</span>
+      <pre><span class="cm"># ── System prompt ─────────────────────────────────────────────────</span>
+SYSTEM_PROMPT = <span class="str">"""You are a mathematical agent. You have access to 5 tools:
+- add: for addition
+- multiply: for multiplication
+- subtract: for subtraction
+- divide: for division
+- power: for exponentiation
+
+Rules:
+- Always use the appropriate tool for mathematical calculations.
+- Do not perform calculations yourself — always use a tool.
+- Follow the user-requested calculation order.
+- When one operation depends on a previous result, wait for the tool result before calling the next tool.
+- After all required tool calls, provide the final answer."""</span>
+
+<span class="cm"># ── Agent (LLM) node function ─────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">llm_agent_node</span>(state: <span class="cls">MessagesState</span>) -> dict:
+    <span class="str">"""
+    The core agent node: calls the LLM with the full message history.
+    LLM either:
+    (a) Requests a tool call → AIMessage with tool_calls field populated
+    (b) Produces a final answer → AIMessage with content, no tool_calls
+    """</span>
+    messages  = state[<span class="str">"messages"</span>]    <span class="cm"># full conversation history from state</span>
+    <span class="cm"># Prepend system prompt</span>
+    full_msgs = [<span class="cls">SystemMessage</span>(content=SYSTEM_PROMPT)] + messages
+    response  = llm_with_tools.<span class="fn">invoke</span>(full_msgs)
+    <span class="cm"># Return: the response is appended to the state messages list</span>
+    <span class="cm"># (MessagesState uses add_messages reducer → appends, not overwrites)</span>
+    <span class="kw">return</span> {<span class="str">"messages"</span>: [response]}</pre>
+    </div>
+
+    <h3 id="tool-node-setup">ToolNode Setup</h3>
+    <div class="code-block">
+      <span class="lang-label">python · ToolNode</span>
+      <pre><span class="cm"># ToolNode wraps the list of tools so they can act as a graph node
+# When the LLM's AIMessage has a tool_calls field, ToolNode:
+#   1. Identifies which tool was requested
+#   2. Executes that tool with the provided arguments
+#   3. Wraps the result in a ToolMessage
+#   4. Appends the ToolMessage to the state (messages list)</span>
+
+tool_node = <span class="cls">ToolNode</span>(tools)   <span class="cm"># pass the same tools list</span>
+
+<span class="cm"># Internally, ToolNode does roughly:
+# for tool_call in ai_message.tool_calls:
+#     result = tools[tool_call.name].invoke(tool_call.args)
+#     return ToolMessage(content=str(result), tool_call_id=tool_call.id)</span></pre>
+    </div>
+
+    <h3 id="tool-condition">ToolCondition / should_continue</h3>
+    <div class="code-block">
+      <span class="lang-label">python · routing logic (both approaches)</span>
+      <pre><span class="cm"># ── Approach 1: LangGraph pre-built tools_condition ───────────────</span>
+<span class="cm"># Automatically checks: does the last AI message have tool_calls?</span>
+<span class="cm"># If yes → route to "tools" node; if no → route to END</span>
+<span class="cm"># tools_condition is imported from langgraph.prebuilt</span>
+
+<span class="cm"># ── Approach 2: Custom should_continue function ───────────────────</span>
+<span class="cm"># Sunny recommends custom over pre-built for flexibility and clarity</span>
+<span class="kw">from</span> typing <span class="kw">import</span> <span class="cls">Literal</span>
+
+<span class="kw">def</span> <span class="fn">should_continue</span>(state: <span class="cls">MessagesState</span>) -> <span class="cls">Literal</span>[<span class="str">"tools"</span>, <span class="cls">END</span>]:
+    <span class="str">"""
+    Routing function for the conditional edge after LLM Agent Node.
+    Returns "tools" if LLM wants to call a tool, END otherwise.
+    """</span>
+    messages = state[<span class="str">"messages"</span>]
+    last_msg = messages[-<span class="num">1</span>]   <span class="cm"># last message is the LLM's latest response</span>
+
+    <span class="cm"># If the AI message has tool_calls, the LLM wants to use a tool</span>
+    <span class="kw">if</span> <span class="fn">hasattr</span>(last_msg, <span class="str">"tool_calls"</span>) <span class="kw">and</span> last_msg.tool_calls:
+        <span class="kw">return</span> <span class="str">"tools"</span>     <span class="cm"># route to ToolNode</span>
+
+    <span class="cm"># No tool_calls → LLM generated a final answer → end the process</span>
+    <span class="kw">return</span> <span class="cls">END</span>            <span class="cm"># route to END</span>
+
+<span class="cm"># Sunny: "To write a custom method, I think that's more flexible.
+# From now onwards, we'll be using our custom functionality only,
+# instead of relying much over the inbuilt functionality of LangGraph."</span></pre>
+    </div>
+
+    <h3 id="graph-assembly">Full Graph Assembly</h3>
+    <div class="code-block">
+      <span class="lang-label">python · complete ReAct graph</span>
+      <pre><span class="cm"># ── Build the StateGraph ──────────────────────────────────────────</span>
+workflow = <span class="cls">StateGraph</span>(<span class="cls">MessagesState</span>)
+
+<span class="cm"># Add nodes</span>
+workflow.<span class="fn">add_node</span>(<span class="str">"agent"</span>, llm_agent_node)  <span class="cm"># LLM with tool awareness</span>
+workflow.<span class="fn">add_node</span>(<span class="str">"tools"</span>, tool_node)         <span class="cm"># ToolNode wrapping all 5 tools</span>
+
+<span class="cm"># Add edges</span>
+workflow.<span class="fn">add_edge</span>(<span class="cls">START</span>, <span class="str">"agent"</span>)              <span class="cm"># entry: always start with agent</span>
+
+<span class="cm"># Conditional edge: after agent node, check if tool call needed</span>
+workflow.<span class="fn">add_conditional_edges</span>(
+    <span class="str">"agent"</span>,              <span class="cm"># source: from the agent node</span>
+    should_continue,       <span class="cm"># routing function</span>
+    {
+        <span class="str">"tools"</span>: <span class="str">"tools"</span>,  <span class="cm"># if "tools" returned → go to tool_node</span>
+        <span class="cls">END</span>: <span class="cls">END</span>           <span class="cm"># if END returned → terminate</span>
+    }
+)
+
+<span class="cm"># After tool execution, ALWAYS go back to agent for next reasoning step</span>
+workflow.<span class="fn">add_edge</span>(<span class="str">"tools"</span>, <span class="str">"agent"</span>)
+
+<span class="cm"># ── Compile and visualise ─────────────────────────────────────────</span>
+app = workflow.<span class="fn">compile</span>()
+<span class="kw">from</span> IPython.display <span class="kw">import</span> <span class="cls">Image</span>, <span class="fn">display</span>
+<span class="fn">display</span>(<span class="cls">Image</span>(app.<span class="fn">get_graph</span>().<span class="fn">draw_mermaid_png</span>()))
+<span class="cm"># → Graph: START → agent → (tools → agent)* → END</span>
+
+<span class="cm"># ── Invoke the graph ──────────────────────────────────────────────</span>
+result = app.<span class="fn">invoke</span>({
+    <span class="str">"messages"</span>: [<span class="cls">HumanMessage</span>(content=<span class="str">"What is (2 + 2) multiplied by 10?"</span>)]
+})
+
+<span class="cm"># Print the final answer (last message)</span>
+<span class="fn">print</span>(result[<span class="str">"messages"</span>][-<span class="num">1</span>].content)
+<span class="cm"># → "The result of (2 + 2) × 10 is 40."</span>
+
+<span class="cm"># ── Inspect the full message trail ───────────────────────────────</span>
+<span class="kw">for</span> msg <span class="kw">in</span> result[<span class="str">"messages"</span>]:
+    <span class="fn">print</span>(f<span class="str">f"{type(msg).__name__}: {str(msg.content)[:80]}"</span>)
+<span class="cm"># HumanMessage: "What is (2 + 2) multiplied by 10?"</span>
+<span class="cm"># AIMessage: (empty content, tool_calls=[add(a=2, b=2)])</span>
+<span class="cm"># ToolMessage: "4"</span>
+<span class="cm"># AIMessage: (empty content, tool_calls=[multiply(a=4, b=10)])</span>
+<span class="cm"># ToolMessage: "40"</span>
+<span class="cm"># AIMessage: "The result of (2 + 2) × 10 is 40."</span></pre>
+    </div>
+  </section>
+
+  <!-- MULTI-STEP WALKTHROUGH -->
+  <section id="multi-step-walkthrough">
+    <div class="section-eyebrow">08 — Step by Step</div>
+    <h2>Multi-Step Tool Chaining Walkthrough</h2>
+
+    <p>Sunny walked through this example live on the blackboard — query <em>"(2+2) × 10"</em> — to show every step of the ReAct loop:</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(250,204,21,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent6); flex-shrink:0; margin-top:2px;">Q</span>
+        <div style="font-size:0.875rem; color:#94a3b8;">User sends: <strong style="color:#fff;">"(2+2) × 10"</strong> → goes to LLM Agent Node as HumanMessage in state</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">1</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent);">LLM reasons:</strong> "Order of operations: do addition first. I need the add tool with a=2, b=2." LLM returns AIMessage with empty content and <code>tool_calls=[add(a=2, b=2)]</code></div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent2); flex-shrink:0; margin-top:2px;">2</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent2);">tools_condition:</strong> tool_calls detected → route to ToolNode</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">3</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent4);">ToolNode executes add(2, 2) = 4.</strong> Returns ToolMessage("4") → appended to state messages list</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">4</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent);">LLM reasons again</strong> (with full history: question + add result "4"). "Now I need to multiply 4 by 10." Returns AIMessage with <code>tool_calls=[multiply(a=4, b=10)]</code></div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent4); flex-shrink:0; margin-top:2px;">5</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent4);">ToolNode executes multiply(4, 10) = 40.</strong> Returns ToolMessage("40") → appended to state</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.5); border-radius:8px; padding:14px; display:flex; gap:12px;">
+        <span style="background:rgba(74,222,128,0.2); border:1px solid rgba(74,222,128,0.5); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); font-weight:700; flex-shrink:0; margin-top:2px;">✓</span>
+        <div style="font-size:0.875rem; color:#94a3b8;"><strong style="color:var(--accent);">LLM reasons again</strong> (with full history including multiply result "40"). "All operations done. Final answer: 40." Returns AIMessage with content="The answer is 40." and no tool_calls → routes to END.</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "LLM dynamically is taking a decision — based on their reasoning capability. This is called the real Agentic system, where LLM is dynamically taking the decision of which tool needs to be called, which functionality needs to be called."
+    </div>
+
+    <h3>MessagesState — Why All Messages Accumulate</h3>
+    <div class="code-block">
+      <span class="lang-label">python · understanding the state accumulation</span>
+      <pre><span class="cm"># MessagesState has: messages: Annotated[List[AnyMessage], add_messages]
+# add_messages reducer means: each new message is APPENDED (not overwritten)
+# After the (2+2)×10 query, the state contains ALL of:</span>
+
+messages_in_state = [
+    <span class="cls">HumanMessage</span>(content=<span class="str">"What is (2 + 2) multiplied by 10?"</span>),
+    <span class="cls">AIMessage</span>(content=<span class="str">""</span>, tool_calls=[{<span class="str">"name"</span>: <span class="str">"add"</span>, <span class="str">"args"</span>: {<span class="str">"a"</span>: <span class="num">2</span>, <span class="str">"b"</span>: <span class="num">2</span>}}]),
+    <span class="cls">ToolMessage</span>(content=<span class="str">"4"</span>, tool_call_id=<span class="str">"call_xxx"</span>),
+    <span class="cls">AIMessage</span>(content=<span class="str">""</span>, tool_calls=[{<span class="str">"name"</span>: <span class="str">"multiply"</span>, <span class="str">"args"</span>: {<span class="str">"a"</span>: <span class="num">4</span>, <span class="str">"b"</span>: <span class="num">10</span>}}]),
+    <span class="cls">ToolMessage</span>(content=<span class="str">"40"</span>, tool_call_id=<span class="str">"call_yyy"</span>),
+    <span class="cls">AIMessage</span>(content=<span class="str">"The result of (2 + 2) × 10 is 40."</span>)
+]
+
+<span class="cm"># Why is this important?
+# On every LLM call, the LLM receives the FULL message history.
+# This is how it knows:
+# - The original question (HumanMessage)
+# - It already called add and got 4 (ToolMessage content="4")
+# - It already called multiply and got 40 (ToolMessage content="40")
+# - No more tools needed → generate final answer → END
+# This is the LLM's "working memory" within one graph execution.</span></pre>
+    </div>
+  </section>
+
+  <!-- DYNAMIC VS DETERMINISTIC -->
+  <section id="tool-vs-deterministic">
+    <div class="section-eyebrow">09 — Core Concept</div>
+    <h2>Dynamic (Tool-Based) vs Deterministic (Node-Based)</h2>
+
+    <p>Sunny spent significant time on the blackboard comparing these two approaches — this is one of the most important architectural decisions in Agentic AI:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent);">
+        <h4 style="font-size:0.92rem; color:var(--accent); margin-bottom:12px;">Dynamic / Tool-Based (Open-Ended Agent)</h4>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:#94a3b8; line-height:2.2; margin-bottom:12px;">
+          LLM + bind_tools([t1, t2, t3...])<br>
+          ↓<br>
+          ONE tool_node (holds all tools)<br>
+          ↓<br>
+          LLM dynamically picks which tool
+        </div>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li style="color:var(--accent);">✓ Very flexible — add 100 tools without changing graph</li>
+          <li style="color:var(--accent);">✓ LLM reasons and selects the right capability</li>
+          <li style="color:#f87171;">✗ LLM may select the wrong tool</li>
+          <li style="color:#f87171;">✗ Non-deterministic — harder to debug</li>
+          <li style="color:#f87171;">✗ Risk: open-ended → LLM "might mess up"</li>
+        </ul>
+        <div style="font-size:0.76rem; color:var(--muted); margin-top:10px; border-top:1px solid var(--border); padding-top:8px;">Use when: many dynamic tools, open-ended user queries, flexibility prioritised over control</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:10px; padding:20px; border-top:3px solid var(--accent2);">
+        <h4 style="font-size:0.92rem; color:var(--accent2); margin-bottom:12px;">Deterministic / Node-Based (Workflow)</h4>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:#94a3b8; line-height:2.2; margin-bottom:12px;">
+          Supervisor LLM node<br>
+          ↓<br>
+          Node 1 (add) | Node 2 (multiply) | ...<br>
+          ↓<br>
+          Explicit conditional edges for routing
+        </div>
+        <ul style="list-style:none; font-size:0.8rem; color:#94a3b8; line-height:2.1;">
+          <li style="color:var(--accent3);">✓ Full developer control over each step</li>
+          <li style="color:var(--accent3);">✓ Predictable, auditable, debuggable</li>
+          <li style="color:var(--accent3);">✓ Preferred for fewer, well-defined operations</li>
+          <li style="color:#f87171;">✗ More work — one node per functionality</li>
+          <li style="color:#f87171;">✗ Manual routing logic for every path</li>
+        </ul>
+        <div style="font-size:0.76rem; color:var(--muted); margin-top:10px; border-top:1px solid var(--border); padding-top:8px;">Use when: fewer operations, regulated/safety-critical flows, maximum control needed</div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "You have to choose this thing wisely, very, very wisely, how you are going to design your entire workflow. If you are able to perform this entire thing with the deterministic approach, do it, guys, because this is more deterministic, more secure approach. Use tool when the LLM should dynamically choose the capability. But be very cautious — we are leaving everything to the LLM, and LLM can make a mistake."
+    </div>
+  </section>
+
+  <!-- NEXT CLASS -->
+  <section id="next-class">
+    <div class="section-eyebrow">10 — What's Coming</div>
+    <h2>Next Class Topics</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(185px,1fr)); gap:10px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent5);">
+        <h4 style="font-size:0.84rem; color:var(--accent5); margin-bottom:6px;">Pydantic Deep Dive</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Validators, field types, model_validator, advanced schema patterns used in Agentic workflows</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(251,146,60,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent4);">
+        <h4 style="font-size:0.84rem; color:var(--accent4); margin-bottom:6px;">Async Programming</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">async/await in Python, asyncio, async tool calls for concurrent Agentic operations</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent2);">
+        <h4 style="font-size:0.84rem; color:var(--accent2); margin-bottom:6px;">LangGraph Memory</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Short-term and long-term memory patterns in LangGraph — across turns and sessions</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent);">
+        <h4 style="font-size:0.84rem; color:var(--accent); margin-bottom:6px;">Checkpointer</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Persisting graph state between executions using MemorySaver and SqliteSaver</p>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(244,114,182,0.3); border-radius:8px; padding:14px; border-top:2px solid var(--accent3);">
+        <h4 style="font-size:0.84rem; color:var(--accent3); margin-bottom:6px;">Human-in-the-Loop</h4>
+        <p style="font-size:0.76rem; color:var(--muted); margin:0;">Pausing graph execution at critical points to get human approval before proceeding</p>
+      </div>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">📋</span>
+      <p><strong>Coming assignment:</strong> Implement the same flows from LangGraph using a different framework (Google ADK, OpenAI Agents SDK, AutoGen, Crew.ai). Goal: understand that LangGraph fundamentals transfer to any framework. "Just keep this thing in your mind — we have understood all the basics from LangGraph. Now, basically, we can implement all this stuff in the other framework also."</p>
+    </div>
+  </section>
+
+  <!-- Q&A HIGHLIGHTS -->
+  <section id="qa-highlights">
+    <div class="section-eyebrow">11 — Q&A</div>
+    <h2>Q&A Highlights</h2>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">When selecting an LLM for an Agentic system, is there any criteria based on our domain (like using domain-specific models as we did in the NLP/Word2Vec era)?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">No — you can use a general-purpose LLM from OpenAI, Anthropic, Gemini, or Meta regardless of your domain. The era of domain-specific BERT-like models is largely obsolete for Agentic workflows. Modern general-purpose LLMs (GPT-4, Claude, Llama) have broad enough knowledge to handle domain queries effectively. For extreme domain specialisation (legal, medical), you can fine-tune a general LLM on domain data — but this is a separate concern from tool selection.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">How are Agents integrated in the real world? Is deployment within the scope of a GenAI engineer?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Yes — you deploy the agent to a cloud platform (AWS, GCP, Azure) and it runs as a live application on a server. An agent is just code — you expose it via a FastAPI or similar API endpoint, and end users interact through a UI or direct API call. Deployment is covered in the final project phase of the bootcamp (3–4 end-to-end projects with cloud deployment). "An agent is also a codebase, right? We'll be deploying our application so that the end user can interact."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Swati</div>
+      <div class="qa-question">Is tool engineering a separate topic in interviews, and what happens when there are hundreds of tools?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">Tool engineering is part of Agentic AI — not a separate topic. For the number of tools: it's not always 100 or 200 tools. It depends entirely on your use case. If you're building for a specific enterprise, requirements come from that enterprise. A focused internal HR bot might have 5 tools; a general-purpose agent might have 50. Use the deterministic approach for fewer, well-defined operations; use dynamic tool calling only when the LLM genuinely needs to choose dynamically. "It depends on the use case, actually."</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Bala</div>
+      <div class="qa-question">How does the LLM know which tool to call next when results are chained? Does it re-read all tools each time?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">The LLM has access to all bound tools on every call. The key is the MessagesState — it accumulates ALL messages in a list (HumanMessage, AIMessage with tool_calls, ToolMessage with result, next AIMessage, etc.). On every call to the LLM agent node, the full message history is passed. So when the LLM sees a ToolMessage containing "4" (from the add tool), it knows the first operation is done and can proceed to request the multiply tool with a=4. The growing message list IS the agent's working memory within one execution.</div>
+    </div>
+
+    <div class="qa-block">
+      <div class="qa-qlabel">Q — Shivaay</div>
+      <div class="qa-question">If I have 10 different functions/agents for different use cases, and a user asks something that crosses multiple, how does the system decide which to call?</div>
+      <div class="qa-alabel">A — Sunny</div>
+      <div class="qa-answer">In the dynamic (tool-based) approach: you bind all tools to the LLM, and the LLM reads the query, reasons about it, and selects the appropriate tool(s). For a query about traffic in Koramangala, if you have a traffic data tool and a mapping tool, the LLM reads both tool descriptions and decides which to call, in what order. The tool descriptions (docstrings) are critical — they must be clear and specific so the LLM can distinguish between tools. In the deterministic approach: you write the routing logic yourself — the supervisor LLM node uses structured output to explicitly select a node/route.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">12 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Class 42 Concept Check</h3>
+
+      <div class="quiz-q">
+        <p>1. What is the difference between <code>bind_tools()</code> and <code>with_structured_output()</code>? When is each used?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">bind_tools(tools): Attaches tool schemas to the LLM. The LLM now knows what external capabilities are available and can choose to invoke them. Used in ReAct agents where the LLM needs to dynamically select and call tools. When the LLM uses a tool, it returns an AIMessage with empty content and a tool_calls field — the tool has NOT been called yet, only the intent expressed. with_structured_output(schema): Forces the LLM's response to match a specific Pydantic or TypedDict schema. No tool calling — used when you need the LLM's text output to be parseable structured data. Used in Class 41's routing supervisor: llm.with_structured_output(RouteDecision) forced the LLM to output exactly {"route": "rag"|"llm"|"web", "reasoning": "..."}. bind_tools = "you may call tools if needed." with_structured_output = "your output MUST match this schema."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. What is a ToolMessage and when does it appear in the MessagesState?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">ToolMessage is the 4th message type (alongside HumanMessage, AIMessage, SystemMessage). It carries the result of a tool execution back into the message history. When does it appear: (1) LLM generates AIMessage with tool_calls=[{name, args}], (2) ToolNode executes the named tool with the provided args, (3) ToolNode wraps the result in ToolMessage(content=str(result), tool_call_id=...) and appends it to state. The LLM reads the ToolMessage on its next invocation to understand what the tool returned. Each tool call + result pair adds exactly one AIMessage (with tool_calls) + one ToolMessage to the state. For a 2-step calculation (add → multiply), the state contains: HumanMessage → AIMessage (add call) → ToolMessage (4) → AIMessage (multiply call) → ToolMessage (40) → AIMessage (final answer).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. Why does Sunny recommend writing a custom <code>should_continue</code> function instead of using the pre-built <code>tools_condition</code>?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Sunny's reasoning: "To write a custom method, I think that's more flexible. From now onwards, we'll be using our custom functionality only, instead of relying much over the inbuilt functionality of LangGraph." The pre-built tools_condition is a black box — you can't see or modify its decision logic. A custom should_continue function gives you: (1) Full visibility into what condition is being checked. (2) Ability to add additional conditions (e.g. maximum iteration count to prevent infinite loops, error handling, custom routing logic). (3) Better understanding of the underlying mechanism for interviews and debugging. The custom function is simple: check if messages[-1].tool_calls exists and is non-empty → return "tools"; otherwise return END.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. What is the fundamental difference between a dynamic (tool-based) approach and a deterministic (node-based) approach? When should you choose each?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Dynamic (Tool-Based, Open-Ended Agent): Bind all tools to the LLM. One ToolNode contains all tools. The LLM dynamically decides at runtime which tool to call. Advantages: flexible, scalable (add more tools without graph changes), LLM reasons across tools. Disadvantages: LLM may select wrong tool, harder to debug, unpredictable, higher risk in production. Deterministic (Node-Based, Workflow): Each functionality is its own node. Supervisor LLM uses structured output or explicit conditional edges to route between nodes. You control every path manually. Advantages: predictable, auditable, debuggable, safer for regulated/critical flows. Disadvantages: more development effort, less flexible (adding a new operation requires a new node + routing). Sunny's advice: "If you are able to perform this entire thing with the deterministic approach, do it — it is more deterministic, more secure. Use tools only when the LLM should dynamically choose capability."</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Walk through every step of how the ReAct graph handles the query "(2+2) × 10" — from input to final output.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Step 1: HumanMessage("(2+2) × 10") is passed to StateGraph via invoke(). START → LLM Agent Node. Step 2: LLM reads message + system prompt + all tools. It reasons: "Order of operations: addition first. I'll call the add tool with a=2, b=2." Returns AIMessage(content="", tool_calls=[add(a=2, b=2)]). Step 3: should_continue checks: tool_calls non-empty → return "tools" → routes to ToolNode. Step 4: ToolNode executes add(2, 2) = 4. Returns ToolMessage(content="4"). Appended to state. Step 5: Edge from "tools" → "agent". LLM reads full history (HumanMessage + AIMessage with add call + ToolMessage "4"). Reasons: "add done, result is 4. Now multiply 4 by 10." Returns AIMessage(content="", tool_calls=[multiply(a=4, b=10)]). Step 6: should_continue: tool_calls present → route to ToolNode. ToolNode executes multiply(4, 10) = 40. Returns ToolMessage("40"). Step 7: LLM reads full history (everything + ToolMessage "40"). Reasons: "Task complete. Answer is 40." Returns AIMessage(content="The result of (2 + 2) × 10 is 40."). Step 8: should_continue: no tool_calls → return END. Graph terminates. Final state messages: [HumanMessage, AIMessage(add), ToolMessage(4), AIMessage(multiply), ToolMessage(40), AIMessage("40")].</div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 42 · Tool Engineering & ReAct Agent · 30 August 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0" target="_blank">↗ GitHub Repo</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

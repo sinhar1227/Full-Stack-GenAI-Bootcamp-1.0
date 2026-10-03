@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 29 — RAG Introduction | GenAI Bootcamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07090f;
+  --surface:   #0d1120;
+  --card:      #121829;
+  --border:    #1c2640;
+  --accent:    #22d3ee;   /* cyan — retrieval */
+  --accent2:   #f472b6;   /* pink — augmentation */
+  --accent3:   #4ade80;   /* green — generation/success */
+  --accent4:   #fb923c;   /* orange — warning/data */
+  --accent5:   #a78bfa;   /* violet — vector DB */
+  --accent6:   #facc15;   /* yellow — notes/highlight */
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --code-bg:   #0f172a;
+  --code-border:#1e3a5f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 15px; line-height: 1.75; }
+
+/* ── PROGRESS ── */
+#progress-bar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3)); z-index: 1000; transition: width 0.1s; }
+
+/* ── NAV ── */
+nav { position: fixed; top: 0; right: 0; width: 224px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); padding: 32px 20px; overflow-y: auto; z-index: 100; }
+nav h2 { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+nav ul { list-style: none; }
+nav ul li { margin-bottom: 6px; }
+nav ul li a { font-size: 0.78rem; color: var(--muted); text-decoration: none; display: block; padding: 4px 8px; border-radius: 4px; border-left: 2px solid transparent; transition: all 0.15s; }
+nav ul li a:hover, nav ul li a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(34,211,238,0.07); }
+nav ul li.sub a { padding-left: 18px; font-size: 0.72rem; }
+
+/* ── MAIN ── */
+main { margin-right: 224px; max-width: 860px; padding: 0 48px 100px 64px; }
+
+/* ── HERO ── */
+.hero { padding: 80px 0 60px; border-bottom: 1px solid var(--border); margin-bottom: 60px; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 20% 50%, rgba(34,211,238,0.06) 0%, transparent 70%); pointer-events: none; }
+.breadcrumb { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+.breadcrumb span { color: var(--accent); }
+.hero-class-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 18px; }
+.hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.meta-chip { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; }
+.meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+.hero-summary { font-size: 1rem; color: #94a3b8; max-width: 640px; line-height: 1.7; border-left: 3px solid var(--accent); padding-left: 18px; }
+
+/* ── SUNNY SAYS (direct class quote) ── */
+.sunny-says {
+  background: rgba(34,211,238,0.05);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin: 20px 0;
+  font-style: italic;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  position: relative;
+}
+.sunny-says::before { content: '🎙 Sunny (Class 29):'; display: block; font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+
+/* ── SECTIONS ── */
+section { margin-bottom: 64px; scroll-margin-top: 32px; }
+.section-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+section h2 { font-size: 1.5rem; font-weight: 600; color: #fff; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 1.05rem; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+section p { color: #94a3b8; margin-bottom: 14px; }
+
+/* ── CALLOUTS ── */
+.callout { border-radius: 8px; padding: 16px 20px; margin: 20px 0; display: flex; gap: 14px; align-items: flex-start; }
+.callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.callout p { margin: 0; font-size: 0.875rem; }
+.callout.info   { background: rgba(34,211,238,0.07);  border: 1px solid rgba(34,211,238,0.22); }
+.callout.tip    { background: rgba(74,222,128,0.07);  border: 1px solid rgba(74,222,128,0.22); }
+.callout.warn   { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.22); }
+.callout.pink   { background: rgba(244,114,182,0.07); border: 1px solid rgba(244,114,182,0.22); }
+.callout.violet { background: rgba(167,139,250,0.07); border: 1px solid rgba(167,139,250,0.22); }
+.callout.info p   { color: #67e8f9; }
+.callout.tip p    { color: var(--accent3); }
+.callout.warn p   { color: #fdba74; }
+.callout.pink p   { color: #f9a8d4; }
+.callout.violet p { color: #c4b5fd; }
+
+/* ── RAG ACRONYM VISUAL ── */
+.rag-acronym { display: flex; gap: 0; margin: 28px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.rag-letter { flex: 1; padding: 24px 20px; text-align: center; }
+.rag-letter .big { font-family: 'IBM Plex Mono', monospace; font-size: 3rem; font-weight: 700; line-height: 1; margin-bottom: 10px; }
+.rag-letter .word { font-size: 0.85rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.rag-letter .def  { font-size: 0.76rem; color: var(--muted); line-height: 1.5; }
+.rag-r { background: rgba(34,211,238,0.08);  border-right: 1px solid var(--border); }
+.rag-a { background: rgba(244,114,182,0.08); border-right: 1px solid var(--border); }
+.rag-g { background: rgba(74,222,128,0.08); }
+.rag-r .big { color: var(--accent); }
+.rag-a .big { color: var(--accent2); }
+.rag-g .big { color: var(--accent3); }
+
+/* ── PIPELINE VISUAL (inline SVG-style HTML) ── */
+.pipeline-wrap { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 28px; margin: 24px 0; overflow-x: auto; }
+.pipeline-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+.pipeline-phase { margin-bottom: 24px; }
+.pipeline-phase-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; padding: 4px 10px; border-radius: 4px; display: inline-block; }
+.phase-ingestion { color: var(--accent4); background: rgba(251,146,60,0.1); border: 1px solid rgba(251,146,60,0.25); }
+.phase-retrieval { color: var(--accent); background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25); }
+.phase-gen { color: var(--accent3); background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); }
+.flow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.flow-node { padding: 8px 14px; border-radius: 6px; font-size: 0.76rem; font-weight: 500; border: 1px solid; white-space: nowrap; }
+.node-source   { background: rgba(251,146,60,0.1);  border-color: rgba(251,146,60,0.35);  color: #fdba74; }
+.node-parse    { background: rgba(250,204,21,0.1);  border-color: rgba(250,204,21,0.35);  color: var(--accent6); }
+.node-chunk    { background: rgba(251,146,60,0.1);  border-color: rgba(251,146,60,0.35);  color: #fdba74; }
+.node-embed    { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.35); color: var(--accent5); }
+.node-vdb      { background: rgba(34,211,238,0.1);  border-color: rgba(34,211,238,0.35);  color: var(--accent); }
+.node-query    { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.35); color: var(--accent2); }
+.node-sim      { background: rgba(34,211,238,0.1);  border-color: rgba(34,211,238,0.35);  color: var(--accent); }
+.node-chunks   { background: rgba(34,211,238,0.1);  border-color: rgba(34,211,238,0.35);  color: var(--accent); }
+.node-aug      { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.35); color: var(--accent2); }
+.node-llm      { background: rgba(74,222,128,0.1);  border-color: rgba(74,222,128,0.35);  color: var(--accent3); }
+.node-out      { background: rgba(74,222,128,0.15); border-color: rgba(74,222,128,0.5);   color: var(--accent3); font-weight: 700; }
+.node-opt      { background: rgba(100,116,139,0.1); border-color: rgba(100,116,139,0.25); color: var(--muted); font-style: italic; }
+.arrow { color: var(--muted); font-size: 1rem; }
+
+/* ── PROBLEM CARDS ── */
+.problem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin: 20px 0; }
+.problem-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; border-top: 3px solid; }
+.problem-card .prob-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.problem-card h4 { font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.problem-card p  { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.55; }
+.p1 { border-top-color: #f87171; } .p1 .prob-num { color: #f87171; }
+.p2 { border-top-color: var(--accent4); } .p2 .prob-num { color: var(--accent4); }
+.p3 { border-top-color: var(--accent6); } .p3 .prob-num { color: var(--accent6); }
+.p4 { border-top-color: var(--accent5); } .p4 .prob-num { color: var(--accent5); }
+
+/* ── COMPARE TABLE ── */
+.compare-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.84rem; }
+.compare-table th { background: var(--card); color: var(--text); font-weight: 600; padding: 12px 16px; text-align: left; border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.05em; }
+.compare-table td { padding: 10px 16px; border: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+.compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.compare-table .rag  { color: var(--accent);  font-weight: 500; }
+.compare-table .ft   { color: var(--accent4); font-weight: 500; }
+.compare-table .both { color: var(--accent3); font-weight: 500; }
+
+/* ── DATA SOURCES GRID ── */
+.ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 16px 0; }
+.ds-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; text-align: center; }
+.ds-card .ds-icon { font-size: 1.4rem; margin-bottom: 6px; }
+.ds-card .ds-name { font-size: 0.76rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.ds-card .ds-eg   { font-size: 0.68rem; color: var(--muted); }
+
+/* ── PARSING TOOLS ── */
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.tool-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.tool-badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-bottom: 8px; font-weight: 600; }
+.badge-free { background: rgba(74,222,128,0.1); color: var(--accent3); border: 1px solid rgba(74,222,128,0.25); }
+.badge-paid { background: rgba(251,146,60,0.1); color: var(--accent4); border: 1px solid rgba(251,146,60,0.25); }
+.tool-card h4 { font-size: 0.85rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.tool-card p  { font-size: 0.76rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* ── VDB GRID ── */
+.vdb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 16px 0; }
+.vdb-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent5); border-radius: 0 8px 8px 0; padding: 12px 14px; }
+.vdb-card .vdb-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600; color: var(--accent5); margin-bottom: 3px; }
+.vdb-card .vdb-type { font-size: 0.68rem; color: var(--muted); }
+
+/* ── LANGCHAIN EXPLAINER ── */
+.lc-boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin: 16px 0; }
+.lc-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.lc-box .lc-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; text-transform: uppercase; }
+.lc-box h4 { font-size: 0.85rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.lc-box p  { font-size: 0.76rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+/* ── CODE BLOCKS ── */
+.code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 20px 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.code-block .lang-label { position: absolute; top: 10px; right: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+pre { font-family: 'IBM Plex Mono', monospace; font-size: 0.79rem; line-height: 1.65; color: #e2e8f0; white-space: pre; }
+.kw  { color: #c084fc; }
+.fn  { color: #67e8f9; }
+.str { color: #6ee7b7; }
+.cm  { color: #475569; font-style: italic; }
+.num { color: #f59e0b; }
+.cls { color: #818cf8; }
+
+/* ── KEY TERMS ── */
+.key-terms { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 8px; padding: 20px; margin: 24px 0; }
+.key-terms h4 { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.term { margin-bottom: 12px; }
+.term dt { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+.term dd { font-size: 0.8rem; color: var(--muted); margin-left: 0; }
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 16px 0; }
+.checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.875rem; color: #94a3b8; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li .chk { width: 18px; height: 18px; border-radius: 4px; background: rgba(34,211,238,0.1); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+/* ── QUIZ ── */
+.quiz-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 28px 0; }
+.quiz-block h3 { margin-top: 0; margin-bottom: 18px; font-size: 0.95rem; color: var(--accent5); }
+.quiz-q { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.quiz-q:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.quiz-q p { color: var(--text); font-size: 0.875rem; margin-bottom: 8px; }
+details summary { font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.05em; user-select: none; }
+details summary:hover { color: var(--accent); }
+details[open] summary { color: var(--accent); margin-bottom: 8px; }
+details .answer { font-size: 0.82rem; color: #94a3b8; background: rgba(34,211,238,0.04); border-left: 2px solid var(--accent); padding: 10px 14px; border-radius: 0 4px 4px 0; }
+
+/* ── COURSE MAP ── */
+.course-map { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 20px 0; }
+.cm-phase { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.cm-phase .cm-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.cm-phase h4 { font-size: 0.85rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.cm-phase .cm-dur { font-size: 0.72rem; color: var(--muted); margin-bottom: 8px; }
+.cm-phase ul { list-style: none; }
+.cm-phase ul li { font-size: 0.74rem; color: #94a3b8; padding: 2px 0; }
+.cm-phase ul li::before { content: '• '; color: var(--muted); }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 32px 64px; margin-right: 224px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+footer span { font-size: 0.78rem; color: var(--muted); }
+footer a { color: var(--accent); text-decoration: none; font-size: 0.78rem; }
+
+@media (max-width: 820px) {
+  nav { display: none; }
+  main { margin-right: 0; padding: 0 20px 60px; }
+  footer { margin-right: 0; padding: 24px 20px; }
+  .course-map { grid-template-columns: 1fr; }
+  .rag-acronym { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- SIDEBAR NAV -->
+<nav>
+  <h2>On This Page</h2>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#course-context">Course Context</a></li>
+    <li><a href="#what-is-rag">What is RAG?</a></li>
+    <li class="sub"><a href="#acronym">R · A · G</a></li>
+    <li class="sub"><a href="#rag-definition">Definition</a></li>
+    <li class="sub"><a href="#rag-example">Real Example</a></li>
+    <li><a href="#why-rag">Why RAG?</a></li>
+    <li class="sub"><a href="#problem1">Private Data</a></li>
+    <li class="sub"><a href="#problem2">Latest Data</a></li>
+    <li class="sub"><a href="#problem3">Hallucination</a></li>
+    <li class="sub"><a href="#problem4">vs Fine-Tuning</a></li>
+    <li><a href="#rag-pipeline">RAG Pipeline</a></li>
+    <li class="sub"><a href="#ingestion">Data Ingestion</a></li>
+    <li class="sub"><a href="#retrieval">Retrieval</a></li>
+    <li class="sub"><a href="#generation">Generation</a></li>
+    <li><a href="#data-sources">Data Sources</a></li>
+    <li><a href="#data-parsing">Data Parsing</a></li>
+    <li class="sub"><a href="#parsing-tools">Parsing Tools</a></li>
+    <li class="sub"><a href="#langchain-role">LangChain's Role</a></li>
+    <li><a href="#vector-db">Vector Databases</a></li>
+    <li><a href="#rag-vs-ft">RAG vs Fine-Tuning</a></li>
+    <li><a href="#frameworks">Frameworks</a></li>
+    <li><a href="#code">Code Example</a></li>
+    <li><a href="#quiz">Self-Check Quiz</a></li>
+    <li><a href="#resources">Resources</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="breadcrumb">Full-Stack GenAI Bootcamp 1.0 &nbsp;/&nbsp; <span>Class 29</span></div>
+    <div class="hero-class-num">Class 29 · 04 July 2026</div>
+    <h1>RAG<br><em>Introduction</em></h1>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--accent)"></span> Retrieval-Augmented Generation</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent2)"></span> LangChain</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent5)"></span> Vector Databases</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--accent4)"></span> Data Parsing</div>
+    </div>
+    <p class="hero-summary">
+      The bootcamp's biggest practical chapter begins. RAG — Retrieval-Augmented Generation — is the technique that gives LLMs access to your private, real-time, or domain-specific knowledge without retraining. Class 29 lays the full conceptual foundation: what RAG is, why we need it, its complete pipeline, and all the tools involved.
+    </p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What This Class Covers</h2>
+    <p>Based on Sunny's class notes and the live session of 4th July 2026, this is the first class of the RAG chapter — a module that will span 6–8 classes before moving on to Agentic AI.</p>
+    <ul class="checklist">
+      <li><span class="chk">✓</span> Understand the full form and meaning of RAG — Retrieval, Augmented, Generation</li>
+      <li><span class="chk">✓</span> Know the 4 core problems with plain LLMs that RAG solves</li>
+      <li><span class="chk">✓</span> Walk through the complete RAG pipeline: Data Ingestion → Retrieval → Generation</li>
+      <li><span class="chk">✓</span> Understand all 8 types of data sources that can be used in RAG</li>
+      <li><span class="chk">✓</span> Know what data parsing is, why it's needed, and which tools handle it</li>
+      <li><span class="chk">✓</span> Understand what LangChain actually does (it's a wrapper, not a parser)</li>
+      <li><span class="chk">✓</span> Know the major vector databases used in RAG systems</li>
+      <li><span class="chk">✓</span> Understand when to use RAG vs Fine-Tuning</li>
+      <li><span class="chk">✓</span> Know that RAG does NOT require GPU — runs on CPU locally</li>
+    </ul>
+  </section>
+
+  <!-- COURSE CONTEXT -->
+  <section id="course-context">
+    <div class="section-eyebrow">02 — Course Context</div>
+    <h2>Where We Are in the Bootcamp</h2>
+
+    <p>Sunny opened Class 29 by recapping the entire journey so far — 3 months of GenAI fundamentals — before introducing RAG as the start of the applied/practical phase.</p>
+
+    <div class="course-map">
+      <div class="cm-phase" style="border-top: 3px solid var(--muted);">
+        <div class="cm-title">Phase 1 (done)</div>
+        <h4>GenAI Fundamentals</h4>
+        <div class="cm-dur">~3 months · Classes 1–28</div>
+        <ul>
+          <li>Encoding & Embedding</li>
+          <li>Transformer Architecture</li>
+          <li>Various LLM Architectures</li>
+          <li>LLM Access APIs</li>
+          <li>Fine-Tuning (8–10 classes)</li>
+        </ul>
+      </div>
+      <div class="cm-phase" style="border-top: 3px solid var(--accent);">
+        <div class="cm-title">Phase 2 ← You are here</div>
+        <h4>RAG</h4>
+        <div class="cm-dur">6–8 classes · LangChain</div>
+        <ul>
+          <li>RAG Introduction ← Class 29</li>
+          <li>Data Parsing (deep dive)</li>
+          <li>Chunking Strategies</li>
+          <li>Vector Databases</li>
+          <li>Retrieval Pipeline</li>
+          <li>Advanced RAG</li>
+        </ul>
+      </div>
+      <div class="cm-phase" style="border-top: 3px solid var(--accent5);">
+        <div class="cm-title">Phase 3 (coming)</div>
+        <h4>Agentic AI</h4>
+        <div class="cm-dur">~9–10 classes · LangGraph</div>
+        <ul>
+          <li>Agentic RAG</li>
+          <li>Multi-Agent Systems</li>
+          <li>Prompt Engineering</li>
+          <li>Evaluation</li>
+          <li>Guardrails / MCP</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "RAG is a very simple topic conceptually, but it is very difficult while implementing it in a real-time, productionised system — because there are so many moving variables inside the RAG. We are going to spend around 6 to 8 classes on the RAG itself."
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💻</span>
+      <p><strong>No GPU needed for RAG!</strong> Unlike fine-tuning classes which required Google Colab T4, all RAG practical work runs on your local CPU. As Sunny explicitly confirmed: "CPU picker sakte hai — GPU is not required for this one." This makes RAG much more accessible to build and experiment with.</p>
+    </div>
+  </section>
+
+  <!-- WHAT IS RAG -->
+  <section id="what-is-rag">
+    <div class="section-eyebrow">03 — Core Concept</div>
+    <h2>What is RAG?</h2>
+
+    <h3 id="acronym">Breaking Down the Acronym</h3>
+    <div class="rag-acronym">
+      <div class="rag-letter rag-r">
+        <div class="big">R</div>
+        <div class="word">Retrieval</div>
+        <div class="def">Finding the most relevant information from your documents using similarity search</div>
+      </div>
+      <div class="rag-letter rag-a">
+        <div class="big">A</div>
+        <div class="word">Augmented</div>
+        <div class="def">Enriching the user's question by adding retrieved context before sending to the LLM</div>
+      </div>
+      <div class="rag-letter rag-g">
+        <div class="big">G</div>
+        <div class="word">Generation</div>
+        <div class="def">The LLM generates a final grounded answer using the augmented prompt + context</div>
+      </div>
+    </div>
+
+    <h3 id="rag-definition">The One-Line Definition</h3>
+    <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); border-radius: 8px; padding: 20px 24px; margin: 16px 0; text-align: center;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--muted); margin-bottom:10px; letter-spacing:0.12em; text-transform:uppercase;">From the Class Notes</div>
+      <div style="font-size:1.1rem; font-weight:600; color:#fff; line-height:1.5;">RAG = <span style="color:var(--accent)">Give relevant context</span> to the LLM <span style="color:var(--accent2)">before answering</span></div>
+    </div>
+
+    <p>RAG is a technique that helps an LLM answer questions using <strong>external data</strong> such as PDFs, documents, websites, databases, or company knowledge bases. The LLM itself doesn't need to be retrained — it simply receives the relevant document chunks as additional context alongside the user's question.</p>
+
+    <div class="key-terms">
+      <h4>📖 Precise Definitions (from class notes)</h4>
+      <div class="term">
+        <dt>Retrieval</dt>
+        <dd>Finding relevant information from documents using mathematical similarity operations (cosine similarity, dot product) in a vector database.</dd>
+      </div>
+      <div class="term">
+        <dt>Augmentation</dt>
+        <dd>Adding the retrieved information as extra context to the user's question. Improving the LLM's input by injecting retrieved context alongside any custom instructions.</dd>
+      </div>
+      <div class="term">
+        <dt>Generation</dt>
+        <dd>The LLM generates the final answer using the augmented prompt (user question + retrieved context + custom instructions).</dd>
+      </div>
+    </div>
+
+    <h3 id="rag-example">A Concrete Example (from Sunny's class)</h3>
+    <p>Sunny used this exact example throughout the class to make the concept stick:</p>
+
+    <div style="background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 8px; padding: 24px; margin: 16px 0;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:16px;">Refund Policy Example — Step by Step</div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.72rem; color:var(--accent6); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">USER QUESTION</div>
+        <div style="background:rgba(244,114,182,0.08); border:1px solid rgba(244,114,182,0.2); border-radius:6px; padding:10px 14px; font-size:0.85rem; color:var(--text);">"What is the refund policy of our company?"</div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.72rem; color:var(--muted); font-family:'IBM Plex Mono',monospace; margin-bottom:6px;">PROBLEM WITHOUT RAG</div>
+        <div style="font-size:0.82rem; color:var(--muted);">LLM doesn't have access to this private company document → may hallucinate: "ABC Company offers a 30-day refund policy" (WRONG)</div>
+      </div>
+
+      <div style="border-top:1px solid var(--border); margin: 16px 0;"></div>
+
+      <div style="font-size:0.72rem; color:var(--accent); font-family:'IBM Plex Mono',monospace; margin-bottom:10px;">WHAT RAG DOES:</div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">1</span>
+          <span style="font-size:0.84rem; color:#94a3b8;">Searches the company policy document (via similarity search — a mathematical operation on vectors)</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.3); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent); flex-shrink:0; margin-top:2px;">2</span>
+          <span style="font-size:0.84rem; color:#94a3b8;">Retrieves the relevant refund policy section from the vector database</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:rgba(244,114,182,0.15); border:1px solid rgba(244,114,182,0.3); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent2); flex-shrink:0; margin-top:2px;">3</span>
+          <span style="font-size:0.84rem; color:#94a3b8;"><strong style="color:var(--accent2)">Augments</strong> the prompt: <em>Question: "What is the refund policy?" + Context: "Refunds are allowed within 7 days of purchase."</em></span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--accent3); flex-shrink:0; margin-top:2px;">4</span>
+          <span style="font-size:0.84rem; color:#94a3b8;"><strong style="color:var(--accent3)">LLM generates</strong> the grounded answer: "The refund policy allows refunds within 7 days of purchase." ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "LLMs do not have access to the latest or private data → We retrieve relevant context from documents → We give the LLM the context + question → The LLM gives a grounded answer."
+    </div>
+  </section>
+
+  <!-- WHY RAG -->
+  <section id="why-rag">
+    <div class="section-eyebrow">04 — Motivation</div>
+    <h2>Why RAG? — The 4 Problems it Solves</h2>
+    <p>Sunny explicitly covered 4 problems with plain LLMs in the class notes and the live session. These are the core justification for RAG:</p>
+
+    <div class="problem-grid">
+      <div class="problem-card p1">
+        <div class="prob-num">Problem 1</div>
+        <h4>LLMs Do Not Have Private Data</h4>
+        <p>Company HR policies, internal documents, proprietary databases — LLMs were never trained on these. They cannot answer questions about your specific organisation's data.</p>
+      </div>
+      <div class="problem-card p2">
+        <div class="prob-num">Problem 2</div>
+        <h4>LLMs May Not Have Latest Data</h4>
+        <p>Training data has a cutoff date. Current news, recent regulations, new product releases — anything after the cutoff is unknown to the model. RAG lets you inject real-time information.</p>
+      </div>
+      <div class="problem-card p3">
+        <div class="prob-num">Problem 3</div>
+        <h4>LLMs Can Hallucinate</h4>
+        <p>Without ground truth context, LLMs generate confident but wrong answers. "ABC Company offers a 30-day refund policy" — stated confidently, completely fabricated. RAG anchors answers to retrieved facts.</p>
+      </div>
+      <div class="problem-card p4">
+        <div class="prob-num">Problem 4</div>
+        <h4>Fine-Tuning Is Not Always the Right Solution</h4>
+        <p>For every new document, you cannot fine-tune the model again. If HR policy changes every month, you update the documents in RAG — not retrain the model. RAG is better when data changes frequently.</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "We always cannot do the fine-tuning. So for every new document, we cannot fine-tune the model again and again. RAG is better when data is changing very, very frequently. Fine-tuning is an expensive process also. What we do — we take the advantage of the reasoning capability of the LLM, we provide some additional context, and based on that only we generate the final answer."
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>The RAG Logic Chain (from Sunny's notes):</strong> LLMs do not have access to latest/private data → We retrieve relevant context from documents → We give the LLM context + question → The LLM gives a grounded answer. This is the entire justification for RAG in one chain.</p>
+    </div>
+  </section>
+
+  <!-- RAG PIPELINE -->
+  <section id="rag-pipeline">
+    <div class="section-eyebrow">05 — The Pipeline</div>
+    <h2>The Complete RAG Pipeline</h2>
+    <p>From the class diagram and Sunny's explanation, the RAG pipeline has two main phases: <strong>Ingestion/Indexing</strong> (offline, done once) and <strong>Retrieval/Generation</strong> (online, done per query).</p>
+
+    <div class="pipeline-wrap">
+      <div class="pipeline-label">Complete RAG Pipeline — as taught in Class 29</div>
+
+      <!-- Phase 1: Ingestion -->
+      <div class="pipeline-phase">
+        <span class="pipeline-phase-title phase-ingestion">① Ingestion / Indexing Phase (Offline — done once)</span>
+        <div class="flow-row">
+          <div class="flow-node node-source">📄 Data Sources<br><small>PDF, DOCX, DB, Web...</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-parse">Data Parsing<br><small>Extract clean text</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-chunk">Chunking<br><small>Split into pieces</small></div>
+          <div class="flow-node node-opt">← Optional</div>
+        </div>
+        <div class="flow-row" style="margin-left:20px;">
+          <span class="arrow">↓</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-node node-embed">Embedding<br><small>Text → Vectors</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-vdb">🗄 Vector Database<br><small>Store vectors</small></div>
+        </div>
+        <div style="margin-top:8px; font-size:0.74rem; color:var(--muted); font-family:'IBM Plex Mono',monospace;">↑ All of the above = DATA INGESTION</div>
+      </div>
+
+      <!-- Phase 2: Retrieval -->
+      <div class="pipeline-phase">
+        <span class="pipeline-phase-title phase-retrieval">② Retrieval Phase (Online — per user query)</span>
+        <div class="flow-row">
+          <div class="flow-node node-query">👤 User Question</div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-embed">Query Embedding<br><small>Question → Vector</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-sim">🔍 Similarity Search<br><small>Vector DB lookup</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-chunks">Top-k Chunks<br><small>Most relevant pieces</small></div>
+        </div>
+      </div>
+
+      <!-- Phase 3: Generation -->
+      <div class="pipeline-phase">
+        <span class="pipeline-phase-title phase-gen">③ Generation Phase (Augment + Generate)</span>
+        <div class="flow-row">
+          <div class="flow-node node-aug">Augmented Prompt<br><small>Question + Context + Instructions</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-llm">🤖 LLM<br><small>OpenAI / Claude / Gemini / Ollama</small></div>
+          <span class="arrow">→</span>
+          <div class="flow-node node-out">✅ Final Answer</div>
+        </div>
+        <div style="margin-top:8px; font-size:0.74rem; color:var(--muted); font-family:'IBM Plex Mono',monospace;">Augmentation = User Question + Retrieved Context + Custom Instructions</div>
+      </div>
+    </div>
+
+    <h3 id="ingestion">Phase 1 — Data Ingestion (Deep Dive)</h3>
+    <p>Data ingestion is the offline pipeline that prepares your knowledge base. It runs once (or whenever documents are updated). The steps are:</p>
+
+    <div class="key-terms" style="border-top-color: var(--accent4);">
+      <h4 style="color:var(--accent4);">🔶 Data Ingestion Components</h4>
+      <div class="term">
+        <dt>1. Data Parsing (Document AI)</dt>
+        <dd>Extracting clean, structured content from raw source files. This is the hardest step — different parsers are needed for PDFs, DOCX, images, tables, web pages, etc.</dd>
+      </div>
+      <div class="term">
+        <dt>2. Chunking</dt>
+        <dd>Dividing parsed text into smaller pieces (chunks). This step is marked as "optional" on the class diagram — for small documents you may not need it. We'll cover chunking strategies in detail in later classes.</dd>
+      </div>
+      <div class="term">
+        <dt>3. Embedding</dt>
+        <dd>Converting each text chunk into a dense vector (using a sentence embedding model). This is mandatory — data cannot be stored in the vector database in raw text form.</dd>
+      </div>
+      <div class="term">
+        <dt>4. Vector Database Storage</dt>
+        <dd>Storing all the chunk vectors in a vector database for fast similarity retrieval at query time.</dd>
+      </div>
+    </div>
+
+    <h3 id="retrieval">Phase 2 — Retrieval (Query Time)</h3>
+    <p>When a user asks a question, the retrieval pipeline runs in real time:</p>
+    <ul style="color:#94a3b8; padding-left:20px; margin-bottom:14px; line-height:2;">
+      <li>The user's question is embedded using the <em>same</em> embedding model used for document chunks</li>
+      <li>A similarity search runs against the vector database (cosine similarity — "a mathematical operation" as Sunny described)</li>
+      <li>The top-k most similar chunks are retrieved (typically top 3–5)</li>
+    </ul>
+
+    <h3 id="generation">Phase 3 — Augmentation & Generation</h3>
+    <p>The retrieved chunks, user question, and any custom instructions are combined into an augmented prompt and sent to the LLM. The LLM uses its reasoning capability — but grounds the answer in the retrieved context, dramatically reducing hallucination.</p>
+
+    <div class="sunny-says">
+      "We have three things: first is a user question, second is the context (that is my retrieved information), and the next is some custom instruction — do this, do that, something like this. This is only called the augmentation — where we are enriching this user question just by adding some context. Then this particular information is going to the LLM. LLM is generating a final output. This is called generation."
+    </div>
+  </section>
+
+  <!-- DATA SOURCES -->
+  <section id="data-sources">
+    <div class="section-eyebrow">06 — Input Data</div>
+    <h2>8 Types of Data Sources for RAG</h2>
+    <p>Sunny listed these 8 types of raw data sources from which you can build a RAG system. Anything can be a source — RAG is not limited to PDFs:</p>
+
+    <div class="ds-grid">
+      <div class="ds-card"><div class="ds-icon">📄</div><div class="ds-name">PDF</div><div class="ds-eg">Reports, manuals, papers</div></div>
+      <div class="ds-card"><div class="ds-icon">📝</div><div class="ds-name">DOCX</div><div class="ds-eg">Word documents, policies</div></div>
+      <div class="ds-card"><div class="ds-icon">🗄</div><div class="ds-name">Internal DB</div><div class="ds-eg">SQL, NoSQL databases</div></div>
+      <div class="ds-card"><div class="ds-icon">💾</div><div class="ds-name">Database</div><div class="ds-eg">Any structured data store</div></div>
+      <div class="ds-card"><div class="ds-icon">🌐</div><div class="ds-name">Web</div><div class="ds-eg">Scraped HTML pages</div></div>
+      <div class="ds-card"><div class="ds-icon">🏢</div><div class="ds-name">Internal Portal</div><div class="ds-eg">Intranet, SharePoint</div></div>
+      <div class="ds-card"><div class="ds-icon">☁️</div><div class="ds-name">Cloud Artifactory</div><div class="ds-eg">S3, Azure Blob, GCS</div></div>
+      <div class="ds-card"><div class="ds-icon">🎵</div><div class="ds-name">Audio / Video</div><div class="ds-eg">Transcribed media content</div></div>
+    </div>
+
+    <p>Data can also be understood from 3 perspectives (from the class slides):</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:16px 0;">
+      <div style="background:var(--card); border:1px solid rgba(74,222,128,0.3); border-radius:8px; padding:14px;">
+        <div style="font-size:0.72rem; font-weight:700; color:var(--accent3); margin-bottom:8px;">1. Nature / Modality</div>
+        <div style="font-size:0.78rem; color:#94a3b8; line-height:1.8;">Text<br>Image<br>Audio<br>Video</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:14px;">
+        <div style="font-size:0.72rem; font-weight:700; color:var(--accent); margin-bottom:8px;">2. Storage Format</div>
+        <div style="font-size:0.78rem; color:#94a3b8; line-height:1.8;">PDF, DOCX<br>CSV, JSON, YAML<br>MP3, MP4</div>
+      </div>
+      <div style="background:var(--card); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:14px;">
+        <div style="font-size:0.72rem; font-weight:700; color:var(--accent5); margin-bottom:8px;">3. Structure</div>
+        <div style="font-size:0.78rem; color:#94a3b8; line-height:1.8;">Structured (CSV, SQL)<br>Semi-structured (JSON, YAML)<br>Unstructured (PDFs, Images)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA PARSING -->
+  <section id="data-parsing">
+    <div class="section-eyebrow">07 — Data Ingestion Step 1</div>
+    <h2>Data Parsing</h2>
+    <p>Data parsing is the process of <strong>fetching and arranging</strong> raw data — extracting clean text, images, tables, metadata, and layout information from source files. It's the first and often most complex step in RAG.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Why parsing matters:</strong> A PDF is not just text — it contains images, tables, headers, footers, multi-column layouts, and scanned pages. Poor parsing = noisy chunks = bad retrieval = wrong answers. "Garbage in, garbage out" fully applies here.</p>
+    </div>
+
+    <h3 id="parsing-tools">Parsing Libraries & Tools</h3>
+    <p>Sunny covered these tools in detail, marking which are free and which are paid:</p>
+
+    <div class="tools-grid">
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>PyMuPDF (fitz)</h4>
+        <p>Fast PDF text extraction, image extraction, layout info. One of the most popular Python libraries for PDF parsing.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>pdfplumber</h4>
+        <p>Excellent for extracting tables from PDFs. Built on pdfminer, easier API. Great for structured PDF data.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>python-docx</h4>
+        <p>Parse Microsoft Word (.docx) files. Extract paragraphs, tables, headers. Simple and reliable.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>Unstructured.io</h4>
+        <p>Handles many file types (PDF, DOCX, HTML, images) with one API. Very popular in RAG pipelines. Open-source core.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>Docling</h4>
+        <p>IBM's document parsing library. Handles complex layouts, tables, and multi-column PDFs with high accuracy.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-paid">Paid</span>
+        <h4>LlamaParse</h4>
+        <p>LlamaIndex's premium parser. Excellent at understanding complex PDFs. Has a free tier with limits.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-paid">Paid (Expensive)</span>
+        <h4>Azure Document Intelligence (ADI)</h4>
+        <p>Microsoft's enterprise-grade document AI. Handles OCR, layout parsing, table extraction. Costly but very powerful.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-paid">Paid</span>
+        <h4>Google Document AI (GDAI)</h4>
+        <p>Google Cloud's document understanding service. Supports OCR, form parsing, and specialised processors.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-paid">Paid</span>
+        <h4>Amazon Textract</h4>
+        <p>AWS service for extracting text and data from scanned documents. Strong for forms, tables, and handwriting.</p>
+      </div>
+      <div class="tool-card">
+        <span class="tool-badge badge-free">Free</span>
+        <h4>Parsio / Parser.io</h4>
+        <p>Document parsing with templates. Good for structured extraction from standard document formats.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <p><strong>Sunny's recommendation pattern:</strong> Free tools (PyMuPDF, pdfplumber, python-docx, Unstructured) are sufficient for most use cases. Paid services (ADI, GDAI, Textract) are expensive but worth it for enterprise-grade accuracy, scanned documents, or complex layouts. Docling and LlamaParse sit in the middle — free/cheap with high quality.</p>
+    </div>
+
+    <h3 id="langchain-role">LangChain's Role — It's a Wrapper, Not a Parser</h3>
+    <p>This was one of Sunny's key clarifications in the class. Many students assumed LangChain has its own parsing engine. It doesn't.</p>
+
+    <div class="sunny-says">
+      "LangChain is not having its own parser. It is providing you the wrapper on top of the different, different library — like PDF Plumber, like PyMuPDF, like Python-docx, like Unstructured.io. These are the actual libraries. LangChain is just a wrapper. LangChain is a framework which provides you the plug-and-play button from every other framework or every other library."
+    </div>
+
+    <div class="lc-boxes">
+      <div class="lc-box">
+        <div class="lc-num">01</div>
+        <h4>Document Loader / Parser</h4>
+        <p>LangChain wraps PyMuPDF, pdfplumber, python-docx, Unstructured — uses them internally, returns a standard Document object (page_content + metadata)</p>
+      </div>
+      <div class="lc-box">
+        <div class="lc-num">02</div>
+        <h4>Text Splitter / Chunking</h4>
+        <p>Multiple chunking strategies: RecursiveCharacterTextSplitter, TokenTextSplitter, SemanticChunker. All accessible via LangChain.</p>
+      </div>
+      <div class="lc-box">
+        <div class="lc-num">03</div>
+        <h4>Vector Database</h4>
+        <p>Wrappers for FAISS, Chroma, Qdrant, Pinecone, Supabase, pgvector, Milvus — common interface for all.</p>
+      </div>
+      <div class="lc-box">
+        <div class="lc-num">04</div>
+        <h4>Model / LLM / APIs</h4>
+        <p>Connect to OpenAI, Claude, Gemini, Groq, HuggingFace, Ollama — all through the same LangChain interface.</p>
+      </div>
+      <div class="lc-box">
+        <div class="lc-num">05</div>
+        <h4>Chains (LCEL)</h4>
+        <p>LangChain Expression Language (LCEL) — compose the full RAG pipeline as a chain of components.</p>
+      </div>
+      <div class="lc-box">
+        <div class="lc-num">06</div>
+        <h4>Memory Management</h4>
+        <p>Conversation history, context windows, summary buffers — LangChain provides memory utilities for multi-turn RAG.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VECTOR DB -->
+  <section id="vector-db">
+    <div class="section-eyebrow">08 — The Heart of RAG</div>
+    <h2>Vector Databases</h2>
+    <p>The vector database is the backbone of RAG. It stores all document chunk embeddings and enables fast nearest-neighbour similarity search at query time. From the class notes, these are the main vector databases covered:</p>
+
+    <div class="vdb-grid">
+      <div class="vdb-card"><div class="vdb-name">FAISS</div><div class="vdb-type">Facebook AI · Local · Free</div></div>
+      <div class="vdb-card"><div class="vdb-name">Chroma</div><div class="vdb-type">Open-source · Local/Cloud</div></div>
+      <div class="vdb-card"><div class="vdb-name">Qdrant</div><div class="vdb-type">Open-source · Cloud</div></div>
+      <div class="vdb-card"><div class="vdb-name">Supabase</div><div class="vdb-type">Postgres + pgvector</div></div>
+      <div class="vdb-card"><div class="vdb-name">pgvector</div><div class="vdb-type">PostgreSQL extension</div></div>
+      <div class="vdb-card"><div class="vdb-name">Milvus</div><div class="vdb-type">Open-source · Scalable</div></div>
+      <div class="vdb-card"><div class="vdb-name">Pinecone</div><div class="vdb-type">Managed · Cloud · Paid</div></div>
+      <div class="vdb-card"><div class="vdb-name">AWS OpenSearch</div><div class="vdb-type">AWS · Managed</div></div>
+      <div class="vdb-card"><div class="vdb-name">Azure AI Search</div><div class="vdb-type">Microsoft · Enterprise</div></div>
+    </div>
+
+    <div class="callout violet">
+      <span class="callout-icon">💡</span>
+      <p><strong>For beginners:</strong> Start with <strong>FAISS</strong> (local, no setup) or <strong>Chroma</strong> (easy API, local persistence). Both are free, run on CPU, and integrate perfectly with LangChain. Move to Pinecone or Qdrant Cloud when you need production-scale managed hosting.</p>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔒</span>
+      <p><strong>Important from class Q&A:</strong> A student asked "Does the user need to have access to the vector database?" — Sunny's answer: <em>"No, no, no, no. Should not have the access altogether."</em> The vector database is an internal component — users interact with your app/API, which talks to the vector DB on their behalf.</p>
+    </div>
+  </section>
+
+  <!-- RAG VS FINE-TUNING -->
+  <section id="rag-vs-ft">
+    <div class="section-eyebrow">09 — Decision Guide</div>
+    <h2>RAG vs Fine-Tuning</h2>
+    <p>From the class notes table (RAG vs Fine-tuning Quick Difference):</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr><th>Dimension</th><th style="color:var(--accent)">🔍 RAG</th><th style="color:var(--accent4)">🧠 Fine-Tuning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Main Purpose</td>
+          <td class="rag">Gives the model external knowledge/context</td>
+          <td class="ft">Teaches the model new behaviour, style, or format</td>
+        </tr>
+        <tr>
+          <td>Model weights change?</td>
+          <td class="rag">No — model is unchanged</td>
+          <td class="ft">Yes — weights are updated</td>
+        </tr>
+        <tr>
+          <td>Cost</td>
+          <td class="rag">Usually lower</td>
+          <td class="ft">Usually higher (GPU required)</td>
+        </tr>
+        <tr>
+          <td>Data update</td>
+          <td class="rag">Easy — update documents/vector DB</td>
+          <td class="ft">Harder — retrain or fine-tune again</td>
+        </tr>
+        <tr>
+          <td>Frequency of data change</td>
+          <td class="rag">Great for frequently changing data</td>
+          <td class="ft">Better for static behaviour/style changes</td>
+        </tr>
+        <tr>
+          <td>GPU required?</td>
+          <td class="rag">No — runs on CPU</td>
+          <td class="ft">Yes — GPU training required</td>
+        </tr>
+        <tr>
+          <td>Hallucination reduction</td>
+          <td class="rag">High — answers grounded in retrieved context</td>
+          <td class="ft">Moderate — depends on training data quality</td>
+        </tr>
+        <tr>
+          <td>Private/proprietary data</td>
+          <td class="rag">Excellent — no data leaves your system</td>
+          <td class="ft">Possible but expensive</td>
+        </tr>
+        <tr>
+          <td>Typical use case</td>
+          <td class="rag">Document Q&A, knowledge base, chatbot over company docs</td>
+          <td class="ft">Style adaptation, domain vocabulary, instruction following</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <span class="callout-icon">✅</span>
+      <p><strong>Decision rule:</strong> Use <strong>RAG</strong> when your data changes frequently (weekly/monthly), is private/proprietary, or is large (thousands of docs). Use <strong>Fine-Tuning</strong> when you want to change the model's behaviour, writing style, output format, or teach it domain-specific reasoning patterns. In production, you often use <strong>both</strong> — a domain-fine-tuned model with a RAG pipeline on top.</p>
+    </div>
+  </section>
+
+  <!-- FRAMEWORKS -->
+  <section id="frameworks">
+    <div class="section-eyebrow">10 — Tooling</div>
+    <h2>Frameworks: LangChain & LangGraph</h2>
+    <p>Sunny was very clear about which frameworks the bootcamp will use and why:</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; border-top:3px solid var(--accent);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">RAG Chapter</div>
+        <h3 style="margin-top:0; font-size:1.1rem; color:#fff; margin-bottom:10px;">🦜 LangChain</h3>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">The primary framework for building standard RAG pipelines. Provides document loaders, text splitters, vector store integrations, retrievers, LLM wrappers, and LCEL chain composition.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:20px; border-top:3px solid var(--accent5);">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--accent5); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Agentic AI Chapter</div>
+        <h3 style="margin-top:0; font-size:1.1rem; color:#fff; margin-bottom:10px;">🕸 LangGraph</h3>
+        <p style="font-size:0.83rem; color:#94a3b8; margin:0;">Used for Agentic RAG and orchestration. Enables stateful, multi-step workflows with nodes, edges, and conditional routing. Used with LangChain for the model calls.</p>
+      </div>
+    </div>
+
+    <div class="sunny-says">
+      "Whether we are talking about the RAG or Agentic AI, we just require these two frameworks — LangChain and LangGraph. 95% of the market is being captured by this framework only. I am an Agentic AI engineer. From the past three to four years, actively I am working in this domain. You won't believe — I haven't used any other framework than LangChain and LangGraph."
+    </div>
+
+    <div class="callout pink">
+      <span class="callout-icon">🎯</span>
+      <p><strong>Sunny's advice:</strong> Don't fall into the trap of simultaneously exploring 5–6–8 frameworks. It's not necessary. Master one framework deeply (LangChain), understand the concepts, and you can pick up any other framework quickly. The concept is the same everywhere.</p>
+    </div>
+  </section>
+
+  <!-- CODE EXAMPLE -->
+  <section id="code">
+    <div class="section-eyebrow">11 — First Look at Code</div>
+    <h2>Minimal RAG Pipeline in LangChain</h2>
+    <p>While Class 29 was mainly conceptual, here is the foundational LangChain code structure that will be built upon in subsequent classes. This mirrors the pipeline structure taught in the session:</p>
+
+    <div class="code-block">
+      <span class="lang-label">python · minimal RAG</span>
+      <pre><span class="cm">## ══════════════════════════════════════════════════════
+## CLASS 29 — RAG Introduction
+## Minimal end-to-end RAG pipeline using LangChain
+## No GPU required — runs on CPU
+## ══════════════════════════════════════════════════════</span>
+
+<span class="cm"># !pip install langchain langchain-community langchain-openai</span>
+<span class="cm"># !pip install chromadb pymupdf sentence-transformers</span>
+
+<span class="cm">## ── PHASE 1: DATA INGESTION ──────────────────────────</span>
+
+<span class="kw">from</span> langchain_community.document_loaders <span class="kw">import</span> <span class="cls">PyMuPDFLoader</span>
+<span class="kw">from</span> langchain.text_splitter <span class="kw">import</span> <span class="cls">RecursiveCharacterTextSplitter</span>
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> <span class="cls">Chroma</span>
+<span class="kw">from</span> langchain_community.embeddings <span class="kw">import</span> <span class="cls">HuggingFaceEmbeddings</span>
+
+<span class="cm"># Step 1: Data Parsing — LangChain wraps PyMuPDF internally</span>
+loader = <span class="cls">PyMuPDFLoader</span>(<span class="str">"company_policy.pdf"</span>)
+documents = loader.<span class="fn">load</span>()    <span class="cm"># Returns list of Document objects</span>
+<span class="fn">print</span>(f<span class="str">f"Loaded {len(documents)} pages"</span>)
+<span class="fn">print</span>(documents[<span class="num">0</span>].page_content[:<span class="num">200</span>])   <span class="cm"># page_content + metadata</span>
+
+<span class="cm"># Step 2: Chunking (optional but recommended)</span>
+splitter = <span class="cls">RecursiveCharacterTextSplitter</span>(
+    chunk_size    = <span class="num">500</span>,   <span class="cm"># characters per chunk</span>
+    chunk_overlap = <span class="num">50</span>,    <span class="cm"># overlap between chunks</span>
+)
+chunks = splitter.<span class="fn">split_documents</span>(documents)
+<span class="fn">print</span>(f<span class="str">f"Total chunks: {len(chunks)}"</span>)
+
+<span class="cm"># Step 3: Embedding — convert text → vectors</span>
+<span class="cm"># Using local HuggingFace model (no API key needed, runs on CPU)</span>
+embeddings = <span class="cls">HuggingFaceEmbeddings</span>(
+    model_name = <span class="str">"sentence-transformers/all-MiniLM-L6-v2"</span>
+)
+
+<span class="cm"># Step 4: Vector Database — store vectors in Chroma (local)</span>
+vectordb = <span class="cls">Chroma</span>.<span class="fn">from_documents</span>(
+    documents  = chunks,
+    embedding  = embeddings,
+    persist_directory = <span class="str">"./chroma_db"</span>   <span class="cm"># saves locally</span>
+)
+<span class="fn">print</span>(<span class="str">"✓ Data ingestion complete — vectors stored in ChromaDB"</span>)
+
+<span class="cm">## ── PHASE 2: RETRIEVAL ───────────────────────────────</span>
+
+user_query = <span class="str">"What is the refund policy of our company?"</span>
+
+<span class="cm"># Similarity search — query embedded, top-k chunks retrieved</span>
+retriever = vectordb.<span class="fn">as_retriever</span>(search_kwargs={<span class="str">"k"</span>: <span class="num">3</span>})
+relevant_chunks = retriever.<span class="fn">invoke</span>(user_query)
+
+<span class="fn">print</span>(f<span class="str">f"\nRetrieved {len(relevant_chunks)} relevant chunks:"</span>)
+<span class="kw">for</span> i, chunk <span class="kw">in</span> <span class="fn">enumerate</span>(relevant_chunks):
+    <span class="fn">print</span>(f<span class="str">f"  Chunk {i+1}: {chunk.page_content[:100]}..."</span>)
+
+<span class="cm">## ── PHASE 3: AUGMENTATION + GENERATION ──────────────</span>
+
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> <span class="cls">ChatOpenAI</span>
+<span class="kw">from</span> langchain.prompts <span class="kw">import</span> <span class="cls">ChatPromptTemplate</span>
+<span class="kw">from</span> langchain_core.output_parsers <span class="kw">import</span> <span class="cls">StrOutputParser</span>
+<span class="kw">from</span> langchain_core.runnables <span class="kw">import</span> RunnablePassthrough
+
+<span class="cm"># LLM — can also use Claude, Gemini, Groq, or local Ollama</span>
+llm = <span class="cls">ChatOpenAI</span>(model=<span class="str">"gpt-4o-mini"</span>, temperature=<span class="num">0</span>)
+
+<span class="cm"># Augmented prompt template — Question + Context + Custom Instruction</span>
+prompt = <span class="cls">ChatPromptTemplate</span>.<span class="fn">from_template</span>(<span class="str">"""
+You are a helpful assistant. Answer the question using ONLY
+the provided context. If the answer is not in the context,
+say "I don't know based on available documents."
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:"""</span>)
+
+<span class="cm"># LCEL Chain — the RAG pipeline as a chain</span>
+<span class="kw">def</span> <span class="fn">format_docs</span>(docs):
+    <span class="kw">return</span> <span class="str">"\n\n"</span>.<span class="fn">join</span>(d.page_content <span class="kw">for</span> d <span class="kw">in</span> docs)
+
+rag_chain = (
+    {<span class="str">"context"</span>: retriever | format_docs, <span class="str">"question"</span>: <span class="cls">RunnablePassthrough</span>()}
+    | prompt
+    | llm
+    | <span class="cls">StrOutputParser</span>()
+)
+
+<span class="cm"># Run the RAG pipeline</span>
+answer = rag_chain.<span class="fn">invoke</span>(user_query)
+<span class="fn">print</span>(f<span class="str">f"\nFinal Answer: {answer}"</span>)
+<span class="cm"># "The refund policy allows refunds within 7 days of purchase."</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🟢</span>
+      <p><strong>No API key for embeddings:</strong> Use <code>HuggingFaceEmbeddings</code> with <code>all-MiniLM-L6-v2</code> — it runs locally on CPU, costs nothing, and is perfect for learning. Switch to OpenAI embeddings (<code>text-embedding-3-small</code>) only for production where highest quality matters.</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <div class="section-eyebrow">12 — Self-Check</div>
+    <h2>Quiz — Test Your Understanding</h2>
+
+    <div class="quiz-block">
+      <h3>📝 Concept Check (Based on Class 29 Content)</h3>
+
+      <div class="quiz-q">
+        <p>1. What does RAG stand for, and what does each word mean in one sentence?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">RAG = Retrieval-Augmented Generation. Retrieval = finding relevant information from documents using similarity search. Augmented = enriching the user's question by adding that retrieved information as extra context. Generation = the LLM generates the final answer using the augmented prompt.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Name the 4 problems with plain LLMs that RAG solves (as covered in class).</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Problem 1: LLMs do not have private data (company documents, internal policies). Problem 2: LLMs may not have the latest data (training cutoff issue). Problem 3: LLMs can hallucinate — giving confident but wrong answers. Problem 4: Fine-tuning is not always the right solution — for frequently changing data, RAG is more appropriate and practical.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. What are the three phases of a RAG pipeline? Describe what happens in each.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Phase 1 (Data Ingestion): Raw documents are parsed → chunked (split into pieces) → embedded (converted to vectors) → stored in a vector database. This happens offline, once. Phase 2 (Retrieval): The user's question is embedded, a similarity search runs against the vector database, and the top-k most relevant chunks are returned. Phase 3 (Generation): The retrieved chunks, user question, and custom instructions are combined into an augmented prompt. The LLM uses this prompt to generate the final grounded answer.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. Sunny made a key point: LangChain is NOT a parsing library. What is it, and what does it actually do for parsing?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">LangChain is a framework that acts as a wrapper/integration layer. For parsing, it internally uses actual parsing libraries like PyMuPDF, pdfplumber, python-docx, and Unstructured.io — LangChain does not do the low-level parsing itself. It provides a common Document format (page_content + metadata) so that parsed documents plug easily into the rest of the RAG pipeline (chunking → embedding → vector store).</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. What is the key difference between RAG and Fine-Tuning in terms of model weights?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">RAG does NOT change the model's weights — the LLM remains unchanged. It simply receives more context at inference time. Fine-Tuning DOES change the model's weights — it updates the parameters during a training process. This is why RAG is cheaper, faster to update (just update the documents), and requires no GPU — while Fine-Tuning requires GPU training and is expensive to repeat whenever data changes.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>6. A student asked Sunny: "Does the user need to have access to the vector database?" What was Sunny's answer and why?</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Sunny said: "No, no, no, no. Should not have the access altogether." The vector database is an internal backend component of the RAG system. Users interact only with the application interface (e.g. a chatbot UI or API). The application handles the retrieval from the vector database on the user's behalf. Exposing the vector database directly to users would be a security risk and is architecturally incorrect.</div>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p>7. Name any 5 of the 8 data source types Sunny listed that can be used in RAG, and describe one parsing tool suitable for PDF documents.</p>
+        <details><summary>▶ Show Answer</summary>
+          <div class="answer">Any 5 from: PDF, DOCX, Internal DB, Database, Web, Internal Portal, Cloud Artifactory, Audio/Video. For PDFs: PyMuPDF (fitz) is a free, fast Python library that extracts text, images, and layout information from PDF files. pdfplumber is another excellent free option, particularly good at extracting tables from PDFs.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section id="resources">
+    <div class="section-eyebrow">13 — Further Reading</div>
+    <h2>Resources & References</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin:20px 0;">
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">📄</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">RAG Paper (Lewis et al., 2020)</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks" — the original Facebook AI paper. arXiv:2005.11401.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">🦜</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">LangChain RAG Docs</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">python.langchain.com/docs/tutorials/rag — the official RAG tutorial covering document loaders, splitters, vector stores, and LCEL chains.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">🗄</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">Chroma Documentation</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">docs.trychroma.com — the easiest vector database to start with for local RAG development. Full LangChain integration.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">🔗</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">Unstructured.io</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">unstructured.io — the most versatile free parsing library. Handles PDFs, DOCX, HTML, images, tables, and more with one API.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">📊</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">RAG Techniques (Nir Diamant)</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">github.com/NirDiamant/RAG_Techniques — 40+ notebooks on advanced RAG: chunking, query rewriting, reranking, self-RAG, and more.</p>
+      </div>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px;">
+        <div style="font-size:1.3rem; margin-bottom:8px;">🤗</div>
+        <h4 style="font-size:0.88rem; color:#fff; margin-bottom:6px;">Bootcamp GitHub (Sunny Savita)</h4>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0 — Class 29 folder with notebooks for the RAG introduction practical.</p>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:28px;">
+      <span class="callout-icon">🚀</span>
+      <p><strong>Next classes (Class 30+):</strong> Data Parsing in depth — how to handle each document type (PDF, DOCX, HTML, CSV, images, tables). Then: chunking strategies (fixed-size, recursive, semantic), embedding models comparison, and building the first complete RAG application end-to-end. The demo day for the Fine-Tuning assignment is 12th July 2026.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Class 29 · RAG Introduction · 04 July 2026 · Full-Stack GenAI Bootcamp 1.0</span>
+  <a href="https://github.com/sunnysavita10/Full-Stack-GenAI-Bootcamp-1.0/tree/main/Class-29-RAG-Introduction" target="_blank">↗ Class 29 on GitHub</a>
+</footer>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+  const sections = document.querySelectorAll('section[id], div.hero');
+  const navLinks = document.querySelectorAll('nav a');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
