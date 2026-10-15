@@ -44,3 +44,5 @@ langgraph-checkpoint-sqlite
 streamlit
 python-dotenv
 deepagent
+mcp[cli] 
+langchain[mcp]>=1.4.0
