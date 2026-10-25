@@ -9,7 +9,6 @@ from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 from starlette.applications import Starlette
 
-
 class FlightAgentExecutor(AgentExecutor):
     async def execute(
         self,
